@@ -1,0 +1,36 @@
+{
+  "name": "linear-cli",
+  "version": "1.0.0",
+  "description": "A GitHub CLI-like tool for Linear - manage issues, accounts, and more",
+  "main": "dist/index.js",
+  "bin": {
+    "linear": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "watch": "nodemon --exec ts-node src/index.ts",
+    "prepublish": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["linear", "cli", "issue-tracker", "productivity", "github-cli"],
+  "author": "Lucas Vieira",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/inquirer": "^9.0.8",
+    "@types/node": "^24.0.14",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@linear/sdk": "^52.0.0",
+    "axios": "^1.10.0",
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "dotenv": "^17.2.0",
+    "inquirer": "^12.7.0",
+    "keytar": "^7.9.0"
+  }
+}
