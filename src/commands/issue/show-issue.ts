@@ -1,14 +1,11 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { LinearAPIClient } from '../lib/linear-client';
-import { OutputFormatter } from '../lib/formatter';
+import { LinearAPIClient } from '../../lib/linear-client';
+import { OutputFormatter } from '../../lib/formatter';
 
-export function createIssueCommand(): Command {
-  const issue = new Command('issue');
-  issue.description('Manage Linear issues');
-
-  issue
-    .command('show <idOrUrl>')
+export function createShowIssueCommand(): Command {
+  return new Command('show')
+    .arguments('<idOrUrl>')
     .description('Show detailed information about an issue')
     .option('-c, --comments', 'Show comments (default: true)')
     .option('-f, --format <format>', 'Output format (default: pretty)', 'pretty')
@@ -30,22 +27,4 @@ export function createIssueCommand(): Command {
         process.exit(1);
       }
     });
-
-  issue
-    .command('branch <idOrUrl>')
-    .description('Get the suggested branch name for an issue')
-    .action(async (idOrUrl: string) => {
-      try {
-        const client = new LinearAPIClient();
-        
-        const issueData = await client.getIssueByIdOrUrl(idOrUrl);
-        console.log(issueData.branchName);
-        
-      } catch (error) {
-        console.error(chalk.red(`❌ Error fetching issue: ${error instanceof Error ? error.message : 'Unknown error'}`));
-        process.exit(1);
-      }
-    });
-
-  return issue;
 }

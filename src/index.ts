@@ -2,8 +2,8 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { createAccountCommand } from './commands/account';
-import { createIssueCommand } from './commands/issue';
+import { createAccountCommand } from './commands/account/index';
+import { createIssueCommand } from './commands/issue/index';
 
 const program = new Command();
 
