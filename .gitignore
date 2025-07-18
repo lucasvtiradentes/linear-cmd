@@ -1,2 +1,14 @@
-node_modules
-dist
+node_modules/
+dist/
+ignore/
+.env
+.env.test
+coverage/
+.vitest/
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
