@@ -55,7 +55,7 @@ export class LinearAPIClient {
     const branchName = this.generateBranchName(issue.identifier, issue.title);
 
     // Fetch pull requests if available
-    const pullRequests: any[] = [];
+    const pullRequests: IssueData['pullRequests'] = [];
     try {
       const attachments = await issue.attachments();
       for (const attachment of attachments.nodes) {
@@ -160,7 +160,7 @@ export class LinearAPIClient {
     return null;
   }
 
-  private parseIssueUrl(idOrUrl: string): { workspace: string | null, issueId: string } {
+  public parseIssueUrl(idOrUrl: string): { workspace: string | null, issueId: string } {
     // If it's a URL, extract workspace and issue identifier
     const urlMatch = idOrUrl.match(/linear\.app\/([^\/]+)\/issue\/([A-Z]+-\d+)/);
     if (urlMatch) {
@@ -177,7 +177,7 @@ export class LinearAPIClient {
     };
   }
 
-  private generateBranchName(identifier: string, title: string): string {
+  public generateBranchName(identifier: string, title: string): string {
     // Convert title to kebab-case
     const cleanTitle = title
       .toLowerCase()

@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
