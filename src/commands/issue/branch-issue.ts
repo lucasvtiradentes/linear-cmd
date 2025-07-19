@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { LinearAPIClient } from '../../lib/linear-client';
+import { LinearAPIClient } from '../../lib/linear-client.js';
 
 export function createBranchIssueCommand(): Command {
   return new Command('branch')

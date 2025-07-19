@@ -1,8 +1,8 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { OutputFormatter } from '../../lib/formatter';
-import { LinearAPIClient } from '../../lib/linear-client';
+import { OutputFormatter } from '../../lib/formatter.js';
+import { LinearAPIClient } from '../../lib/linear-client.js';
 
 export function createShowIssueCommand(): Command {
   return new Command('show')

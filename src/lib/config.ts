@@ -1,8 +1,8 @@
 // Legacy ConfigManager that wraps the new implementation
 // This maintains backward compatibility while using the new config system
 
-import { NewConfigManager } from './config-manager';
-import type { Account, Config } from '../types';
+import { NewConfigManager } from './config-manager.js';
+import type { Account, Config } from '../types/index.js';
 
 export const APP_NAME = 'linear-cli';
 
@@ -60,5 +60,5 @@ export class ConfigManager {
 }
 
 // Export the new manager for direct use
-export { NewConfigManager } from './config-manager';
-export { CONFIG_PATHS, APP_INFO } from './constants';
+export { NewConfigManager } from './config-manager.js';
+export { CONFIG_PATHS, APP_INFO } from './constants.js';

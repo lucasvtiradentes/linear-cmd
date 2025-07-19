@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 
-import { createAddAccountCommand } from './add-account';
-import { createListAccountsCommand } from './list-accounts';
-import { createRemoveAccountCommand } from './remove-account';
-import { createTestAccountsCommand } from './test-accounts';
+import { createAddAccountCommand } from './add-account.js';
+import { createListAccountsCommand } from './list-accounts.js';
+import { createRemoveAccountCommand } from './remove-account.js';
+import { createTestAccountsCommand } from './test-accounts.js';
 
 export function createAccountCommand(): Command {
   const account = new Command('account');

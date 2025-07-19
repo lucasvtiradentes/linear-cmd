@@ -3,8 +3,8 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { createAccountCommand } from './commands/account/index';
-import { createIssueCommand } from './commands/issue/index';
+import { createAccountCommand } from './commands/account/index.js';
+import { createIssueCommand } from './commands/issue/index.js';
 
 const program = new Command();
 

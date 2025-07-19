@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 
-import { ConfigManager } from '../../lib/config';
+import { ConfigManager } from '../../lib/config.js';
 
 export function createRemoveAccountCommand(): Command {
   return new Command('remove')

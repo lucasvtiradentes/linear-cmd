@@ -1,5 +1,5 @@
 // Re-export everything from config.ts
-export * from './config';
+export * from './config.js';
 
 export interface IssueData {
   id: string;

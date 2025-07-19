@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 
-import { ConfigManager } from '../../lib/config';
+import { ConfigManager } from '../../lib/config.js';
 
 export function createAddAccountCommand(): Command {
   return new Command('add').description('Add a new Linear account').action(async () => {
