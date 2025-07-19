@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as keytar from 'keytar';
-import { ConfigManager } from '../../../lib/config';
+import { ConfigManager, APP_NAME } from '../../../lib/config';
 
 vi.mock('fs');
 vi.mock('os', () => ({
@@ -12,7 +12,7 @@ vi.mock('os', () => ({
 describe('ConfigManager', () => {
   let configManager: ConfigManager;
   const mockHomeDir = '/home/test';
-  const mockConfigDir = path.join(mockHomeDir, '.linear-cli');
+  const mockConfigDir = path.join(mockHomeDir, `.${APP_NAME}`);
   const mockConfigFile = path.join(mockConfigDir, 'config.json');
 
   beforeEach(() => {
@@ -99,7 +99,7 @@ describe('ConfigManager', () => {
       
       expect(account).not.toBeNull();
       expect(account?.apiKey).toBe('secure-api-key');
-      expect(keytar.getPassword).toHaveBeenCalledWith('linear-cli', 'test-123');
+      expect(keytar.getPassword).toHaveBeenCalledWith(APP_NAME, 'test-123');
     });
   });
 

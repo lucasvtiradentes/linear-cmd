@@ -1,5 +1,5 @@
 {
-  "name": "linear-cli",
+  "name": "linear-cmd",
   "version": "1.0.0",
   "description": "A GitHub CLI-like tool for Linear - manage issues, accounts, and more",
   "main": "dist/index.js",

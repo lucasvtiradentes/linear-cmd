@@ -4,9 +4,10 @@ import * as os from 'os';
 import { Config, Account } from '../types';
 import * as keytar from 'keytar';
 
-const CONFIG_DIR = path.join(os.homedir(), '.linear-cli');
+export const APP_NAME = 'linear-cmd';
+const CONFIG_DIR = path.join(os.homedir(), `.${APP_NAME}`);
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
-const SERVICE_NAME = 'linear-cli';
+const SERVICE_NAME = APP_NAME;
 
 export class ConfigManager {
   private config: Config;

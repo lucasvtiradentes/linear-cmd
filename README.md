@@ -15,8 +15,8 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/linear-cli.git
-cd linear-cli
+git clone https://github.com/your-username/linear-cmd.git
+cd linear-cmd
 
 # Install dependencies
 npm install
