@@ -1,8 +1,8 @@
 // Legacy ConfigManager that wraps the new implementation
 // This maintains backward compatibility while using the new config system
 
-import { NewConfigManager } from './config-manager.js';
 import type { Account, Config } from '../types/index.js';
+import { NewConfigManager } from './config-manager.js';
 
 export const APP_NAME = 'linear-cli';
 
@@ -36,13 +36,13 @@ export class ConfigManager {
   listAccounts(): Account[] {
     const workspaces = this.newManager.getAllWorkspaces();
     const activeWorkspace = this.newManager.getActiveWorkspace();
-    
-    return workspaces.map(workspace => ({
+
+    return workspaces.map((workspace) => ({
       id: workspace.name,
       name: workspace.name,
       apiKey: '***', // Hide API key in list
       isActive: workspace.name === activeWorkspace?.name,
-      workspaces: workspace.workspaces,
+      workspaces: workspace.workspaces
     }));
   }
 

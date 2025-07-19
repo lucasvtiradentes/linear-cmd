@@ -12,7 +12,7 @@ export type SupportedOS = 'linux' | 'mac' | 'windows' | 'wsl';
 
 export function getUserOS(): SupportedOS {
   const platform = os.platform();
-  
+
   if (platform === 'linux') {
     // Check if running in WSL
     try {
@@ -25,17 +25,17 @@ export function getUserOS(): SupportedOS {
     }
     return 'linux';
   }
-  
+
   if (platform === 'darwin') return 'mac';
   if (platform === 'win32') return 'windows';
-  
+
   throw new Error(`Unsupported OS: ${platform}`);
 }
 
 export function getConfigDirectory(): string {
   const userOS = getUserOS();
   const homeDir = os.homedir();
-  
+
   switch (userOS) {
     case 'linux':
     case 'wsl':
@@ -53,7 +53,7 @@ export const CONFIG_PATHS = {
   configDir: getConfigDirectory(),
   userMetadataFile: path.join(getConfigDirectory(), 'user_metadata.json'),
   defaultConfigFile: path.join(getConfigDirectory(), 'config.json5'),
-  schemaUrl: APP_INFO.schema_url,
+  schemaUrl: APP_INFO.schema_url
 };
 
 export const SUPPORTED_OS: SupportedOS[] = ['linux', 'mac', 'windows', 'wsl'];

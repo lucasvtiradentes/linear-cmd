@@ -3,7 +3,7 @@ import { z } from 'zod';
 // User metadata file structure
 export const userMetadataSchema = z.object({
   config_path: z.string(),
-  active_workspace: z.string().optional(),
+  active_workspace: z.string().optional()
 });
 
 export type UserMetadata = z.infer<typeof userMetadataSchema>;
@@ -14,17 +14,19 @@ export const workspaceConfigSchema = z.object({
   api_key: z.string(),
   team_id: z.string().optional(),
   workspaces: z.array(z.string()).optional(),
-  default: z.boolean().optional(),
+  default: z.boolean().optional()
 });
 
 export const linearConfigSchema = z.object({
   $schema: z.string(),
   workspaces: z.record(z.string(), workspaceConfigSchema),
-  settings: z.object({
-    max_results: z.number().default(50),
-    date_format: z.enum(['iso', 'local', 'relative']).default('relative'),
-    auto_update_workspaces: z.boolean().default(true),
-  }).optional(),
+  settings: z
+    .object({
+      max_results: z.number().default(50),
+      date_format: z.enum(['iso', 'local', 'relative']).default('relative'),
+      auto_update_workspaces: z.boolean().default(true)
+    })
+    .optional()
 });
 
 export type WorkspaceConfig = z.infer<typeof workspaceConfigSchema>;

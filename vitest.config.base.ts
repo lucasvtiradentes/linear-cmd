@@ -13,13 +13,7 @@ export const baseConfig = defineConfig({
     coverage: {
       provider: 'c8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/index.ts'
-      ]
+      exclude: ['node_modules/', 'tests/', '**/*.d.ts', '**/*.config.*', '**/index.ts']
     }
   }
 });

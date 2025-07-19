@@ -2,9 +2,9 @@ import { vi } from 'vitest';
 
 // Mock filesystem for config files
 vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs') as any;
+  const actual = (await vi.importActual('fs')) as any;
   const mockFileSystem = new Map<string, string>();
-  
+
   return {
     ...actual,
     existsSync: vi.fn((path: string) => mockFileSystem.has(path)),
@@ -16,7 +16,7 @@ vi.mock('fs', async () => {
     writeFileSync: vi.fn((path: string, content: string) => {
       mockFileSystem.set(path, content);
     }),
-    mkdirSync: vi.fn(),
+    mkdirSync: vi.fn()
   };
 });
 

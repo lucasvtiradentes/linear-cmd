@@ -1,17 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { userMetadataSchema, linearConfigSchema } from '../types/config.js';
+import type { UserMetadata, LinearConfig, WorkspaceConfig, Account } from '../types/config.js';
 import { CONFIG_PATHS, APP_INFO } from './constants.js';
 import { readJson, writeJson, readJson5, writeJson5 } from './json-utils.js';
-import { 
-  userMetadataSchema, 
-  linearConfigSchema
-} from '../types/config.js';
-import type { 
-  UserMetadata, 
-  LinearConfig, 
-  WorkspaceConfig, 
-  Account
-} from '../types/config.js';
 
 export class NewConfigManager {
   private userMetadata: UserMetadata | null = null;
@@ -37,7 +30,7 @@ export class NewConfigManager {
 
   private createDefaultUserMetadata(): void {
     const defaultMetadata: UserMetadata = {
-      config_path: CONFIG_PATHS.defaultConfigFile,
+      config_path: CONFIG_PATHS.defaultConfigFile
     };
     writeJson(CONFIG_PATHS.userMetadataFile, defaultMetadata);
   }
@@ -65,7 +58,7 @@ export class NewConfigManager {
     }
 
     const configPath = this.getConfigPath();
-    
+
     if (!fs.existsSync(configPath)) {
       this.createDefaultConfig();
     }
@@ -87,10 +80,10 @@ export class NewConfigManager {
       settings: {
         max_results: 50,
         date_format: 'relative',
-        auto_update_workspaces: true,
-      },
+        auto_update_workspaces: true
+      }
     };
-    
+
     const configPath = this.getConfigPath();
     writeJson5(configPath, defaultConfig);
   }
@@ -99,16 +92,16 @@ export class NewConfigManager {
     if (!this.config) {
       throw new Error('No config to save');
     }
-    
+
     const configPath = this.getConfigPath();
     writeJson5(configPath, this.config);
   }
 
   // Public API Methods
-  
+
   async addWorkspace(name: string, apiKey: string, teamId?: string): Promise<void> {
     const config = this.loadConfig();
-    
+
     if (config.workspaces[name]) {
       throw new Error(`Workspace '${name}' already exists`);
     }
@@ -117,28 +110,28 @@ export class NewConfigManager {
       name,
       api_key: apiKey,
       team_id: teamId,
-      default: Object.keys(config.workspaces).length === 0, // First workspace is default
+      default: Object.keys(config.workspaces).length === 0 // First workspace is default
     };
 
     config.workspaces[name] = workspaceConfig;
-    
+
     // Set as active if it's the first one
     if (Object.keys(config.workspaces).length === 1) {
       this.setActiveWorkspace(name);
     }
-    
+
     this.saveConfig();
   }
 
   async removeWorkspace(name: string): Promise<void> {
     const config = this.loadConfig();
-    
+
     if (!config.workspaces[name]) {
       throw new Error(`Workspace '${name}' not found`);
     }
 
     delete config.workspaces[name];
-    
+
     // If removed workspace was active, set new active
     if (this.userMetadata?.active_workspace === name) {
       const remainingWorkspaces = Object.keys(config.workspaces);
@@ -148,13 +141,13 @@ export class NewConfigManager {
         this.clearActiveWorkspace();
       }
     }
-    
+
     this.saveConfig();
   }
 
   setActiveWorkspace(name: string): void {
     const config = this.loadConfig();
-    
+
     if (!config.workspaces[name]) {
       throw new Error(`Workspace '${name}' not found`);
     }
@@ -178,11 +171,11 @@ export class NewConfigManager {
 
   getActiveWorkspace(): WorkspaceConfig | null {
     const config = this.loadConfig();
-    
+
     if (!this.userMetadata?.active_workspace) {
       return null;
     }
-    
+
     const workspace = config.workspaces[this.userMetadata.active_workspace];
     return workspace || null;
   }
@@ -200,17 +193,17 @@ export class NewConfigManager {
   listWorkspaces(): Array<{ name: string; active: boolean; teamId?: string }> {
     const config = this.loadConfig();
     const activeWorkspace = this.userMetadata?.active_workspace;
-    
+
     return Object.entries(config.workspaces).map(([name, workspace]) => ({
       name,
       active: name === activeWorkspace,
-      teamId: workspace.team_id,
+      teamId: workspace.team_id
     }));
   }
 
   updateWorkspaceApiKey(name: string, apiKey: string): void {
     const config = this.loadConfig();
-    
+
     if (!config.workspaces[name]) {
       throw new Error(`Workspace '${name}' not found`);
     }
@@ -220,7 +213,7 @@ export class NewConfigManager {
   }
 
   // Legacy methods for backward compatibility
-  
+
   async getActiveAccount(): Promise<Account | null> {
     const workspace = this.getActiveWorkspace();
     if (!workspace) {
@@ -232,33 +225,31 @@ export class NewConfigManager {
       name: workspace.name,
       apiKey: workspace.api_key,
       isActive: true,
-      workspaces: workspace.workspaces,
+      workspaces: workspace.workspaces
     };
   }
 
   async getAllAccounts(): Promise<Account[]> {
     const workspaces = this.getAllWorkspaces();
     const activeWorkspace = this.userMetadata?.active_workspace;
-    
-    return workspaces.map(workspace => ({
+
+    return workspaces.map((workspace) => ({
       id: workspace.name,
       name: workspace.name,
       apiKey: workspace.api_key,
       isActive: workspace.name === activeWorkspace,
-      workspaces: workspace.workspaces,
+      workspaces: workspace.workspaces
     }));
   }
 
   listAccounts(): Account[] {
-    return this.getAllAccounts().then(accounts => 
-      accounts.map(account => ({ ...account, apiKey: '***' }))
-    ) as any; // Type hack for legacy sync method
+    return this.getAllAccounts().then((accounts) => accounts.map((account) => ({ ...account, apiKey: '***' }))) as any; // Type hack for legacy sync method
   }
 
   findAccountByWorkspace(workspace: string): Account | null {
     const workspaces = this.getAllWorkspaces();
-    const found = workspaces.find(w => w.workspaces?.includes(workspace));
-    
+    const found = workspaces.find((w) => w.workspaces?.includes(workspace));
+
     if (!found) {
       return null;
     }
@@ -268,13 +259,13 @@ export class NewConfigManager {
       name: found.name,
       apiKey: found.api_key,
       isActive: found.name === this.userMetadata?.active_workspace,
-      workspaces: found.workspaces,
+      workspaces: found.workspaces
     };
   }
 
   async updateAccountWorkspaces(accountId: string, workspaces: string[]): Promise<void> {
     const config = this.loadConfig();
-    
+
     if (!config.workspaces[accountId]) {
       throw new Error(`Workspace '${accountId}' not found`);
     }

@@ -30,6 +30,7 @@ pnpm link --global
 ## Usage
 
 ### Account Management
+
 ```bash
 linear account add          # Add workspace
 linear account list         # List workspaces
@@ -38,6 +39,7 @@ linear account test         # Test connection
 ```
 
 ### Issue Management
+
 ```bash
 linear issue show WAY-123                    # Show by ID
 linear issue show <linear-url>               # Show by URL
@@ -47,19 +49,21 @@ linear issue branch WAY-123                  # Get branch name
 ## Configuration
 
 Config file location:
+
 - **Linux/macOS**: `~/.config/linear-cli/config.json5`
 - **Windows**: `%APPDATA%\linear-cli\config.json5`
 
 Example configuration:
+
 ```json5
 {
-  "$schema": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
-  "workspaces": {
-    "personal": {
-      "name": "personal",
-      "api_key": "lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "workspaces": ["your-workspace-slug"],
-      "default": true
+  $schema: 'https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json',
+  workspaces: {
+    personal: {
+      name: 'personal',
+      api_key: 'lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+      workspaces: ['your-workspace-slug'],
+      default: true
     }
   }
 }

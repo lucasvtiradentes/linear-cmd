@@ -9,7 +9,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env.test') });
 beforeEach(() => {
   // Clear all mocks before each test
   vi.clearAllMocks();
-  
+
   // Reset modules to ensure clean state
   vi.resetModules();
 });
@@ -21,14 +21,14 @@ global.console = {
   error: vi.fn(),
   warn: vi.fn(),
   info: vi.fn(),
-  debug: vi.fn(),
+  debug: vi.fn()
 };
 
 // Mock filesystem for integration tests
 vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs') as any;
+  const actual = (await vi.importActual('fs')) as any;
   const mockFileSystem = new Map<string, string>();
-  
+
   return {
     ...actual,
     existsSync: vi.fn((path: string) => mockFileSystem.has(path)),
@@ -40,7 +40,7 @@ vi.mock('fs', async () => {
     writeFileSync: vi.fn((path: string, content: string) => {
       mockFileSystem.set(path, content);
     }),
-    mkdirSync: vi.fn(),
+    mkdirSync: vi.fn()
   };
 });
 

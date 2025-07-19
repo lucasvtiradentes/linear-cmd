@@ -21,10 +21,10 @@ describe('ConfigManager', () => {
   beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks();
-    
+
     // Setup filesystem mocks
     const mockFileSystem = new Map<string, string>();
-    
+
     vi.mocked(fs.existsSync).mockImplementation((path: string) => mockFileSystem.has(path));
     vi.mocked(fs.readFileSync).mockImplementation((path: string) => {
       const content = mockFileSystem.get(path);
@@ -35,7 +35,7 @@ describe('ConfigManager', () => {
       mockFileSystem.set(path, content);
     });
     vi.mocked(fs.mkdirSync).mockImplementation(() => undefined);
-    
+
     configManager = new ConfigManager();
   });
 
@@ -46,9 +46,7 @@ describe('ConfigManager', () => {
 
     it('should initialize user metadata file', () => {
       const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
-      const userMetadataCall = writeFileCalls.find(call => 
-        call[0] === mockUserMetadataFile
-      );
+      const userMetadataCall = writeFileCalls.find((call) => call[0] === mockUserMetadataFile);
       expect(userMetadataCall).toBeDefined();
       expect(userMetadataCall![1]).toContain('config_path');
     });
@@ -57,25 +55,17 @@ describe('ConfigManager', () => {
   describe('addAccount', () => {
     it('should add a new workspace', async () => {
       await configManager.addAccount('test', 'test-api-key');
-      
+
       const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
-      const configCall = writeFileCalls.find(call => 
-        call[0] === mockConfigFile && 
-        typeof call[1] === 'string' && 
-        call[1].includes('test-api-key')
-      );
+      const configCall = writeFileCalls.find((call) => call[0] === mockConfigFile && typeof call[1] === 'string' && call[1].includes('test-api-key'));
       expect(configCall).toBeDefined();
     });
 
     it('should set first workspace as active', async () => {
       await configManager.addAccount('first', 'api-key-1');
-      
+
       const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
-      const metadataCall = writeFileCalls.find(call => 
-        call[0] === mockUserMetadataFile && 
-        typeof call[1] === 'string' && 
-        call[1].includes('first')
-      );
+      const metadataCall = writeFileCalls.find((call) => call[0] === mockUserMetadataFile && typeof call[1] === 'string' && call[1].includes('first'));
       expect(metadataCall).toBeDefined();
     });
   });
@@ -98,27 +88,21 @@ describe('ConfigManager', () => {
     it('should remove workspace', async () => {
       // First add a workspace
       await configManager.addAccount('test', 'test-api-key');
-      
+
       // Clear previous calls to focus on remove operation
       vi.mocked(fs.writeFileSync).mockClear();
-      
+
       // Then remove it
       await configManager.removeAccount('test');
-      
+
       // Verify config was updated (workspace removed)
       const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
-      const configCall = writeFileCalls.find(call => 
-        call[0] === mockConfigFile && 
-        typeof call[1] === 'string' && 
-        !call[1].includes('test-api-key') &&
-        call[1].includes('"workspaces": {}')
-      );
+      const configCall = writeFileCalls.find((call) => call[0] === mockConfigFile && typeof call[1] === 'string' && !call[1].includes('test-api-key') && call[1].includes('"workspaces": {}'));
       expect(configCall).toBeDefined();
     });
 
     it('should throw error if workspace does not exist', async () => {
-      await expect(configManager.removeAccount('nonexistent'))
-        .rejects.toThrow("Workspace 'nonexistent' not found");
+      await expect(configManager.removeAccount('nonexistent')).rejects.toThrow("Workspace 'nonexistent' not found");
     });
   });
 });

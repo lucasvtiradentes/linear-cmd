@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { createBranchIssueCommand } from '../../../src/commands/issue/branch-issue';
-import { LinearAPIClient } from '../../../src/lib/linear-client';
 import { ConfigManager } from '../../../src/lib/config';
+import { LinearAPIClient } from '../../../src/lib/linear-client';
 
 vi.mock('../../../src/lib/linear-client');
 vi.mock('../../../src/lib/config');
@@ -65,7 +66,7 @@ describe('Branch Issue Command Integration', () => {
     mockLinearClient.getIssueByIdOrUrl.mockResolvedValue(mockIssueData);
 
     const command = createBranchIssueCommand();
-    
+
     // Simulate command execution
     await command.parseAsync(['WAY-123'], { from: 'user' });
 
@@ -96,7 +97,7 @@ describe('Branch Issue Command Integration', () => {
     mockLinearClient.getIssueByIdOrUrl.mockResolvedValue(mockIssueData);
 
     const command = createBranchIssueCommand();
-    
+
     // Simulate command execution with Linear URL
     await command.parseAsync(['https://linear.app/waytech/issue/WAY-123/test-issue'], { from: 'user' });
 
@@ -105,30 +106,24 @@ describe('Branch Issue Command Integration', () => {
   });
 
   it('should handle issue not found error', async () => {
-    mockLinearClient.getIssueByIdOrUrl.mockRejectedValue(
-      new Error('Entity not found: Issue - Could not find referenced Issue.')
-    );
+    mockLinearClient.getIssueByIdOrUrl.mockRejectedValue(new Error('Entity not found: Issue - Could not find referenced Issue.'));
 
     const command = createBranchIssueCommand();
-    
+
     // Expect process.exit to be called due to error
     await expect(async () => {
       await command.parseAsync(['NOTFOUND-123'], { from: 'user' });
     }).rejects.toThrow('process.exit() was called');
 
     expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('NOTFOUND-123');
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('❌ Error fetching issue')
-    );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Entity not found')
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('❌ Error fetching issue'));
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Entity not found'));
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
   it('should handle missing required argument', async () => {
     const command = createBranchIssueCommand();
-    
+
     // Expect error when no arguments provided
     await expect(async () => {
       await command.parseAsync([], { from: 'user' });
