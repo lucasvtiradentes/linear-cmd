@@ -3,7 +3,7 @@ import * as keytar from 'keytar';
 import * as path from 'path';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-import { ConfigManager, APP_NAME } from '../../../lib/config';
+import { ConfigManager, APP_NAME } from '../../../src/lib/config';
 
 vi.mock('fs');
 vi.mock('os', () => ({

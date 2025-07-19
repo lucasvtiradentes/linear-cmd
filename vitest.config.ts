@@ -5,13 +5,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    setupFiles: ['./src/__tests__/vitest-setup.ts', './src/__tests__/setup.ts'],
+    setupFiles: ['./tests/vitest-setup.ts', './tests/setup.ts'],
     coverage: {
       provider: 'c8',
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
-        'src/__tests__/',
+        'tests/',
         '**/*.d.ts',
         '**/*.config.*',
         '**/index.ts'
