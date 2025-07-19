@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config';
 import path from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -9,15 +9,9 @@ export default defineConfig({
     coverage: {
       provider: 'c8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'tests/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/index.ts'
-      ]
+      exclude: ['node_modules/', 'tests/', '**/*.d.ts', '**/*.config.*', '**/index.ts']
     },
-    testTimeout: 30000, // 30s for E2E tests
+    testTimeout: 30000 // 30s for E2E tests
   },
   resolve: {
     alias: {

@@ -1,6 +1,7 @@
 import { LinearClient } from '@linear/sdk';
-import { ConfigManager } from './config';
+
 import { IssueData, Account } from '../types';
+import { ConfigManager } from './config';
 
 export class LinearAPIClient {
   private client: LinearClient | null = null;
@@ -31,25 +32,20 @@ export class LinearAPIClient {
   async getIssueByIdOrUrl(idOrUrl: string): Promise<IssueData> {
     // Extract workspace and issue ID from URL
     const { workspace, issueId } = this.parseIssueUrl(idOrUrl);
-    
+
     // Try to find the right account for this workspace
     const account = await this.findAccountForWorkspace(workspace, issueId);
-    
+
     if (!account) {
       throw new Error(`No account found that can access this issue. Please check your accounts and API keys.`);
     }
-    
+
     // Initialize client with the correct account
     const client = new LinearClient({ apiKey: account.apiKey });
-    
+
     // Fetch issue with all related data
     const issue = await client.issue(issueId);
-    const [state, assignee, labels, comments] = await Promise.all([
-      issue.state,
-      issue.assignee,
-      issue.labels(),
-      issue.comments()
-    ]);
+    const [state, assignee, labels, comments] = await Promise.all([issue.state, issue.assignee, issue.labels(), issue.comments()]);
 
     // Generate suggested branch name
     const branchName = this.generateBranchName(issue.identifier, issue.title);
@@ -90,11 +86,13 @@ export class LinearAPIClient {
         name: state?.name || 'Unknown',
         color: state?.color || '#000000'
       },
-      assignee: assignee ? {
-        name: assignee.name,
-        email: assignee.email
-      } : undefined,
-      labels: labels.nodes.map(label => ({
+      assignee: assignee
+        ? {
+            name: assignee.name,
+            email: assignee.email
+          }
+        : undefined,
+      labels: labels.nodes.map((label) => ({
         name: label.name,
         color: label.color
       })),
@@ -123,11 +121,11 @@ export class LinearAPIClient {
 
   private async findAccountForWorkspace(workspace: string | null, issueId: string): Promise<Account | null> {
     const accounts = await this.configManager.getAllAccounts();
-    
+
     if (!accounts.length) {
       throw new Error('No accounts configured. Please add an account first using "linear account add"');
     }
-    
+
     // If we have a workspace, try to find an account that has access to it
     if (workspace) {
       const accountByWorkspace = this.configManager.findAccountByWorkspace(workspace);
@@ -136,31 +134,31 @@ export class LinearAPIClient {
         if (apiKey) return accountByWorkspace;
       }
     }
-    
+
     // Try each account until we find one that can access this issue
     for (const account of accounts) {
       try {
         const client = new LinearClient({ apiKey: account.apiKey });
         await client.issue(issueId);
-        
+
         // Update workspace cache for this account
         if (workspace && !account.workspaces?.includes(workspace)) {
           const workspaces = account.workspaces || [];
           workspaces.push(workspace);
           await this.configManager.updateAccountWorkspaces(account.id, workspaces);
         }
-        
+
         return account;
       } catch (error) {
         // This account doesn't have access to this issue, try next one
         continue;
       }
     }
-    
+
     return null;
   }
 
-  public parseIssueUrl(idOrUrl: string): { workspace: string | null, issueId: string } {
+  public parseIssueUrl(idOrUrl: string): { workspace: string | null; issueId: string } {
     // If it's a URL, extract workspace and issue identifier
     const urlMatch = idOrUrl.match(/linear\.app\/([^\/]+)\/issue\/([A-Z]+-\d+)/);
     if (urlMatch) {
@@ -169,7 +167,7 @@ export class LinearAPIClient {
         issueId: urlMatch[2]
       };
     }
-    
+
     // Otherwise, assume it's already an issue identifier
     return {
       workspace: null,
@@ -185,16 +183,13 @@ export class LinearAPIClient {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
-    
+
     // Truncate if too long
     const maxLength = 50;
-    const truncatedTitle = cleanTitle.length > maxLength 
-      ? cleanTitle.substring(0, maxLength).replace(/-$/, '') 
-      : cleanTitle;
-    
+    const truncatedTitle = cleanTitle.length > maxLength ? cleanTitle.substring(0, maxLength).replace(/-$/, '') : cleanTitle;
+
     return `${identifier.toLowerCase()}/${truncatedTitle}`;
   }
-
 
   async testConnection(): Promise<boolean> {
     try {

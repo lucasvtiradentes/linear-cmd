@@ -1,16 +1,14 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
+
 import { createAccountCommand } from './commands/account/index';
 import { createIssueCommand } from './commands/issue/index';
 
 const program = new Command();
 
-program
-  .name('linear')
-  .description('Linear CLI - A GitHub CLI-like tool for Linear')
-  .version('1.0.0');
+program.name('linear').description('Linear CLI - A GitHub CLI-like tool for Linear').version('1.0.0');
 
 // Add commands
 program.addCommand(createAccountCommand());
@@ -19,7 +17,7 @@ program.addCommand(createIssueCommand());
 // Global help improvements
 program.configureHelp({
   sortSubcommands: true,
-  subcommandTerm: (cmd) => cmd.name(),
+  subcommandTerm: (cmd) => cmd.name()
 });
 
 // Custom help

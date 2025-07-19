@@ -1,7 +1,8 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
-import { LinearAPIClient } from '../../lib/linear-client';
+import { Command } from 'commander';
+
 import { OutputFormatter } from '../../lib/formatter';
+import { LinearAPIClient } from '../../lib/linear-client';
 
 export function createShowIssueCommand(): Command {
   return new Command('show')
@@ -12,16 +13,15 @@ export function createShowIssueCommand(): Command {
     .action(async (idOrUrl: string, options) => {
       try {
         const client = new LinearAPIClient();
-        
+
         console.log(chalk.dim('Fetching issue details...'));
         const issueData = await client.getIssueByIdOrUrl(idOrUrl);
-        
+
         if (options.format === 'json') {
           console.log(JSON.stringify(issueData, null, 2));
         } else {
           console.log(OutputFormatter.formatIssue(issueData));
         }
-        
       } catch (error) {
         console.error(chalk.red(`❌ Error fetching issue: ${error instanceof Error ? error.message : 'Unknown error'}`));
         process.exit(1);

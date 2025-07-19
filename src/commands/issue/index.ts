@@ -1,6 +1,7 @@
 import { Command } from 'commander';
-import { createShowIssueCommand } from './show-issue';
+
 import { createBranchIssueCommand } from './branch-issue';
+import { createShowIssueCommand } from './show-issue';
 
 export function createIssueCommand(): Command {
   const issue = new Command('issue');

@@ -1,6 +1,6 @@
-import { vi, beforeEach } from 'vitest';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { vi, beforeEach } from 'vitest';
 
 // Load test environment variables
 dotenv.config({ path: path.join(__dirname, '../.env.test') });
@@ -9,7 +9,7 @@ dotenv.config({ path: path.join(__dirname, '../.env.test') });
 beforeEach(() => {
   // Clear all mocks before each test
   vi.clearAllMocks();
-  
+
   // Reset modules to ensure clean state
   vi.resetModules();
 });
@@ -21,5 +21,5 @@ global.console = {
   error: vi.fn(),
   warn: vi.fn(),
   info: vi.fn(),
-  debug: vi.fn(),
+  debug: vi.fn()
 };

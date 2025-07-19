@@ -3,27 +3,27 @@ import { vi } from 'vitest';
 // Mock keytar globally
 vi.mock('keytar', () => {
   const passwordStore = new Map<string, string>();
-  
+
   const keytarMock = {
     setPassword: vi.fn(async (service: string, account: string, password: string) => {
       const key = `${service}:${account}`;
       passwordStore.set(key, password);
       return Promise.resolve();
     }),
-    
+
     getPassword: vi.fn(async (service: string, account: string) => {
       const key = `${service}:${account}`;
       return Promise.resolve(passwordStore.get(key) || null);
     }),
-    
+
     deletePassword: vi.fn(async (service: string, account: string) => {
       const key = `${service}:${account}`;
       const existed = passwordStore.has(key);
       passwordStore.delete(key);
       return Promise.resolve(existed);
-    }),
+    })
   };
-  
+
   return {
     default: keytarMock,
     ...keytarMock
@@ -50,32 +50,41 @@ vi.mock('@linear/sdk', () => {
       name: 'Test User',
       email: 'test@example.com'
     }),
-    labels: () => Promise.resolve({
-      nodes: [{
-        id: 'label-1',
-        name: 'Feature',
-        color: '#10b981'
-      }]
-    }),
-    comments: () => Promise.resolve({
-      nodes: [{
-        id: 'comment-1',
-        body: 'Test comment',
-        createdAt: new Date('2025-01-01'),
-        user: Promise.resolve({
-          id: 'user-2',
-          name: 'Commenter',
-          email: 'commenter@example.com'
-        })
-      }]
-    }),
-    attachments: () => Promise.resolve({
-      nodes: [{
-        id: 'attachment-1',
-        url: 'https://github.com/test/repo/pull/123',
-        title: 'Test PR'
-      }]
-    })
+    labels: () =>
+      Promise.resolve({
+        nodes: [
+          {
+            id: 'label-1',
+            name: 'Feature',
+            color: '#10b981'
+          }
+        ]
+      }),
+    comments: () =>
+      Promise.resolve({
+        nodes: [
+          {
+            id: 'comment-1',
+            body: 'Test comment',
+            createdAt: new Date('2025-01-01'),
+            user: Promise.resolve({
+              id: 'user-2',
+              name: 'Commenter',
+              email: 'commenter@example.com'
+            })
+          }
+        ]
+      }),
+    attachments: () =>
+      Promise.resolve({
+        nodes: [
+          {
+            id: 'attachment-1',
+            url: 'https://github.com/test/repo/pull/123',
+            title: 'Test PR'
+          }
+        ]
+      })
   };
 
   return {

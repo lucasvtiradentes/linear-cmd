@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+
 import { createAddAccountCommand } from './add-account';
 import { createListAccountsCommand } from './list-accounts';
 import { createRemoveAccountCommand } from './remove-account';

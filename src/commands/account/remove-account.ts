@@ -1,6 +1,7 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import chalk from 'chalk';
+
 import { ConfigManager } from '../../lib/config';
 
 export function createRemoveAccountCommand(): Command {
@@ -9,7 +10,7 @@ export function createRemoveAccountCommand(): Command {
     .description('Remove an account')
     .action(async (name: string) => {
       const configManager = new ConfigManager();
-      
+
       const { confirm } = await inquirer.prompt([
         {
           type: 'confirm',
