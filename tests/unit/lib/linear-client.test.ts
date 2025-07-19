@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfigManager } from '../../../src/lib/config';
 import { LinearAPIClient } from '../../../src/lib/linear-client';
-import { Account } from '../../../src/types';
 
 vi.mock('../../../src/lib/config');
 
