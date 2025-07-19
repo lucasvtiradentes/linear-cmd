@@ -1,32 +1,22 @@
 import { vi } from 'vitest';
 
-// Mock keytar globally
-vi.mock('keytar', () => {
-  const passwordStore = new Map<string, string>();
-
-  const keytarMock = {
-    setPassword: vi.fn(async (service: string, account: string, password: string) => {
-      const key = `${service}:${account}`;
-      passwordStore.set(key, password);
-      return Promise.resolve();
-    }),
-
-    getPassword: vi.fn(async (service: string, account: string) => {
-      const key = `${service}:${account}`;
-      return Promise.resolve(passwordStore.get(key) || null);
-    }),
-
-    deletePassword: vi.fn(async (service: string, account: string) => {
-      const key = `${service}:${account}`;
-      const existed = passwordStore.has(key);
-      passwordStore.delete(key);
-      return Promise.resolve(existed);
-    })
-  };
-
+// Mock filesystem for config files
+vi.mock('fs', async () => {
+  const actual = await vi.importActual('fs') as any;
+  const mockFileSystem = new Map<string, string>();
+  
   return {
-    default: keytarMock,
-    ...keytarMock
+    ...actual,
+    existsSync: vi.fn((path: string) => mockFileSystem.has(path)),
+    readFileSync: vi.fn((path: string) => {
+      const content = mockFileSystem.get(path);
+      if (!content) throw new Error(`File not found: ${path}`);
+      return content;
+    }),
+    writeFileSync: vi.fn((path: string, content: string) => {
+      mockFileSystem.set(path, content);
+    }),
+    mkdirSync: vi.fn(),
   };
 });
 

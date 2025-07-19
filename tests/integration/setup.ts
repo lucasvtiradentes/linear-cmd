@@ -24,27 +24,23 @@ global.console = {
   debug: vi.fn(),
 };
 
-// Mock keytar globally for integration tests
-vi.mock('keytar', () => {
-  const passwordStore = new Map<string, string>();
+// Mock filesystem for integration tests
+vi.mock('fs', async () => {
+  const actual = await vi.importActual('fs') as any;
+  const mockFileSystem = new Map<string, string>();
   
   return {
-    setPassword: vi.fn(async (service: string, account: string, password: string) => {
-      passwordStore.set(`${service}:${account}`, password);
+    ...actual,
+    existsSync: vi.fn((path: string) => mockFileSystem.has(path)),
+    readFileSync: vi.fn((path: string) => {
+      const content = mockFileSystem.get(path);
+      if (!content) throw new Error(`File not found: ${path}`);
+      return content;
     }),
-    getPassword: vi.fn(async (service: string, account: string) => {
-      return passwordStore.get(`${service}:${account}`) || null;
+    writeFileSync: vi.fn((path: string, content: string) => {
+      mockFileSystem.set(path, content);
     }),
-    deletePassword: vi.fn(async (service: string, account: string) => {
-      const existed = passwordStore.has(`${service}:${account}`);
-      passwordStore.delete(`${service}:${account}`);
-      return existed;
-    }),
-    default: {
-      setPassword: vi.fn(),
-      getPassword: vi.fn(),
-      deletePassword: vi.fn()
-    }
+    mkdirSync: vi.fn(),
   };
 });
 

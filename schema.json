@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
+  "title": "Linear CLI Configuration",
+  "description": "Configuration schema for Linear CLI tool",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "workspaces": {
+      "type": "object",
+      "description": "Linear workspace configurations",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Workspace name"
+            },
+            "api_key": {
+              "type": "string",
+              "description": "Linear API key for this workspace",
+              "pattern": "^lin_api_[a-zA-Z0-9]+$"
+            },
+            "team_id": {
+              "type": "string",
+              "description": "Optional team ID",
+              "pattern": "^[a-zA-Z0-9-]+$"
+            },
+            "workspaces": {
+              "type": "array",
+              "description": "List of workspace slugs this API key can access",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default": {
+              "type": "boolean",
+              "description": "Whether this is the default workspace"
+            }
+          },
+          "required": ["name", "api_key"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "description": "CLI settings",
+      "properties": {
+        "max_results": {
+          "type": "number",
+          "description": "Maximum number of results to return",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50
+        },
+        "date_format": {
+          "type": "string",
+          "description": "Date format for displaying dates",
+          "enum": ["iso", "local", "relative"],
+          "default": "relative"
+        },
+        "auto_update_workspaces": {
+          "type": "boolean",
+          "description": "Automatically update workspace cache when accessing new workspaces",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["$schema", "workspaces"],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "$schema": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
+      "workspaces": {
+        "personal": {
+          "name": "personal",
+          "api_key": "lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "workspaces": ["lucasvtiradentes"],
+          "default": true
+        },
+        "work": {
+          "name": "work",
+          "api_key": "lin_api_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+          "team_id": "team_abcd1234",
+          "workspaces": ["company-workspace"]
+        }
+      },
+      "settings": {
+        "max_results": 50,
+        "date_format": "relative",
+        "auto_update_workspaces": true
+      }
+    }
+  ]
+}

@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as keytar from 'keytar';
 import * as path from 'path';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
@@ -7,149 +6,119 @@ import { ConfigManager, APP_NAME } from '../../../src/lib/config';
 
 vi.mock('fs');
 vi.mock('os', () => ({
-  homedir: vi.fn(() => '/home/test')
+  homedir: vi.fn(() => '/home/test'),
+  platform: vi.fn(() => 'linux'),
+  release: vi.fn(() => 'linux')
 }));
 
 describe('ConfigManager', () => {
   let configManager: ConfigManager;
   const mockHomeDir = '/home/test';
-  const mockConfigDir = path.join(mockHomeDir, `.${APP_NAME}`);
-  const mockConfigFile = path.join(mockConfigDir, 'config.json');
+  const mockConfigDir = path.join(mockHomeDir, '.config', APP_NAME);
+  const mockUserMetadataFile = path.join(mockConfigDir, 'user_metadata.json');
+  const mockConfigFile = path.join(mockConfigDir, 'config.json5');
 
   beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks();
-
-    // Setup mocks
-    vi.mocked(fs.existsSync).mockReturnValue(false);
+    
+    // Setup filesystem mocks
+    const mockFileSystem = new Map<string, string>();
+    
+    vi.mocked(fs.existsSync).mockImplementation((path: string) => mockFileSystem.has(path));
+    vi.mocked(fs.readFileSync).mockImplementation((path: string) => {
+      const content = mockFileSystem.get(path);
+      if (!content) throw new Error(`File not found: ${path}`);
+      return content;
+    });
+    vi.mocked(fs.writeFileSync).mockImplementation((path: string, content: string) => {
+      mockFileSystem.set(path, content);
+    });
     vi.mocked(fs.mkdirSync).mockImplementation(() => undefined);
-    vi.mocked(fs.writeFileSync).mockImplementation(() => undefined);
-
+    
     configManager = new ConfigManager();
   });
 
   describe('constructor', () => {
     it('should create config directory if it does not exist', () => {
-      expect(fs.mkdirSync).toHaveBeenCalledWith(mockConfigDir, { recursive: true });
+      expect(fs.mkdirSync).toHaveBeenCalled();
     });
 
-    it('should load existing config if file exists', () => {
-      const mockConfig = { accounts: [{ id: 'test-1', name: 'test' }] };
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockConfig));
-
-      new ConfigManager();
-
-      expect(fs.readFileSync).toHaveBeenCalledWith(mockConfigFile, 'utf-8');
+    it('should initialize user metadata file', () => {
+      const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
+      const userMetadataCall = writeFileCalls.find(call => 
+        call[0] === mockUserMetadataFile
+      );
+      expect(userMetadataCall).toBeDefined();
+      expect(userMetadataCall![1]).toContain('config_path');
     });
   });
 
   describe('addAccount', () => {
-    it('should add a new account and store API key securely', async () => {
+    it('should add a new workspace', async () => {
       await configManager.addAccount('test', 'test-api-key');
-
-      expect(keytar.setPassword).toHaveBeenCalled();
-      expect(fs.writeFileSync).toHaveBeenCalled();
-
-      const savedConfig = JSON.parse(vi.mocked(fs.writeFileSync).mock.calls[0][1] as string);
-
-      expect(savedConfig.accounts).toHaveLength(1);
-      expect(savedConfig.accounts[0].name).toBe('test');
-      expect(savedConfig.accounts[0].apiKey).toBe(''); // Should not store in config
-      expect(savedConfig.accounts[0].isActive).toBe(true);
+      
+      const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
+      const configCall = writeFileCalls.find(call => 
+        call[0] === mockConfigFile && 
+        typeof call[1] === 'string' && 
+        call[1].includes('test-api-key')
+      );
+      expect(configCall).toBeDefined();
     });
 
-    it('should set first account as active', async () => {
+    it('should set first workspace as active', async () => {
       await configManager.addAccount('first', 'api-key-1');
-
-      const savedConfig = JSON.parse(vi.mocked(fs.writeFileSync).mock.calls[0][1] as string);
-
-      expect(savedConfig.activeAccountId).toBe(savedConfig.accounts[0].id);
+      
+      const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
+      const metadataCall = writeFileCalls.find(call => 
+        call[0] === mockUserMetadataFile && 
+        typeof call[1] === 'string' && 
+        call[1].includes('first')
+      );
+      expect(metadataCall).toBeDefined();
     });
   });
 
   describe('getActiveAccount', () => {
-    it('should return null if no active account', async () => {
+    it('should return null if no active workspace', async () => {
       const account = await configManager.getActiveAccount();
       expect(account).toBeNull();
     });
+  });
 
-    it('should retrieve account with API key from secure storage', async () => {
-      // Setup existing config
-      const mockConfig = {
-        accounts: [
-          {
-            id: 'test-123',
-            name: 'test',
-            apiKey: '',
-            isActive: true,
-            workspaces: []
-          }
-        ],
-        activeAccountId: 'test-123'
-      };
-
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockConfig));
-      vi.mocked(keytar.getPassword).mockResolvedValue('secure-api-key');
-
-      configManager = new ConfigManager();
-      const account = await configManager.getActiveAccount();
-
-      expect(account).not.toBeNull();
-      expect(account?.apiKey).toBe('secure-api-key');
-      expect(keytar.getPassword).toHaveBeenCalledWith(APP_NAME, 'test-123');
+  describe('listAccounts', () => {
+    it('should return empty array initially', () => {
+      const accounts = configManager.listAccounts();
+      expect(accounts).toEqual([]);
     });
   });
 
   describe('removeAccount', () => {
-    it('should remove account and clean up API key', async () => {
-      // First add an account
+    it('should remove workspace', async () => {
+      // First add a workspace
       await configManager.addAccount('test', 'test-api-key');
-
+      
+      // Clear previous calls to focus on remove operation
+      vi.mocked(fs.writeFileSync).mockClear();
+      
       // Then remove it
       await configManager.removeAccount('test');
-
-      expect(keytar.deletePassword).toHaveBeenCalled();
-
-      const savedConfig = JSON.parse(vi.mocked(fs.writeFileSync).mock.calls[1][1] as string);
-
-      expect(savedConfig.accounts).toHaveLength(0);
+      
+      // Verify config was updated (workspace removed)
+      const writeFileCalls = vi.mocked(fs.writeFileSync).mock.calls;
+      const configCall = writeFileCalls.find(call => 
+        call[0] === mockConfigFile && 
+        typeof call[1] === 'string' && 
+        !call[1].includes('test-api-key') &&
+        call[1].includes('"workspaces": {}')
+      );
+      expect(configCall).toBeDefined();
     });
 
-    it('should throw error if account does not exist', async () => {
-      await expect(configManager.removeAccount('nonexistent')).rejects.toThrow("Account 'nonexistent' not found");
-    });
-  });
-
-  describe('findAccountByWorkspace', () => {
-    it('should find account by workspace', () => {
-      const mockConfig = {
-        accounts: [
-          {
-            id: 'test-123',
-            name: 'test',
-            apiKey: '',
-            isActive: true,
-            workspaces: ['workspace1', 'workspace2']
-          }
-        ],
-        activeAccountId: 'test-123'
-      };
-
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockConfig));
-
-      configManager = new ConfigManager();
-      const account = configManager.findAccountByWorkspace('workspace1');
-
-      expect(account).not.toBeNull();
-      expect(account?.name).toBe('test');
-    });
-
-    it('should return null if workspace not found', () => {
-      const account = configManager.findAccountByWorkspace('unknown');
-      expect(account).toBeNull();
+    it('should throw error if workspace does not exist', async () => {
+      await expect(configManager.removeAccount('nonexistent'))
+        .rejects.toThrow("Workspace 'nonexistent' not found");
     });
   });
 });

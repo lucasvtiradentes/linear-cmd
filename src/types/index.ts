@@ -1,15 +1,5 @@
-export interface Account {
-  id: string;
-  name: string;
-  apiKey: string;
-  isActive: boolean;
-  workspaces?: string[];
-}
-
-export interface Config {
-  accounts: Account[];
-  activeAccountId?: string;
-}
+// Re-export everything from config.ts
+export * from './config';
 
 export interface IssueData {
   id: string;

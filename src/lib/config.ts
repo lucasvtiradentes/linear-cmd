@@ -1,151 +1,64 @@
-import * as fs from 'fs';
-import * as keytar from 'keytar';
-import * as os from 'os';
-import * as path from 'path';
+// Legacy ConfigManager that wraps the new implementation
+// This maintains backward compatibility while using the new config system
 
-import { Config, Account } from '../types';
+import { NewConfigManager } from './config-manager';
+import { Account, Config } from '../types';
 
-export const APP_NAME = 'linear-cmd';
-const CONFIG_DIR = path.join(os.homedir(), `.${APP_NAME}`);
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
-const SERVICE_NAME = APP_NAME;
+export const APP_NAME = 'linear-cli';
 
+/**
+ * @deprecated Use NewConfigManager directly for new code
+ * This class exists for backward compatibility
+ */
 export class ConfigManager {
-  private config: Config;
+  private newManager: NewConfigManager;
 
   constructor() {
-    this.ensureConfigDir();
-    this.config = this.loadConfig();
-  }
-
-  private ensureConfigDir(): void {
-    if (!fs.existsSync(CONFIG_DIR)) {
-      fs.mkdirSync(CONFIG_DIR, { recursive: true });
-    }
-  }
-
-  private loadConfig(): Config {
-    if (fs.existsSync(CONFIG_FILE)) {
-      const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
-      return JSON.parse(data);
-    }
-    return { accounts: [] };
-  }
-
-  private saveConfig(): void {
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(this.config, null, 2));
+    this.newManager = new NewConfigManager();
   }
 
   async addAccount(name: string, apiKey: string): Promise<void> {
-    const id = `${name}-${Date.now()}`;
-
-    // Store API key securely
-    await keytar.setPassword(SERVICE_NAME, id, apiKey);
-
-    const account: Account = {
-      id,
-      name,
-      apiKey: '', // Don't store in config file
-      isActive: this.config.accounts.length === 0,
-      workspaces: []
-    };
-
-    this.config.accounts.push(account);
-
-    if (account.isActive) {
-      this.config.activeAccountId = account.id;
-    }
-
-    this.saveConfig();
+    return this.newManager.addWorkspace(name, apiKey);
   }
 
   async getActiveAccount(): Promise<Account | null> {
-    if (!this.config.activeAccountId) {
-      return null;
-    }
-
-    const account = this.config.accounts.find((a) => a.id === this.config.activeAccountId);
-    if (!account) {
-      return null;
-    }
-
-    // Retrieve API key from secure storage
-    const apiKey = await keytar.getPassword(SERVICE_NAME, account.id);
-    if (!apiKey) {
-      throw new Error(`API key not found for account ${account.name}`);
-    }
-
-    return { ...account, apiKey };
+    return this.newManager.getActiveAccount();
   }
 
   async switchAccount(accountName: string): Promise<void> {
-    const account = this.config.accounts.find((a) => a.name === accountName);
-    if (!account) {
-      throw new Error(`Account '${accountName}' not found`);
-    }
-
-    // Update active status
-    this.config.accounts.forEach((a) => {
-      a.isActive = a.id === account.id;
-    });
-    this.config.activeAccountId = account.id;
-
-    this.saveConfig();
+    this.newManager.setActiveWorkspace(accountName);
   }
 
   async removeAccount(accountName: string): Promise<void> {
-    const accountIndex = this.config.accounts.findIndex((a) => a.name === accountName);
-    if (accountIndex === -1) {
-      throw new Error(`Account '${accountName}' not found`);
-    }
-
-    const account = this.config.accounts[accountIndex];
-
-    // Remove API key from secure storage
-    await keytar.deletePassword(SERVICE_NAME, account.id);
-
-    // Remove from config
-    this.config.accounts.splice(accountIndex, 1);
-
-    // Update active account if necessary
-    if (this.config.activeAccountId === account.id) {
-      if (this.config.accounts.length > 0) {
-        this.config.activeAccountId = this.config.accounts[0].id;
-        this.config.accounts[0].isActive = true;
-      } else {
-        this.config.activeAccountId = undefined;
-      }
-    }
-
-    this.saveConfig();
+    return this.newManager.removeWorkspace(accountName);
   }
 
   listAccounts(): Account[] {
-    return this.config.accounts.map((a) => ({ ...a, apiKey: '***' }));
+    const workspaces = this.newManager.getAllWorkspaces();
+    const activeWorkspace = this.newManager.getActiveWorkspace();
+    
+    return workspaces.map(workspace => ({
+      id: workspace.name,
+      name: workspace.name,
+      apiKey: '***', // Hide API key in list
+      isActive: workspace.name === activeWorkspace?.name,
+      workspaces: workspace.workspaces,
+    }));
   }
 
   async getAllAccounts(): Promise<Account[]> {
-    const accounts: Account[] = [];
-
-    for (const account of this.config.accounts) {
-      const apiKey = await keytar.getPassword(SERVICE_NAME, account.id);
-      if (apiKey) {
-        accounts.push({ ...account, apiKey });
-      }
-    }
-
-    return accounts;
+    return this.newManager.getAllAccounts();
   }
 
   async updateAccountWorkspaces(accountId: string, workspaces: string[]): Promise<void> {
-    const account = this.config.accounts.find((a) => a.id === accountId);
-    if (account) {
-      account.workspaces = workspaces;
-      this.saveConfig();
-    }
+    return this.newManager.updateAccountWorkspaces(accountId, workspaces);
   }
 
   findAccountByWorkspace(workspace: string): Account | null {
-    return this.config.accounts.find((a) => a.workspaces?.includes(workspace)) || null;
+    return this.newManager.findAccountByWorkspace(workspace);
   }
 }
+
+// Export the new manager for direct use
+export { NewConfigManager } from './config-manager';
+export { CONFIG_PATHS, APP_INFO } from './constants';

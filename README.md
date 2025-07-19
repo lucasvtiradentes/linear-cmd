@@ -8,7 +8,7 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 - 📋 **Issue management** - View detailed issue information including title, description, comments, and PR links
 - 🌿 **Branch suggestions** - Get suggested branch names based on issue ID and title
 - 🎨 **Beautiful output** - Colorized and formatted output with support for markdown
-- 🔒 **Secure storage** - API keys stored securely using keytar
+- 🔒 **Secure storage** - Configuration stored in secure JSON5 files with schema validation
 - 📝 **Rich help system** - Comprehensive help with examples
 
 ## Installation
@@ -37,15 +37,48 @@ npm link
 3. Create a new API key
 4. Copy the key (you'll need it for the next step)
 
-### 2. Add your first account
+### 2. Configure your workspaces
 
+The CLI uses a configuration file to manage multiple Linear workspaces. You can either:
+
+**Option A: Interactive setup**
 ```bash
-# Add your personal account
+# Add your first workspace
 linear account add
 
 # You'll be prompted for:
-# - Account name (e.g., "personal", "work")
+# - Workspace name (e.g., "personal", "work")
 # - Linear API key
+```
+
+**Option B: Manual configuration**
+Create a configuration file at:
+- **Linux/macOS**: `~/.config/linear-cli/config.json5`
+- **Windows**: `%APPDATA%\linear-cli\config.json5`
+
+```json5
+{
+  "$schema": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
+  "workspaces": {
+    "personal": {
+      "name": "personal",
+      "api_key": "lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "workspaces": ["your-workspace-slug"],
+      "default": true
+    },
+    "work": {
+      "name": "work",
+      "api_key": "lin_api_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "team_id": "team_abcd1234",
+      "workspaces": ["company-workspace"]
+    }
+  },
+  "settings": {
+    "max_results": 50,
+    "date_format": "relative",
+    "auto_update_workspaces": true
+  }
+}
 ```
 
 ### 3. Test the connection
@@ -66,22 +99,22 @@ linear issue show https://linear.app/waytech/issue/WAY-11711/qa-allow-the-same-d
 
 ## Usage
 
-### Account Management
+### Workspace Management
 
 ```bash
-# Add a new account
+# Add a new workspace
 linear account add
 
-# List all accounts
+# List all workspaces
 linear account list
 
-# Switch between accounts
+# Switch between workspaces
 linear account switch work
 
-# Remove an account
+# Remove a workspace
 linear account remove personal
 
-# Test current account connection
+# Test current workspace connection
 linear account test
 ```
 
@@ -96,12 +129,12 @@ linear issue show https://linear.app/team/issue/ABC-456/issue-title
 linear issue branch WAY-123
 ```
 
-### Multi-Account Workflow
+### Multi-Workspace Workflow
 
 ```bash
-# Set up multiple accounts
-linear account add  # Add personal account
-linear account add  # Add work account
+# Set up multiple workspaces
+linear account add  # Add personal workspace
+linear account add  # Add work workspace
 
 # Switch between them
 linear account switch personal
@@ -134,11 +167,38 @@ This tool integrates with Linear's official GraphQL API using the [@linear/sdk](
 - ✅ Comprehensive data access
 - ✅ Automatic schema updates
 
-## Security
+## Configuration & Security
 
-- API keys are stored securely using [keytar](https://www.npmjs.com/package/keytar)
-- Keys are never stored in plain text configuration files
-- Each account's API key is encrypted and stored in the system keychain
+### Configuration Structure
+
+The CLI uses a two-level configuration system:
+
+1. **User Metadata** (`user_metadata.json`): Contains workspace references and active workspace info
+2. **Main Config** (`config.json5`): Contains workspace configurations with JSON5 syntax support
+
+### Security Features
+
+- Configuration files are stored in OS-specific secure directories
+- JSON Schema validation ensures configuration integrity
+- Support for multiple workspace configurations
+- Workspace isolation for better security
+
+### Configuration Locations
+
+- **Linux**: `~/.config/linear-cli/`
+- **macOS**: `~/Library/Application Support/linear-cli/`
+- **Windows**: `%APPDATA%\linear-cli\`
+
+### Schema Validation
+
+The configuration includes JSON Schema support for IntelliSense in supported editors:
+
+```json5
+{
+  "$schema": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
+  // Your configuration...
+}
+```
 
 ## Development
 
