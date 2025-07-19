@@ -3,12 +3,14 @@ import * as path from 'path';
 import { CONFIG_PATHS, APP_INFO } from './constants';
 import { readJson, writeJson, readJson5, writeJson5 } from './json-utils';
 import { 
+  userMetadataSchema, 
+  linearConfigSchema
+} from '../types/config';
+import type { 
   UserMetadata, 
   LinearConfig, 
   WorkspaceConfig, 
-  userMetadataSchema, 
-  linearConfigSchema,
-  Account // Legacy support
+  Account
 } from '../types/config';
 
 export class NewConfigManager {

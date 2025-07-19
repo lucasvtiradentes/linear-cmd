@@ -2,7 +2,7 @@
 // This maintains backward compatibility while using the new config system
 
 import { NewConfigManager } from './config-manager';
-import { Account, Config } from '../types';
+import type { Account, Config } from '../types';
 
 export const APP_NAME = 'linear-cli';
 

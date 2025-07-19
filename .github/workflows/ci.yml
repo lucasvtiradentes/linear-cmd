@@ -10,10 +10,57 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
       - uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-          cache: npm
-      - run: npm install --no-frozen-lockfile
-      - run: npm run build
-      - run: npm run test:run
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+
+  test-unit:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:unit
+
+  test-integration:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:integration
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test:e2e

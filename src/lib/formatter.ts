@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 
-import { IssueData } from '../types';
+import type { IssueData } from '../types';
 
 export class OutputFormatter {
   static formatIssue(issue: IssueData): string {
