@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.6
+
+### Patch Changes
+
+- 3ee1125: update config schema
+
 ## 1.0.5
 
 ### Patch Changes
