@@ -7,30 +7,30 @@ vi.mock('../../../src/lib/config-manager');
 
 describe('LinearAPIClient', () => {
   let client: LinearAPIClient;
-  let mockConfigManager: Pick<ConfigManager, 'getLegacyAccounts' | 'findAccountByWorkspace' | 'updateAccountWorkspaces'>;
+  let mockConfigManager: Pick<ConfigManager, 'getAllAccounts' | 'findAccountByWorkspace' | 'updateAccountWorkspaces'>;
 
   beforeEach(() => {
     mockConfigManager = {
-      getLegacyAccounts: vi.fn().mockResolvedValue([
+      getAllAccounts: vi.fn().mockResolvedValue([
         {
           id: 'work-123',
           name: 'work',
           apiKey: 'work-api-key',
-          workspaces: ['waytech']
+          workspaces: ['work_account']
         },
         {
           id: 'personal-456',
           name: 'personal',
           apiKey: 'personal-api-key',
-          workspaces: ['lucasvtiradentes']
+          workspaces: ['personal_account']
         }
       ]),
       findAccountByWorkspace: vi.fn((workspace: string) => {
-        if (workspace === 'waytech') {
-          return { id: 'work-123', name: 'work', apiKey: 'work-api-key', isActive: true, workspaces: ['waytech'] };
+        if (workspace === 'work_account') {
+          return { name: 'work', api_key: 'work-api-key', workspaces: ['work_account'] };
         }
-        if (workspace === 'lucasvtiradentes') {
-          return { id: 'personal-456', name: 'personal', apiKey: 'personal-api-key', isActive: false, workspaces: ['lucasvtiradentes'] };
+        if (workspace === 'personal_account') {
+          return { name: 'personal', api_key: 'personal-api-key', workspaces: ['personal_account'] };
         }
         return null;
       }) as ConfigManager['findAccountByWorkspace'],
@@ -43,59 +43,59 @@ describe('LinearAPIClient', () => {
 
   describe('parseIssueUrl', () => {
     it('should extract workspace and issue ID from URL', () => {
-      const result = client.parseIssueUrl('https://linear.app/waytech/issue/WAY-123/test-issue');
+      const result = client.parseIssueUrl('https://linear.app/work_account/issue/WORK-123/test-issue');
 
       expect(result).toEqual({
-        workspace: 'waytech',
-        issueId: 'WAY-123'
+        workspace: 'work_account',
+        issueId: 'WORK-123'
       });
     });
 
     it('should handle issue ID directly', () => {
-      const result = client.parseIssueUrl('WAY-123');
+      const result = client.parseIssueUrl('WORK-123');
 
       expect(result).toEqual({
         workspace: null,
-        issueId: 'WAY-123'
+        issueId: 'WORK-123'
       });
     });
   });
 
   describe('generateBranchName', () => {
     it('should generate kebab-case branch name', () => {
-      const result = client.generateBranchName('WAY-123', 'Test Issue: With Special Characters!');
+      const result = client.generateBranchName('WORK-123', 'Test Issue: With Special Characters!');
 
-      expect(result).toBe('way-123/test-issue-with-special-characters');
+      expect(result).toBe('work-123/test-issue-with-special-characters');
     });
 
     it('should truncate long titles', () => {
       const longTitle = 'This is a very long issue title that should be truncated to avoid excessively long branch names';
-      const result = client.generateBranchName('WAY-123', longTitle);
+      const result = client.generateBranchName('WORK-123', longTitle);
 
       expect(result.length).toBeLessThanOrEqual(60); // identifier + / + 50 chars max
-      expect(result).toMatch(/^way-123\/this-is-a-very-long-issue-title-that-should-be/);
+      expect(result).toMatch(/^work-123\/this-is-a-very-long-issue-title-that-should-be/);
     });
   });
 
   describe('getIssueByIdOrUrl', () => {
     it('should fetch issue by URL with automatic account detection', async () => {
-      const issue = await client.getIssueByIdOrUrl('https://linear.app/waytech/issue/WAY-123/test-issue');
+      const issue = await client.getIssueByIdOrUrl('https://linear.app/work_account/issue/WORK-123/test-issue');
 
       expect(issue).toBeDefined();
-      expect(issue.identifier).toBe('WAY-123');
+      expect(issue.identifier).toBe('WORK-123');
       expect(issue.title).toBe('Test Issue');
-      expect(issue.branchName).toBe('way-123/test-issue');
+      expect(issue.branchName).toBe('work-123/test-issue');
     });
 
     it('should fetch issue by ID trying all accounts', async () => {
-      const issue = await client.getIssueByIdOrUrl('WAY-123');
+      const issue = await client.getIssueByIdOrUrl('WORK-123');
 
       expect(issue).toBeDefined();
-      expect(issue.identifier).toBe('WAY-123');
+      expect(issue.identifier).toBe('WORK-123');
     });
 
     it('should handle pull request attachments', async () => {
-      const issue = await client.getIssueByIdOrUrl('WAY-123');
+      const issue = await client.getIssueByIdOrUrl('WORK-123');
 
       expect(issue.pullRequests).toHaveLength(1);
       expect(issue.pullRequests[0]).toMatchObject({
@@ -106,9 +106,9 @@ describe('LinearAPIClient', () => {
     });
 
     it('should throw error when no account can access the issue', async () => {
-      vi.mocked(mockConfigManager.getLegacyAccounts).mockResolvedValue([]);
+      vi.mocked(mockConfigManager.getAllAccounts).mockResolvedValue([]);
 
-      await expect(client.getIssueByIdOrUrl('WAY-123')).rejects.toThrow('No accounts configured');
+      await expect(client.getIssueByIdOrUrl('WORK-123')).rejects.toThrow('No accounts configured');
     });
 
     it('should update workspace cache when finding new workspace', async () => {

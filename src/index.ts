@@ -30,9 +30,9 @@ program.on('--help', () => {
   console.log('  $ linear account add                     # Add a new account');
   console.log('  $ linear account list                    # List all accounts');
   console.log('  $ linear account switch work             # Switch to work account');
-  console.log('  $ linear issue show WAY-123              # Show issue by ID');
+  console.log('  $ linear issue show WORK-123              # Show issue by ID');
   console.log('  $ linear issue show <linear-url>         # Show issue by URL');
-  console.log('  $ linear issue branch WAY-123            # Get branch name for issue');
+  console.log('  $ linear issue branch WORK-123            # Get branch name for issue');
   console.log('  $ linear update                          # Update linear-cmd to latest version');
   console.log('');
   console.log(chalk.bold('Getting Started:'));

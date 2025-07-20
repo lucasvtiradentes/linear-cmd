@@ -43,10 +43,10 @@ describe('Branch Issue Command Integration', () => {
   it('should return branch name for issue', async () => {
     const mockIssueData = {
       id: 'issue-123',
-      identifier: 'WAY-123',
+      identifier: 'WORK-123',
       title: 'Integration Test Issue',
       description: 'This is a test issue.',
-      branchName: 'way-123/integration-test-issue',
+      branchName: 'work-123/integration-test-issue',
       state: {
         name: 'In Progress',
         color: '#f59e0b'
@@ -60,7 +60,7 @@ describe('Branch Issue Command Integration', () => {
       pullRequests: [],
       createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T15:30:00Z'),
-      url: 'https://linear.app/waytech/issue/WAY-123/test-issue'
+      url: 'https://linear.app/work_account/issue/WORK-123/test-issue'
     };
 
     mockLinearClient.getIssueByIdOrUrl.mockResolvedValue(mockIssueData);
@@ -68,19 +68,19 @@ describe('Branch Issue Command Integration', () => {
     const command = createBranchIssueCommand();
 
     // Simulate command execution
-    await command.parseAsync(['WAY-123'], { from: 'user' });
+    await command.parseAsync(['WORK-123'], { from: 'user' });
 
-    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('WAY-123');
-    expect(consoleLogSpy).toHaveBeenCalledWith('way-123/integration-test-issue');
+    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('WORK-123');
+    expect(consoleLogSpy).toHaveBeenCalledWith('work-123/integration-test-issue');
   });
 
   it('should handle Linear URL input', async () => {
     const mockIssueData = {
       id: 'issue-123',
-      identifier: 'WAY-123',
+      identifier: 'WORK-123',
       title: 'Integration Test Issue',
       description: 'This is a test issue.',
-      branchName: 'way-123/integration-test-issue',
+      branchName: 'work-123/integration-test-issue',
       state: {
         name: 'In Progress',
         color: '#f59e0b'
@@ -91,7 +91,7 @@ describe('Branch Issue Command Integration', () => {
       pullRequests: [],
       createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T15:30:00Z'),
-      url: 'https://linear.app/waytech/issue/WAY-123/test-issue'
+      url: 'https://linear.app/work_account/issue/WORK-123/test-issue'
     };
 
     mockLinearClient.getIssueByIdOrUrl.mockResolvedValue(mockIssueData);
@@ -99,10 +99,10 @@ describe('Branch Issue Command Integration', () => {
     const command = createBranchIssueCommand();
 
     // Simulate command execution with Linear URL
-    await command.parseAsync(['https://linear.app/waytech/issue/WAY-123/test-issue'], { from: 'user' });
+    await command.parseAsync(['https://linear.app/work_account/issue/WORK-123/test-issue'], { from: 'user' });
 
-    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('https://linear.app/waytech/issue/WAY-123/test-issue');
-    expect(consoleLogSpy).toHaveBeenCalledWith('way-123/integration-test-issue');
+    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('https://linear.app/work_account/issue/WORK-123/test-issue');
+    expect(consoleLogSpy).toHaveBeenCalledWith('work-123/integration-test-issue');
   });
 
   it('should handle issue not found error', async () => {

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import { userMetadataSchema, linearConfigSchema } from '../config.js';
-import type { UserMetadata, LinearConfig, AccountConfig, Account } from '../config.js';
+import type { UserMetadata, LinearConfig, Account } from '../config.js';
 import { CONFIG_PATHS } from './constants.js';
 import { readJson5, writeJson5 } from './json-utils.js';
 
@@ -104,14 +104,14 @@ export class ConfigManager {
       throw new Error(`Account '${name}' already exists`);
     }
 
-    const accountConfig: AccountConfig = {
+    const account: Account = {
       name,
       api_key: apiKey,
       team_id: teamId,
       default: Object.keys(config.accounts).length === 0 // First account is default
     };
 
-    config.accounts[name] = accountConfig;
+    config.accounts[name] = account;
 
     // No longer set as active automatically
 
@@ -134,12 +134,12 @@ export class ConfigManager {
 
   // Active account methods removed - accounts must be specified explicitly
 
-  getAllAccounts(): AccountConfig[] {
+  getAllAccounts(): Account[] {
     const config = this.loadConfig();
     return Object.values(config.accounts);
   }
 
-  getAccount(name: string): AccountConfig | null {
+  getAccount(name: string): Account | null {
     const config = this.loadConfig();
     return config.accounts[name] || null;
   }
@@ -164,37 +164,10 @@ export class ConfigManager {
     this.saveConfig();
   }
 
-  // Legacy methods for backward compatibility
-
-  // getActiveAccount removed - accounts must be specified explicitly
-
-  async getLegacyAccounts(): Promise<Account[]> {
-    const accounts = this.getAllAccounts();
-
-    return accounts.map((account) => ({
-      id: account.name,
-      name: account.name,
-      apiKey: account.api_key,
-      isActive: false,
-      workspaces: account.workspaces
-    }));
-  }
 
   findAccountByWorkspace(workspace: string): Account | null {
     const accounts = this.getAllAccounts();
-    const found = accounts.find((a) => a.workspaces?.includes(workspace));
-
-    if (!found) {
-      return null;
-    }
-
-    return {
-      id: found.name,
-      name: found.name,
-      apiKey: found.api_key,
-      isActive: false,
-      workspaces: found.workspaces
-    };
+    return accounts.find((a) => a.workspaces?.includes(workspace)) || null;
   }
 
   async updateAccountWorkspaces(accountId: string, workspaces: string[]): Promise<void> {

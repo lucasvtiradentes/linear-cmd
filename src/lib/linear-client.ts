@@ -45,7 +45,7 @@ export class LinearAPIClient {
     }
 
     // Initialize client with the correct account
-    const client = new LinearClient({ apiKey: account.apiKey });
+    const client = new LinearClient({ apiKey: account.api_key });
 
     // Fetch issue with all related data
     const issue = await client.issue(issueId);
@@ -124,7 +124,7 @@ export class LinearAPIClient {
   }
 
   private async findAccountForWorkspace(workspace: string | null, issueId: string): Promise<Account | null> {
-    const accounts = await this.configManager.getLegacyAccounts();
+    const accounts = await this.configManager.getAllAccounts();
 
     if (!accounts.length) {
       throw new Error('No accounts configured. Please add an account first using "linear account add"');
@@ -141,14 +141,14 @@ export class LinearAPIClient {
     // Try each account until we find one that can access this issue
     for (const account of accounts) {
       try {
-        const client = new LinearClient({ apiKey: account.apiKey });
+        const client = new LinearClient({ apiKey: account.api_key });
         await client.issue(issueId);
 
         // Update workspace cache for this account
         if (workspace && !account.workspaces?.includes(workspace)) {
           const workspaces = account.workspaces || [];
           workspaces.push(workspace);
-          await this.configManager.updateAccountWorkspaces(account.id, workspaces);
+          await this.configManager.updateAccountWorkspaces(account.name, workspaces);
         }
 
         return account;

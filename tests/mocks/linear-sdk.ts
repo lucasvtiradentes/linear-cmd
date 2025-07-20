@@ -2,10 +2,10 @@ import { vi } from 'vitest';
 
 export const mockIssue = {
   id: 'issue-123',
-  identifier: 'WAY-123',
+  identifier: 'WORK-123',
   title: 'Test Issue',
   description: 'Test description',
-  url: 'https://linear.app/test/issue/WAY-123/test-issue',
+  url: 'https://linear.app/test/issue/WORK-123/test-issue',
   createdAt: new Date('2025-01-01'),
   updatedAt: new Date('2025-01-02'),
   state: Promise.resolve({

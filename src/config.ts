@@ -8,8 +8,8 @@ export const userMetadataSchema = z.object({
 
 export type UserMetadata = z.infer<typeof userMetadataSchema>;
 
-// Main config file structure
-export const accountConfigSchema = z.object({
+// Account schema
+export const accountSchema = z.object({
   name: z.string(),
   api_key: z.string(),
   team_id: z.string().optional(),
@@ -19,7 +19,7 @@ export const accountConfigSchema = z.object({
 
 export const linearConfigSchema = z.object({
   $schema: z.string().optional(),
-  accounts: z.record(z.string(), accountConfigSchema),
+  accounts: z.record(z.string(), accountSchema),
   settings: z
     .object({
       max_results: z.number().default(50),
@@ -29,7 +29,6 @@ export const linearConfigSchema = z.object({
     .optional()
 });
 
-export type AccountConfig = z.infer<typeof accountConfigSchema>;
 export type LinearConfig = z.infer<typeof linearConfigSchema>;
 
 // Issue data structure
@@ -84,17 +83,11 @@ export const issueDataSchema = z.object({
 
 export type IssueData = z.infer<typeof issueDataSchema>;
 
-// Account interface
+// Account interface - unified type
 export interface Account {
-  id: string;
   name: string;
-  apiKey: string;
-  isActive: boolean;
+  api_key: string;
+  team_id?: string;
   workspaces?: string[];
-}
-
-// Legacy config interface for backward compatibility
-export interface Config {
-  accounts: Account[];
-  activeAccountId?: string;
+  default?: boolean;
 }

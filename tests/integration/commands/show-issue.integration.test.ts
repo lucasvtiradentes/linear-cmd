@@ -43,10 +43,10 @@ describe('Show Issue Command Integration', () => {
   it('should show issue with formatted output', async () => {
     const mockIssueData = {
       id: 'issue-123',
-      identifier: 'WAY-123',
+      identifier: 'WORK-123',
       title: 'Integration Test Issue',
       description: 'This is a **test** issue with `code` and more content.',
-      branchName: 'way-123/integration-test-issue',
+      branchName: 'work-123/integration-test-issue',
       state: {
         name: 'In Progress',
         color: '#f59e0b'
@@ -73,7 +73,7 @@ describe('Show Issue Command Integration', () => {
       ],
       createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T15:30:00Z'),
-      url: 'https://linear.app/waytech/issue/WAY-123/test-issue'
+      url: 'https://linear.app/work_account/issue/WORK-123/test-issue'
     };
 
     mockLinearClient.getIssueByIdOrUrl.mockResolvedValue(mockIssueData);
@@ -81,14 +81,14 @@ describe('Show Issue Command Integration', () => {
     const command = createShowIssueCommand();
 
     // Simulate command execution
-    await command.parseAsync(['WAY-123'], { from: 'user' });
+    await command.parseAsync(['WORK-123'], { from: 'user' });
 
-    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('WAY-123');
+    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('WORK-123');
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Fetching issue details...'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('🎯 WAY-123: Integration Test Issue'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('🎯 WORK-123: Integration Test Issue'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Status: In Progress'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Assignee: Integration Tester'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('way-123/integration-test-issue'));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('work-123/integration-test-issue'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Feature, High Priority'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Pull Requests:'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('🔄 Open #456'));
@@ -97,10 +97,10 @@ describe('Show Issue Command Integration', () => {
   it('should show issue in JSON format', async () => {
     const mockIssueData = {
       id: 'issue-123',
-      identifier: 'WAY-123',
+      identifier: 'WORK-123',
       title: 'Integration Test Issue',
       description: 'This is a test issue.',
-      branchName: 'way-123/integration-test-issue',
+      branchName: 'work-123/integration-test-issue',
       state: {
         name: 'In Progress',
         color: '#f59e0b'
@@ -114,7 +114,7 @@ describe('Show Issue Command Integration', () => {
       pullRequests: [],
       createdAt: new Date('2025-01-01T10:00:00Z'),
       updatedAt: new Date('2025-01-02T15:30:00Z'),
-      url: 'https://linear.app/waytech/issue/WAY-123/test-issue'
+      url: 'https://linear.app/work_account/issue/WORK-123/test-issue'
     };
 
     mockLinearClient.getIssueByIdOrUrl.mockResolvedValue(mockIssueData);
@@ -122,12 +122,12 @@ describe('Show Issue Command Integration', () => {
     const command = createShowIssueCommand();
 
     // Simulate command execution with JSON format
-    await command.parseAsync(['WAY-123', '--format', 'json'], { from: 'user' });
+    await command.parseAsync(['WORK-123', '--format', 'json'], { from: 'user' });
 
-    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('WAY-123');
+    expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('WORK-123');
 
     // Check that JSON was logged
-    const jsonOutput = consoleLogSpy.mock.calls.find((call) => call[0].includes('"identifier": "WAY-123"'));
+    const jsonOutput = consoleLogSpy.mock.calls.find((call) => call[0].includes('"identifier": "WORK-123"'));
     expect(jsonOutput).toBeDefined();
 
     // Parse and validate JSON structure
@@ -139,9 +139,9 @@ describe('Show Issue Command Integration', () => {
     if (loggedJson) {
       const parsedData = JSON.parse(loggedJson);
       expect(parsedData).toMatchObject({
-        identifier: 'WAY-123',
+        identifier: 'WORK-123',
         title: 'Integration Test Issue',
-        branchName: 'way-123/integration-test-issue',
+        branchName: 'work-123/integration-test-issue',
         state: {
           name: 'In Progress',
           color: '#f59e0b'

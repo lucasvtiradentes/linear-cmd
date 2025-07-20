@@ -8,7 +8,7 @@ export function createTestAccountsCommand(): Command {
   return new Command('test').description('Test all configured accounts').action(async () => {
     try {
       const configManager = new ConfigManager();
-      const accounts = await configManager.getLegacyAccounts();
+      const accounts = configManager.getAllAccounts();
 
       if (accounts.length === 0) {
         console.log(chalk.yellow('No accounts configured. Use "linear account add" to add one.'));
@@ -19,7 +19,7 @@ export function createTestAccountsCommand(): Command {
 
       for (const account of accounts) {
         try {
-          const client = new LinearClient({ apiKey: account.apiKey });
+          const client = new LinearClient({ apiKey: account.api_key });
           const viewer = await client.viewer;
 
           console.log(`${chalk.green('✅')} ${account.name}: ${viewer.name} (${viewer.email})`);

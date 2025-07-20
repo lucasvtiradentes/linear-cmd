@@ -45,12 +45,12 @@ export function createUpdateIssueCommand(): Command {
           client = new LinearClient({ apiKey: account.api_key });
         } else {
           // Try to find which account can access this issue
-          const accounts = await configManager.getLegacyAccounts();
+          const accounts = configManager.getAllAccounts();
           let foundAccount = null;
 
           for (const acc of accounts) {
             try {
-              const testClient = new LinearClient({ apiKey: acc.apiKey });
+              const testClient = new LinearClient({ apiKey: acc.api_key });
               await testClient.issue(issueId);
               foundAccount = acc;
               client = testClient;

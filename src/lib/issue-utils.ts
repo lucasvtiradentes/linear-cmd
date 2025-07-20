@@ -1,7 +1,7 @@
 export function parseIssueIdentifier(input: string): string | null {
   if (!input) return null;
 
-  // Handle direct issue ID (e.g., "WAY-123")
+  // Handle direct issue ID (e.g., "WORK-123")
   const issueIdPattern = /^[A-Z]+-\d+$/;
   if (issueIdPattern.test(input)) {
     return input;

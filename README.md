@@ -28,7 +28,7 @@ Because I want to just paste a linear issue link to my claude code and made it s
 
 - Then you need to sed a name and paste your API_KEY
 
-3. **View an issue**: `linear issue show WAY-123`
+3. **View an issue**: `linear issue show WORK-123`
 
 ## Usage
 
@@ -50,10 +50,10 @@ linear account test             # Test connection of all your accounts
 ### Issue Management
 
 ```bash
-linear issue show WAY-123       # Show by ID
+linear issue show WORK-123       # Show by ID
 linear issue show <linear-url>  # Show by URL
 linear issue show WORK-123 --account work
-linear issue branch WAY-123     # Get branch name
+linear issue branch WORK-123     # Get branch name
 ```
 
 ## Development
