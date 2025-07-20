@@ -5,7 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "linear": "./dist/index.js"
+    "linear": "./dist/index.js",
+    "lin": "./dist/index.js"
   },
   "scripts": {
     "prepare": "husky",
