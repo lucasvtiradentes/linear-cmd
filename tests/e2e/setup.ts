@@ -1,4 +1,4 @@
-import '../load-env';
+import './load-env';
 
 import { beforeEach } from 'vitest';
 
