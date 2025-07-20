@@ -55,4 +55,3 @@ export const CONFIG_PATHS = {
   defaultConfigFile: path.join(getConfigDirectory(), 'config.json5'),
   schemaUrl: APP_INFO.schema_url
 };
-

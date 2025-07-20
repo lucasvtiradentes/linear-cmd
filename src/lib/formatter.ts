@@ -64,7 +64,6 @@ export class OutputFormatter {
     return output.join('\n');
   }
 
-
   private static formatMarkdown(text: string): string {
     // Basic markdown formatting
     return text
