@@ -1,0 +1,89 @@
+name: 'Callable CI'
+
+on:
+  workflow_call:
+    inputs:
+      run_lint:
+        description: 'Run lint checks'
+        type: boolean
+        required: true
+      run_tests:
+        description: 'Run tests'
+        type: boolean
+        required: true
+      run_build:
+        description: 'Run build'
+        type: boolean
+        required: true
+
+jobs:
+  build:
+    if: inputs.run_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+          retention-days: 1
+
+  lint:
+    if: inputs.run_lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-and-install
+
+      - name: Run lint
+        run: pnpm run lint
+
+      - name: Run typecheck
+        run: pnpm run typecheck
+
+  test-unit:
+    if: inputs.run_tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-and-install
+      - run: pnpm run test:unit
+
+  test-integration:
+    if: inputs.run_tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-and-install
+      - run: pnpm run test:integration
+
+  test-e2e:
+    if: inputs.run_tests
+    runs-on: ubuntu-latest
+    env:
+      LINEAR_API_KEY_E2E: ${{ secrets.LINEAR_API_KEY_E2E }}
+      LINEAR_TEST_ISSUE_ID: ${{ secrets.LINEAR_TEST_ISSUE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-and-install
+      - run: pnpm run test:e2e
