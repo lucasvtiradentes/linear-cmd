@@ -2,14 +2,42 @@ import { exec } from 'child_process';
 import { Command } from 'commander';
 import { platform } from 'os';
 import { promisify } from 'util';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 import { Logger } from '../lib/logger.js';
 
 const execAsync = promisify(exec);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export function createUpdateCommand(): Command {
   return new Command('update').description('Update the linear-cmd package to the latest version').action(async () => {
     try {
+      Logger.loading('Checking current version...');
+
+      const currentVersion = getCurrentVersion();
+      if (!currentVersion) {
+        Logger.error('Could not determine current version');
+        return;
+      }
+
+      Logger.loading('Checking latest version...');
+
+      const latestVersion = await getLatestVersion();
+      if (!latestVersion) {
+        Logger.error('Could not fetch latest version from npm');
+        return;
+      }
+
+      Logger.info(`📦 Current version: ${currentVersion}`);
+      Logger.info(`📦 Latest version: ${latestVersion}`);
+
+      if (currentVersion === latestVersion) {
+        Logger.success('linear-cmd is already up to date!');
+        return;
+      }
+
       Logger.loading('Detecting package manager...');
 
       const packageManager = await detectPackageManager();
@@ -21,7 +49,7 @@ export function createUpdateCommand(): Command {
       }
 
       Logger.info(`📦 Detected package manager: ${packageManager}`);
-      Logger.loading('Updating linear-cmd...');
+      Logger.loading(`Updating linear-cmd from ${currentVersion} to ${latestVersion}...`);
 
       const updateCommand = getUpdateCommand(packageManager);
       const { stdout, stderr } = await execAsync(updateCommand);
@@ -31,7 +59,7 @@ export function createUpdateCommand(): Command {
         return;
       }
 
-      Logger.success('linear-cmd updated successfully!');
+      Logger.success(`linear-cmd updated successfully from ${currentVersion} to ${latestVersion}!`);
 
       if (stdout) {
         Logger.dim(stdout);
@@ -99,6 +127,25 @@ async function getGlobalNpmPath(): Promise<string | null> {
   }
 
   return null;
+}
+
+function getCurrentVersion(): string | null {
+  try {
+    const packagePath = join(__dirname, '../../package.json');
+    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+    return packageJson.version;
+  } catch {
+    return null;
+  }
+}
+
+async function getLatestVersion(): Promise<string | null> {
+  try {
+    const { stdout } = await execAsync('npm view linear-cmd version');
+    return stdout.trim();
+  } catch {
+    return null;
+  }
 }
 
 function getUpdateCommand(packageManager: string): string {
