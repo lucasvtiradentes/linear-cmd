@@ -7,8 +7,19 @@ vi.mock('fs', async () => {
 
   return {
     ...actual,
-    existsSync: vi.fn((path: string) => mockFileSystem.has(path)),
+    existsSync: vi.fn((path: string) => {
+      // Always return true for package.json to avoid path resolution issues
+      if (path.endsWith('package.json')) return true;
+      return mockFileSystem.has(path);
+    }),
     readFileSync: vi.fn((path: string) => {
+      // Handle package.json specially
+      if (path.endsWith('package.json')) {
+        return JSON.stringify({
+          name: 'linear-cmd',
+          version: '1.0.1'
+        });
+      }
       const content = mockFileSystem.get(path);
       if (!content) throw new Error(`File not found: ${path}`);
       return content;
