@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.3
+
+### Patch Changes
+
+- e5dd0bc: update linter
+
 ## 1.0.2
 
 ### Patch Changes
