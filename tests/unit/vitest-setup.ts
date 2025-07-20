@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 // Mock filesystem for config files
 vi.mock('fs', async () => {
-  const actual = (await vi.importActual('fs')) as any;
+  const actual = await vi.importActual<typeof import('fs')>('fs');
   const mockFileSystem = new Map<string, string>();
 
   return {

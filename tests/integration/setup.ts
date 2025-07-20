@@ -23,7 +23,7 @@ global.console = {
 
 // Mock filesystem for integration tests
 vi.mock('fs', async () => {
-  const actual = (await vi.importActual('fs')) as any;
+  const actual = await vi.importActual<typeof import('fs')>('fs');
   const mockFileSystem = new Map<string, string>();
 
   return {
