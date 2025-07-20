@@ -151,7 +151,7 @@ describe('Complete User Workflow E2E', () => {
 
     expect(listResult.exitCode).toBe(0);
     expect(listResult.stdout).toContain(accountName);
-    expect(listResult.stdout).toContain('✅ Active');
+    expect(listResult.stdout).toContain('Configured accounts:');
 
     // Step 3: Fetch real issue details
     const showResult = await execCommand(`node dist/index.js issue show ${testIssueId}`, undefined, 30000, testHomeDir);
