@@ -137,7 +137,7 @@ describe('Complete User Workflow E2E', () => {
     }
   });
 
-  it('should complete full workflow: add account → fetch real issue → get branch name', async () => {
+  it('should complete full workflow: add account → fetch real issue', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E!;
     const testIssueId = process.env.LINEAR_TEST_ISSUE_ID!;
 
@@ -165,11 +165,7 @@ describe('Complete User Workflow E2E', () => {
     expect(showResult.stdout).toContain('Status:');
     expect(showResult.stdout).toContain('Suggested Branch:');
 
-    // Step 4: Get branch name for the issue
-    const branchResult = await execCommand(`node dist/index.js issue branch ${testIssueId}`, undefined, 30000, testHomeDir);
-
-    expect(branchResult.exitCode).toBe(0);
-    expect(branchResult.stdout.trim()).toMatch(/^[a-z]+-\d+\/[a-z0-9-]+$/);
+    // Step 4: Branch command was removed - test complete
 
     // Step 5: Test JSON output format (TODO: implement --format json flag)
     // const jsonResult = await execCommand(`node dist/index.js issue show ${testIssueId} --format json`);
