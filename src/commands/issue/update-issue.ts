@@ -239,7 +239,7 @@ export function createUpdateIssueCommand(): Command {
             case 'description': {
               const descAnswer = await inquirer.prompt([
                 {
-                  type: 'editor',
+                  type: 'input',
                   name: 'description',
                   message: 'New description:',
                   default: issue.description || ''

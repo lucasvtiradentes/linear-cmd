@@ -57,7 +57,7 @@ export function createCreateIssueCommand(): Command {
             validate: (input) => input.length > 0 || 'Title is required'
           },
           {
-            type: 'editor',
+            type: 'input',
             name: 'description',
             message: 'Issue description (optional):',
             when: !options.description

@@ -12,7 +12,6 @@ export function createCommentIssueCommand(): Command {
     .argument('<issue>', 'issue ID or URL')
     .argument('[comment]', 'comment text (optional, will prompt if not provided)')
     .option('-a, --account <account>', 'specify account to use')
-    .option('--edit', 'open editor for comment')
     .action(async (issueIdOrUrl, commentText, options) => {
       const configManager = new ConfigManager();
 
@@ -72,10 +71,10 @@ export function createCommentIssueCommand(): Command {
         // Get comment text
         let comment = commentText;
 
-        if (!comment || options.edit) {
+        if (!comment) {
           const answers = await inquirer.prompt([
             {
-              type: options.edit ? 'editor' : 'input',
+              type: 'input',
               name: 'comment',
               message: 'Comment:',
               validate: (input: string) => input.trim().length > 0 || 'Comment cannot be empty'

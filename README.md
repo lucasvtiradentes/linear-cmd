@@ -39,7 +39,7 @@ npm install linear-cmd -g
 ### General
 
 ```bash
-linear update                              # Update to latest version
+linear update                              # Update to latest version (auto-detects npm/yarn/pnpm)
 linear --help                              # Show available commands
 linear <command> --help                    # Show help for specific command
 ```
@@ -60,10 +60,73 @@ linear issue show <linear-url>             # Show by URL
 linear issue show WORK-123                 # Show by ID
 linear issue show WORK-123 --account work  # Show by ID (specifying account)
 linear issue list --account work           # List issues (requires account)
-linear issue create --account work         # Create new issue (requires account)
-linear issue update WORK-123               # Update issue
-linear issue comment WORK-123              # Add comment to issue
 ```
+
+#### Creating Issues
+
+```bash
+# Interactive mode (prompts for missing fields)
+linear issue create --account work
+
+# Direct mode with flags
+linear issue create --account work \
+  --title "Issue title" \
+  --description "Issue description" \
+  --priority 2 \
+  --label "bug" \
+  --team "TEAM" \
+  --project "Project Name" \
+  --assignee "user@example.com"
+```
+
+**Available flags for create:**
+- `--title` - Issue title (required if not prompted)
+- `--description` - Issue description
+- `--priority` - Priority: 0 (none), 1 (urgent), 2 (high), 3 (medium), 4 (low)
+- `--label` - Label name
+- `--team` - Team identifier
+- `--project` - Project identifier
+- `--assignee` - Assignee email or identifier
+
+#### Updating Issues
+
+```bash
+# Interactive mode (choose what to update)
+linear issue update WORK-123
+
+# Direct mode with flags
+linear issue update WORK-123 \
+  --title "New title" \
+  --description "New description" \
+  --state "In Progress" \
+  --assignee "user@example.com" \
+  --priority 1 \
+  --add-label "urgent" \
+  --remove-label "low-priority"
+```
+
+**Available flags for update:**
+- `--title` - New title
+- `--description` - New description
+- `--state` - New state (e.g., "In Progress", "Done")
+- `--assignee` - Assignee email or "unassign" to remove
+- `--project` - Project name or "none" to remove
+- `--priority` - Priority: 0 (none), 1 (urgent), 2 (high), 3 (medium), 4 (low)
+- `--add-label` - Add a label
+- `--remove-label` - Remove a label
+
+#### Commenting on Issues
+
+```bash
+# Interactive mode (prompts for comment)
+linear issue comment WORK-123
+
+# Direct mode with comment text
+linear issue comment WORK-123 "This is my comment"
+```
+
+**Available flags for comment:**
+- `--account` - Specify account to use
 
 ## Development
 
