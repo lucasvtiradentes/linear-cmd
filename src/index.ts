@@ -5,6 +5,7 @@ import { Command } from 'commander';
 
 import { createAccountCommand } from './commands/account/index.js';
 import { createIssueCommand } from './commands/issue/index.js';
+import { createUpdateCommand } from './commands/update.js';
 
 const program = new Command();
 
@@ -13,6 +14,7 @@ program.name('linear').description('Linear CLI - A GitHub CLI-like tool for Line
 // Add commands
 program.addCommand(createAccountCommand());
 program.addCommand(createIssueCommand());
+program.addCommand(createUpdateCommand());
 
 // Global help improvements
 program.configureHelp({
@@ -30,6 +32,7 @@ program.on('--help', () => {
   console.log('  $ linear issue show WAY-123              # Show issue by ID');
   console.log('  $ linear issue show <linear-url>         # Show issue by URL');
   console.log('  $ linear issue branch WAY-123            # Get branch name for issue');
+  console.log('  $ linear update                          # Update linear-cmd to latest version');
   console.log('');
   console.log(chalk.bold('Getting Started:'));
   console.log('  1. Get your API key from Linear Settings > Account > API');
