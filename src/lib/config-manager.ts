@@ -74,7 +74,6 @@ export class ConfigManager {
 
   private createDefaultConfig(): void {
     const defaultConfig: LinearConfig = {
-      $schema: '',
       workspaces: {},
       settings: {
         max_results: 50,

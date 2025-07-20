@@ -18,7 +18,7 @@ export const workspaceConfigSchema = z.object({
 });
 
 export const linearConfigSchema = z.object({
-  $schema: z.string(),
+  $schema: z.string().optional(),
   workspaces: z.record(z.string(), workspaceConfigSchema),
   settings: z
     .object({
