@@ -1,9 +1,9 @@
 import { LinearClient } from '@linear/sdk';
-import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
+import { Logger } from '../../lib/logger.js';
 
 export function createAddAccountCommand(): Command {
   return new Command('add').description('Add a new Linear account').action(async () => {
@@ -26,17 +26,17 @@ export function createAddAccountCommand(): Command {
 
     try {
       // Test the API key before saving
-      console.log(chalk.dim('Testing API key...'));
+      Logger.loading('Testing API key...');
       const testClient = new LinearClient({ apiKey: answers.apiKey });
       const viewer = await testClient.viewer;
 
       await configManager.addAccount(answers.name, answers.apiKey);
 
-      console.log(chalk.green(`✅ Account "${answers.name}" added successfully!`));
-      console.log(chalk.dim(`Connected as: ${viewer.name} (${viewer.email})`));
+      Logger.success(`Account "${answers.name}" added successfully!`);
+      Logger.dim(`Connected as: ${viewer.name} (${viewer.email})`);
     } catch (error) {
-      console.error(chalk.red(`❌ Error adding account: ${error instanceof Error ? error.message : 'Unknown error'}`));
-      console.log(chalk.dim('Please check your API key and try again.'));
+      Logger.error('Error adding account', error);
+      Logger.dim('Please check your API key and try again.');
     }
   });
 }

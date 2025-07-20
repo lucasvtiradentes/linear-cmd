@@ -3,7 +3,7 @@ import { Command } from 'commander';
 
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/client-helper.js';
 import { ConfigManager } from '../../lib/config-manager.js';
-import { logError } from '../../lib/error-handler.js';
+import { Logger } from '../../lib/logger.js';
 import type { LinearIssueFilter } from '../../types/linear.js';
 import { linearIssueFilterSchema } from '../../types/linear.js';
 
@@ -39,7 +39,7 @@ export function createListIssuesCommand(): Command {
             if (users.nodes.length > 0) {
               filter.assignee = { id: { eq: users.nodes[0].id } };
             } else {
-              console.error(chalk.red(`❌ User '${options.assignee}' not found`));
+              Logger.error(`User '${options.assignee}' not found`);
               return;
             }
           }
@@ -51,7 +51,7 @@ export function createListIssuesCommand(): Command {
           if (states.nodes.length > 0) {
             filter.state = { id: { eq: states.nodes[0].id } };
           } else {
-            console.error(chalk.red(`❌ State '${options.state}' not found`));
+            Logger.error(`State '${options.state}' not found`);
             return;
           }
         }
@@ -62,7 +62,7 @@ export function createListIssuesCommand(): Command {
           if (labels.nodes.length > 0) {
             filter.labels = { some: { id: { eq: labels.nodes[0].id } } };
           } else {
-            console.error(chalk.red(`❌ Label '${options.label}' not found`));
+            Logger.error(`Label '${options.label}' not found`);
             return;
           }
         }
@@ -73,7 +73,7 @@ export function createListIssuesCommand(): Command {
           if (projects.nodes.length > 0) {
             filter.project = { id: { eq: projects.nodes[0].id } };
           } else {
-            console.error(chalk.red(`❌ Project '${options.project}' not found`));
+            Logger.error(`Project '${options.project}' not found`);
             return;
           }
         }
@@ -84,13 +84,13 @@ export function createListIssuesCommand(): Command {
           if (teams.nodes.length > 0) {
             filter.team = { id: { eq: teams.nodes[0].id } };
           } else {
-            console.error(chalk.red(`❌ Team '${options.team}' not found`));
+            Logger.error(`Team '${options.team}' not found`);
             return;
           }
         }
 
         // Fetch issues
-        console.log(chalk.dim(`Fetching issues from account: ${account.name}...`));
+        Logger.loading(`Fetching issues from account: ${account.name}...`);
 
         // Validate and use the filter
         const validFilter = Object.keys(filter).length > 0 ? linearIssueFilterSchema.partial().parse(filter) : undefined;
@@ -100,7 +100,7 @@ export function createListIssuesCommand(): Command {
         });
 
         if (issues.nodes.length === 0) {
-          console.log(chalk.yellow('No issues found'));
+          Logger.warning('No issues found');
           return;
         }
 
@@ -119,9 +119,9 @@ export function createListIssuesCommand(): Command {
               updatedAt: issue.updatedAt
             }))
           );
-          console.log(JSON.stringify(jsonOutput, null, 2));
+          Logger.json(jsonOutput);
         } else {
-          console.log(chalk.bold(`\nFound ${issues.nodes.length} issue${issues.nodes.length === 1 ? '' : 's'}:\n`));
+          Logger.bold(`\nFound ${issues.nodes.length} issue${issues.nodes.length === 1 ? '' : 's'}:\n`);
 
           for (const issue of issues.nodes) {
             const state = await issue.state;
@@ -132,7 +132,7 @@ export function createListIssuesCommand(): Command {
             const stateColor = state?.color || '#999999';
             const stateEmoji = getStateEmoji(state?.name);
 
-            console.log(chalk.hex(stateColor)(`${stateEmoji} ${issue.identifier}`) + chalk.white(` ${issue.title}`));
+            Logger.plain(chalk.hex(stateColor)(`${stateEmoji} ${issue.identifier}`) + chalk.white(` ${issue.title}`));
 
             const metadata = [];
             if (assignee) metadata.push(`👤 ${assignee.name}`);
@@ -142,22 +142,22 @@ export function createListIssuesCommand(): Command {
             }
 
             if (metadata.length > 0) {
-              console.log(chalk.dim(`  ${metadata.join(' • ')}`));
+              Logger.dim(`  ${metadata.join(' • ')}`);
             }
 
-            console.log(chalk.dim(`  ${issue.url}`));
-            console.log();
+            Logger.dim(`  ${issue.url}`);
+            Logger.plain('');
           }
 
           if (issues.pageInfo.hasNextPage) {
-            console.log(chalk.dim(`\n... and more. Use --limit to see more issues`));
+            Logger.dim(`\n... and more. Use --limit to see more issues`);
           }
         }
       } catch (error) {
         if (error instanceof ValidationError) {
           handleValidationError(error);
         } else {
-          logError('Error listing issues', error);
+          Logger.error('Error listing issues', error);
         }
       }
     });

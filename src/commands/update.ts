@@ -1,42 +1,43 @@
-import chalk from 'chalk';
 import { exec } from 'child_process';
 import { Command } from 'commander';
 import { platform } from 'os';
 import { promisify } from 'util';
+
+import { Logger } from '../lib/logger.js';
 
 const execAsync = promisify(exec);
 
 export function createUpdateCommand(): Command {
   return new Command('update').description('Update the linear-cmd package to the latest version').action(async () => {
     try {
-      console.log(chalk.dim('Detecting package manager...'));
+      Logger.loading('Detecting package manager...');
 
       const packageManager = await detectPackageManager();
 
       if (!packageManager) {
-        console.error(chalk.red('❌ Could not detect how linear-cmd was installed'));
-        console.log(chalk.dim('Please update manually using your package manager'));
+        Logger.error('Could not detect how linear-cmd was installed');
+        Logger.dim('Please update manually using your package manager');
         return;
       }
 
-      console.log(chalk.blue(`📦 Detected package manager: ${packageManager}`));
-      console.log(chalk.dim('Updating linear-cmd...'));
+      Logger.info(`📦 Detected package manager: ${packageManager}`);
+      Logger.loading('Updating linear-cmd...');
 
       const updateCommand = getUpdateCommand(packageManager);
       const { stdout, stderr } = await execAsync(updateCommand);
 
       if (stderr && !stderr.includes('npm WARN')) {
-        console.error(chalk.red(`❌ Error updating: ${stderr}`));
+        Logger.error(`Error updating: ${stderr}`);
         return;
       }
 
-      console.log(chalk.green('✅ linear-cmd updated successfully!'));
+      Logger.success('linear-cmd updated successfully!');
 
       if (stdout) {
-        console.log(chalk.dim(stdout));
+        Logger.dim(stdout);
       }
     } catch (error) {
-      console.error(chalk.red(`❌ Error updating: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      Logger.error('Error updating', error);
     }
   });
 }

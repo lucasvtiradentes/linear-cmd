@@ -1,8 +1,8 @@
 import { LinearClient } from '@linear/sdk';
-import chalk from 'chalk';
 
 import type { Account } from '../types/local.js';
 import { ConfigManager } from './config-manager.js';
+import { Logger } from './logger.js';
 
 export class ValidationError extends Error {
   constructor(
@@ -31,8 +31,8 @@ export async function getLinearClientForAccount(configManager: ConfigManager, ac
 }
 
 export function handleValidationError(error: ValidationError): void {
-  console.error(chalk.red(`❌ ${error.message}`));
+  Logger.error(error.message);
   error.hints.forEach((hint) => {
-    console.log(chalk.dim(hint));
+    Logger.dim(hint);
   });
 }

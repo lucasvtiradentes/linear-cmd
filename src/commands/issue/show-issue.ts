@@ -1,6 +1,6 @@
-import chalk from 'chalk';
 import { Command } from 'commander';
 
+import { Logger } from '../../lib/logger.js';
 import { LinearAPIClient } from '../../lib/linear-client.js';
 
 export function createShowIssueCommand(): Command {
@@ -13,16 +13,16 @@ export function createShowIssueCommand(): Command {
       try {
         const linearClient = new LinearAPIClient();
 
-        console.log(chalk.dim('Fetching issue details...'));
+        Logger.loading('Fetching issue details...');
         const issueData = await linearClient.getIssueByIdOrUrl(idOrUrl);
 
         if (options.format === 'json') {
-          console.log(JSON.stringify(issueData, null, 2));
+          Logger.json(issueData);
         } else {
-          console.log(linearClient.formatIssue(issueData));
+          Logger.plain(linearClient.formatIssue(issueData));
         }
       } catch (error) {
-        console.error(chalk.red(`❌ Error fetching issue: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        Logger.error('Error fetching issue', error);
         process.exit(1);
       }
     });

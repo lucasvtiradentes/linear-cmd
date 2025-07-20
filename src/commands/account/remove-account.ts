@@ -1,8 +1,8 @@
-import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
+import { Logger } from '../../lib/logger.js';
 
 export function createRemoveAccountCommand(): Command {
   return new Command('remove')
@@ -21,15 +21,15 @@ export function createRemoveAccountCommand(): Command {
       ]);
 
       if (!confirm) {
-        console.log(chalk.yellow('Aborted.'));
+        Logger.warning('Aborted.');
         return;
       }
 
       try {
         await configManager.removeAccount(name);
-        console.log(chalk.green(`✅ Account "${name}" removed successfully!`));
+        Logger.success(`Account "${name}" removed successfully!`);
       } catch (error) {
-        console.error(chalk.red(`❌ Error removing account: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        Logger.error('Error removing account', error);
       }
     });
 }

@@ -5,8 +5,8 @@ import inquirer from 'inquirer';
 
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/client-helper.js';
 import { ConfigManager } from '../../lib/config-manager.js';
-import { logError, logSuccess, logWarning } from '../../lib/error-handler.js';
 import { LinearAPIClient } from '../../lib/linear-client.js';
+import { Logger } from '../../lib/logger.js';
 import type { LinearIssueUpdatePayload } from '../../types/linear.js';
 import { linearIssueUpdatePayloadSchema } from '../../types/linear.js';
 
@@ -168,7 +168,7 @@ export function createUpdateIssueCommand(): Command {
               updatePayload.labelIds = [...currentLabelIds, labels.nodes[0].id];
               hasUpdates = true;
             } else {
-              logWarning(`Label '${options.addLabel}' already added`);
+              Logger.warning(`Label '${options.addLabel}' already added`);
             }
           } else {
             console.error(chalk.red(`❌ Label '${options.addLabel}' not found`));
@@ -185,7 +185,7 @@ export function createUpdateIssueCommand(): Command {
             updatePayload.labelIds = currentLabels.nodes.filter((l) => l.id !== labelToRemove.id).map((l) => l.id);
             hasUpdates = true;
           } else {
-            logWarning(`Label '${options.removeLabel}' not found on issue`);
+            Logger.warning(`Label '${options.removeLabel}' not found on issue`);
           }
         }
 
@@ -315,16 +315,16 @@ export function createUpdateIssueCommand(): Command {
         // Validate and update the issue
         const validPayload = linearIssueUpdatePayloadSchema.parse(updatePayload);
 
-        console.log(chalk.dim(`Updating issue in account: ${account?.name || 'unknown'}...`));
+        Logger.loading(`Updating issue in account: ${account?.name || 'unknown'}...`);
         await client.updateIssue(issue.id, validPayload);
 
-        logSuccess(`Issue ${issue.identifier} updated successfully!`);
-        console.log(chalk.dim(`🔗 ${issue.url}`));
+        Logger.success(`Issue ${issue.identifier} updated successfully!`);
+        Logger.link(issue.url);
       } catch (error) {
         if (error instanceof ValidationError) {
           handleValidationError(error);
         } else {
-          logError('Error updating issue', error);
+          Logger.error('Error updating issue', error);
         }
       }
     });

@@ -1,10 +1,10 @@
 import { LinearClient } from '@linear/sdk';
-import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
 import { LinearAPIClient } from '../../lib/linear-client.js';
+import { Logger } from '../../lib/logger.js';
 
 export function createCommentIssueCommand(): Command {
   return new Command('comment')
@@ -21,7 +21,7 @@ export function createCommentIssueCommand(): Command {
         const linearClient = new LinearAPIClient();
         const issueId = linearClient.parseIssueIdentifier(issueIdOrUrl);
         if (!issueId) {
-          console.error(chalk.red('❌ Invalid issue ID or URL'));
+          Logger.error('Invalid issue ID or URL');
           return;
         }
 
@@ -32,8 +32,8 @@ export function createCommentIssueCommand(): Command {
         if (options.account) {
           const account = configManager.getAccount(options.account);
           if (!account) {
-            console.error(chalk.red(`❌ Account '${options.account}' not found`));
-            console.log(chalk.dim('Run `linear account list` to see available accounts'));
+            Logger.error(`Account '${options.account}' not found`);
+            Logger.dim('Run `linear account list` to see available accounts');
             return;
           }
           client = new LinearClient({ apiKey: account.api_key });
@@ -55,9 +55,9 @@ export function createCommentIssueCommand(): Command {
           }
 
           if (!foundAccount || !client) {
-            console.error(chalk.red('❌ Could not find an account with access to this issue'));
-            console.log(chalk.dim('Use --account flag to specify which account to use'));
-            console.log(chalk.dim('Run `linear account list` to see available accounts'));
+            Logger.error('Could not find an account with access to this issue');
+            Logger.dim('Use --account flag to specify which account to use');
+            Logger.dim('Run `linear account list` to see available accounts');
             return;
           }
         }
@@ -65,7 +65,7 @@ export function createCommentIssueCommand(): Command {
         // Fetch the issue
         const issue = await client.issue(issueId);
         if (!issue) {
-          console.error(chalk.red(`❌ Issue ${issueId} not found`));
+          Logger.error(`Issue ${issueId} not found`);
           return;
         }
 
@@ -85,31 +85,31 @@ export function createCommentIssueCommand(): Command {
         }
 
         // Add the comment
-        console.log(chalk.dim('Adding comment...'));
+        Logger.loading('Adding comment...');
 
         await client.createComment({
           issueId: issue.id,
           body: comment
         });
 
-        console.log(chalk.green(`✅ Comment added to ${issue.identifier}`));
-        console.log(chalk.dim(`🔗 ${issue.url}`));
+        Logger.success(`Comment added to ${issue.identifier}`);
+        Logger.link(issue.url);
 
         // Show recent comments
         const comments = await issue.comments({ last: 3 });
         if (comments.nodes.length > 0) {
-          console.log(chalk.dim('\nRecent comments:'));
+          Logger.dim('\nRecent comments:');
           for (const c of comments.nodes.reverse()) {
             const author = await c.user;
             const createdAt = new Date(c.createdAt);
             const timeAgo = getRelativeTime(createdAt);
 
-            console.log(chalk.blue(`\n💬 ${author?.name || 'Unknown'} • ${timeAgo}`));
-            console.log(c.body);
+            Logger.info(`💬 ${author?.name || 'Unknown'} • ${timeAgo}`);
+            Logger.plain(c.body);
           }
         }
       } catch (error) {
-        console.error(chalk.red(`❌ Error adding comment: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        Logger.error('Error adding comment', error);
       }
     });
 }

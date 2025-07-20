@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/client-helper.js';
 import { ConfigManager } from '../../lib/config-manager.js';
-import { logError, logSuccess, logWarning } from '../../lib/error-handler.js';
+import { Logger } from '../../lib/logger.js';
 import type { LinearIssuePayload } from '../../types/linear.js';
 import { linearIssuePayloadSchema } from '../../types/linear.js';
 
@@ -30,7 +30,7 @@ export function createCreateIssueCommand(): Command {
         if (!teamId) {
           const teams = await client.teams();
           if (teams.nodes.length === 0) {
-            console.error(chalk.red('❌ No teams found'));
+            Logger.error('No teams found');
             return;
           }
 
@@ -70,7 +70,7 @@ export function createCreateIssueCommand(): Command {
         const description = options.description || answers.description || undefined;
 
         // Create the issue
-        console.log(chalk.dim(`Creating issue in account: ${account.name}...`));
+        Logger.loading(`Creating issue in account: ${account.name}...`);
 
         const issuePayload: Partial<LinearIssuePayload> = {
           teamId,
@@ -92,7 +92,7 @@ export function createCreateIssueCommand(): Command {
           if (users.nodes.length > 0) {
             issuePayload.assigneeId = users.nodes[0].id;
           } else {
-            logWarning(`User '${options.assignee}' not found, creating without assignee`);
+            Logger.warning(`User '${options.assignee}' not found, creating without assignee`);
           }
         }
 
@@ -102,7 +102,7 @@ export function createCreateIssueCommand(): Command {
           if (projects.nodes.length > 0) {
             issuePayload.projectId = projects.nodes[0].id;
           } else {
-            logWarning(`Project '${options.project}' not found, creating without project`);
+            Logger.warning(`Project '${options.project}' not found, creating without project`);
           }
         }
 
@@ -112,7 +112,7 @@ export function createCreateIssueCommand(): Command {
           if (labels.nodes.length > 0) {
             issuePayload.labelIds = [labels.nodes[0].id];
           } else {
-            logWarning(`Label '${options.label}' not found, creating without label`);
+            Logger.warning(`Label '${options.label}' not found, creating without label`);
           }
         }
 
@@ -126,24 +126,24 @@ export function createCreateIssueCommand(): Command {
           throw new Error('Failed to create issue');
         }
 
-        logSuccess('Issue created successfully!');
-        console.log(chalk.blue(`📋 ID: ${createdIssue.identifier}`));
-        console.log(chalk.dim(`🔗 URL: ${createdIssue.url}`));
+        Logger.success('Issue created successfully!');
+        Logger.info(`📋 ID: ${createdIssue.identifier}`);
+        Logger.link(createdIssue.url, 'URL:');
 
         const assignee = await createdIssue.assignee;
         if (assignee) {
-          console.log(chalk.dim(`👤 Assigned to: ${assignee.name}`));
+          Logger.dim(`👤 Assigned to: ${assignee.name}`);
         }
 
         const project = await createdIssue.project;
         if (project) {
-          console.log(chalk.dim(`📁 Project: ${project.name}`));
+          Logger.dim(`📁 Project: ${project.name}`);
         }
       } catch (error) {
         if (error instanceof ValidationError) {
           handleValidationError(error);
         } else {
-          logError('Error creating issue', error);
+          Logger.error('Error creating issue', error);
         }
       }
     });

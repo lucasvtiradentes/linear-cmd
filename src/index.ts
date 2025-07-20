@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import chalk from 'chalk';
 import { Command } from 'commander';
 
 import { createAccountCommand } from './commands/account/index.js';
 import { createIssueCommand } from './commands/issue/index.js';
 import { createUpdateCommand } from './commands/update.js';
 import { APP_INFO } from './constants.js';
+import { Logger } from './lib/logger.js';
 
 const program = new Command();
 
@@ -25,23 +25,23 @@ program.configureHelp({
 
 // Custom help
 program.on('--help', () => {
-  console.log('');
-  console.log(chalk.bold('Examples:'));
-  console.log('  $ linear account add                     # Add a new account');
-  console.log('  $ linear account list                    # List all accounts');
-  console.log('  $ linear account switch work             # Switch to work account');
-  console.log('  $ linear issue show WORK-123              # Show issue by ID');
-  console.log('  $ linear issue show <linear-url>         # Show issue by URL');
-  console.log('  $ linear issue branch WORK-123            # Get branch name for issue');
-  console.log('  $ linear update                          # Update linear-cmd to latest version');
-  console.log('');
-  console.log(chalk.bold('Getting Started:'));
-  console.log('  1. Get your API key from Linear Settings > Account > API');
-  console.log('  2. Run: linear account add');
-  console.log('  3. Test connection: linear account test');
-  console.log('  4. View an issue: linear issue show <issue-id-or-url>');
-  console.log('');
-  console.log(chalk.dim('For more information, visit: https://linear.app/developers'));
+  Logger.plain('');
+  Logger.bold('Examples:');
+  Logger.plain('  $ linear account add                     # Add a new account');
+  Logger.plain('  $ linear account list                    # List all accounts');
+  Logger.plain('  $ linear account switch work             # Switch to work account');
+  Logger.plain('  $ linear issue show WORK-123              # Show issue by ID');
+  Logger.plain('  $ linear issue show <linear-url>         # Show issue by URL');
+  Logger.plain('  $ linear issue branch WORK-123            # Get branch name for issue');
+  Logger.plain('  $ linear update                          # Update linear-cmd to latest version');
+  Logger.plain('');
+  Logger.bold('Getting Started:');
+  Logger.plain('  1. Get your API key from Linear Settings > Account > API');
+  Logger.plain('  2. Run: linear account add');
+  Logger.plain('  3. Test connection: linear account test');
+  Logger.plain('  4. View an issue: linear issue show <issue-id-or-url>');
+  Logger.plain('');
+  Logger.dim('For more information, visit: https://linear.app/developers');
 });
 
 // Parse arguments
