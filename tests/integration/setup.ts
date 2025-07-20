@@ -23,13 +23,16 @@ global.console = {
 vi.mock('fs', async () => {
   const actual = await vi.importActual<typeof import('fs')>('fs');
   const mockFileSystem = new Map<string, string>();
-  
+
   // Setup mock package.json for constants.ts
   const packageJsonPath = '/home/lucas/_custom/repos/github_lucasvtiradentes/linear-cli/package.json';
-  mockFileSystem.set(packageJsonPath, JSON.stringify({
-    name: 'linear-cmd',
-    version: '1.0.1'
-  }));
+  mockFileSystem.set(
+    packageJsonPath,
+    JSON.stringify({
+      name: 'linear-cmd',
+      version: '1.0.1'
+    })
+  );
 
   return {
     ...actual,

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 import { userMetadataSchema, linearConfigSchema } from '../config.js';
-import type { UserMetadata, LinearConfig, WorkspaceConfig, Account } from '../config.js';
+import type { UserMetadata, LinearConfig, AccountConfig, Account } from '../config.js';
 import { CONFIG_PATHS } from './constants.js';
 import { readJson5, writeJson5 } from './json-utils.js';
 
@@ -74,11 +74,11 @@ export class ConfigManager {
 
   private createDefaultConfig(): void {
     const defaultConfig: LinearConfig = {
-      workspaces: {},
+      accounts: {},
       settings: {
         max_results: 50,
         date_format: 'relative',
-        auto_update_workspaces: true
+        auto_update_accounts: true
       }
     };
 
@@ -97,70 +97,70 @@ export class ConfigManager {
 
   // Public API Methods
 
-  async addWorkspace(name: string, apiKey: string, teamId?: string): Promise<void> {
+  async addAccount(name: string, apiKey: string, teamId?: string): Promise<void> {
     const config = this.loadConfig();
 
-    if (config.workspaces[name]) {
-      throw new Error(`Workspace '${name}' already exists`);
+    if (config.accounts[name]) {
+      throw new Error(`Account '${name}' already exists`);
     }
 
-    const workspaceConfig: WorkspaceConfig = {
+    const accountConfig: AccountConfig = {
       name,
       api_key: apiKey,
       team_id: teamId,
-      default: Object.keys(config.workspaces).length === 0 // First workspace is default
+      default: Object.keys(config.accounts).length === 0 // First account is default
     };
 
-    config.workspaces[name] = workspaceConfig;
+    config.accounts[name] = accountConfig;
 
     // No longer set as active automatically
 
     this.saveConfig();
   }
 
-  async removeWorkspace(name: string): Promise<void> {
+  async removeAccount(name: string): Promise<void> {
     const config = this.loadConfig();
 
-    if (!config.workspaces[name]) {
-      throw new Error(`Workspace '${name}' not found`);
+    if (!config.accounts[name]) {
+      throw new Error(`Account '${name}' not found`);
     }
 
-    delete config.workspaces[name];
+    delete config.accounts[name];
 
-    // No longer manage active workspace
+    // No longer manage active account
 
     this.saveConfig();
   }
 
-  // Active workspace methods removed - accounts must be specified explicitly
+  // Active account methods removed - accounts must be specified explicitly
 
-  getAllWorkspaces(): WorkspaceConfig[] {
+  getAllAccounts(): AccountConfig[] {
     const config = this.loadConfig();
-    return Object.values(config.workspaces);
+    return Object.values(config.accounts);
   }
 
-  getWorkspace(name: string): WorkspaceConfig | null {
+  getAccount(name: string): AccountConfig | null {
     const config = this.loadConfig();
-    return config.workspaces[name] || null;
+    return config.accounts[name] || null;
   }
 
-  listWorkspaces(): Array<{ name: string; teamId?: string }> {
+  listAccounts(): Array<{ name: string; teamId?: string }> {
     const config = this.loadConfig();
 
-    return Object.entries(config.workspaces).map(([name, workspace]) => ({
+    return Object.entries(config.accounts).map(([name, account]) => ({
       name,
-      teamId: workspace.team_id
+      teamId: account.team_id
     }));
   }
 
-  updateWorkspaceApiKey(name: string, apiKey: string): void {
+  updateAccountApiKey(name: string, apiKey: string): void {
     const config = this.loadConfig();
 
-    if (!config.workspaces[name]) {
-      throw new Error(`Workspace '${name}' not found`);
+    if (!config.accounts[name]) {
+      throw new Error(`Account '${name}' not found`);
     }
 
-    config.workspaces[name].api_key = apiKey;
+    config.accounts[name].api_key = apiKey;
     this.saveConfig();
   }
 
@@ -168,26 +168,21 @@ export class ConfigManager {
 
   // getActiveAccount removed - accounts must be specified explicitly
 
-  async getAllAccounts(): Promise<Account[]> {
-    const workspaces = this.getAllWorkspaces();
+  async getLegacyAccounts(): Promise<Account[]> {
+    const accounts = this.getAllAccounts();
 
-    return workspaces.map((workspace) => ({
-      id: workspace.name,
-      name: workspace.name,
-      apiKey: workspace.api_key,
+    return accounts.map((account) => ({
+      id: account.name,
+      name: account.name,
+      apiKey: account.api_key,
       isActive: false,
-      workspaces: workspace.workspaces
+      workspaces: account.workspaces
     }));
   }
 
-  async listAccounts(): Promise<Account[]> {
-    const accounts = await this.getAllAccounts();
-    return accounts.map((account) => ({ ...account, apiKey: '***' }));
-  }
-
   findAccountByWorkspace(workspace: string): Account | null {
-    const workspaces = this.getAllWorkspaces();
-    const found = workspaces.find((w) => w.workspaces?.includes(workspace));
+    const accounts = this.getAllAccounts();
+    const found = accounts.find((a) => a.workspaces?.includes(workspace));
 
     if (!found) {
       return null;
@@ -205,20 +200,11 @@ export class ConfigManager {
   async updateAccountWorkspaces(accountId: string, workspaces: string[]): Promise<void> {
     const config = this.loadConfig();
 
-    if (!config.workspaces[accountId]) {
-      throw new Error(`Workspace '${accountId}' not found`);
+    if (!config.accounts[accountId]) {
+      throw new Error(`Account '${accountId}' not found`);
     }
 
-    config.workspaces[accountId].workspaces = workspaces;
+    config.accounts[accountId].workspaces = workspaces;
     this.saveConfig();
-  }
-
-  // Alias methods for backward compatibility with "account" terminology
-  async addAccount(name: string, apiKey: string): Promise<void> {
-    return this.addWorkspace(name, apiKey);
-  }
-
-  async removeAccount(name: string): Promise<void> {
-    return this.removeWorkspace(name);
   }
 }

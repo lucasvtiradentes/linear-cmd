@@ -28,7 +28,7 @@ export function createListIssuesCommand(): Command {
           return;
         }
 
-        const account = configManager.getWorkspace(options.account);
+        const account = configManager.getAccount(options.account);
         if (!account) {
           console.error(chalk.red(`❌ Account '${options.account}' not found`));
           console.log(chalk.dim('Run `linear account list` to see available accounts'));

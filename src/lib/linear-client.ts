@@ -16,13 +16,13 @@ export class LinearAPIClient {
       throw new Error('Account name is required. Please specify which account to use.');
     }
 
-    const workspace = this.configManager.getWorkspace(accountName);
-    if (!workspace) {
+    const account = this.configManager.getAccount(accountName);
+    if (!account) {
       throw new Error(`Account '${accountName}' not found. Please check your accounts using "linear account list"`);
     }
 
     this.client = new LinearClient({
-      apiKey: workspace.api_key
+      apiKey: account.api_key
     });
   }
 
@@ -124,7 +124,7 @@ export class LinearAPIClient {
   }
 
   private async findAccountForWorkspace(workspace: string | null, issueId: string): Promise<Account | null> {
-    const accounts = await this.configManager.getAllAccounts();
+    const accounts = await this.configManager.getLegacyAccounts();
 
     if (!accounts.length) {
       throw new Error('No accounts configured. Please add an account first using "linear account add"');

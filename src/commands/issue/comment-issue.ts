@@ -29,7 +29,7 @@ export function createCommentIssueCommand(): Command {
         let client;
 
         if (options.account) {
-          const account = configManager.getWorkspace(options.account);
+          const account = configManager.getAccount(options.account);
           if (!account) {
             console.error(chalk.red(`❌ Account '${options.account}' not found`));
             console.log(chalk.dim('Run `linear account list` to see available accounts'));
@@ -38,7 +38,7 @@ export function createCommentIssueCommand(): Command {
           client = new LinearClient({ apiKey: account.api_key });
         } else {
           // Try to find which account can access this issue
-          const accounts = await configManager.getAllAccounts();
+          const accounts = await configManager.getLegacyAccounts();
           let foundAccount = null;
 
           for (const acc of accounts) {
