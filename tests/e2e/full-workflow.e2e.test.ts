@@ -94,9 +94,6 @@ describe('Complete User Workflow E2E', () => {
   const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
 
   beforeEach(async () => {
-    // Build the project before each test
-    await execCommand('npm run build');
-
     // Clean up any existing test config directories
     if (fs.existsSync(testHomeDir)) {
       fs.rmSync(testHomeDir, { recursive: true, force: true });

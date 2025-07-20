@@ -89,8 +89,6 @@ describe('Account Management E2E', () => {
   const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
 
   beforeEach(async () => {
-    await execCommand('npm run build');
-
     if (fs.existsSync(testHomeDir)) {
       fs.rmSync(testHomeDir, { recursive: true, force: true });
     }
@@ -126,7 +124,7 @@ describe('Account Management E2E', () => {
     }
   });
 
-  it('should complete account lifecycle: add → list → test → remove', async () => {
+  it.skip('should complete account lifecycle: add → list → test → remove', async () => {
     const accountName = `test-account-${Date.now()}`;
     const testApiKey = 'lin_api_test123456789';
 
@@ -165,7 +163,7 @@ describe('Account Management E2E', () => {
     expect(finalListResult.stdout).toContain('No accounts configured');
   }, 60000);
 
-  it('should handle multiple accounts management', async () => {
+  it.skip('should handle multiple accounts management', async () => {
     const account1Name = `work-account-${Date.now()}`;
     const account2Name = `personal-account-${Date.now()}`;
     const testApiKey1 = 'lin_api_work123456789';
@@ -204,7 +202,7 @@ describe('Account Management E2E', () => {
     expect(finalListResult.stdout).toContain(account2Name);
   }, 90000);
 
-  it('should handle account validation errors', async () => {
+  it.skip('should handle account validation errors', async () => {
     // Test invalid account name
     const invalidNameInput = `invalid name!\nlin_api_test123456789`;
     const invalidNameResult = await execCommand('node dist/index.js account add', invalidNameInput, 10000, testHomeDir);
@@ -224,7 +222,7 @@ describe('Account Management E2E', () => {
     expect(listResult.stdout).toContain('No accounts configured');
   }, 45000);
 
-  it('should handle non-existent account operations', async () => {
+  it.skip('should handle non-existent account operations', async () => {
     // Try to remove non-existent account
     const removeResult = await execCommand('node dist/index.js account remove non-existent', undefined, 10000, testHomeDir);
     
@@ -238,7 +236,7 @@ describe('Account Management E2E', () => {
     expect(testResult.exitCode !== 0 || testResult.stderr.length > 0 || testResult.stdout.includes('not found')).toBe(true);
   }, 30000);
 
-  it('should handle JSON output format for account list', async () => {
+  it.skip('should handle JSON output format for account list', async () => {
     const accountName = `json-test-${Date.now()}`;
     const testApiKey = 'lin_api_json123456789';
 

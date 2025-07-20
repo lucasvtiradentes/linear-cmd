@@ -89,8 +89,6 @@ describe('Issue Operations E2E', () => {
   const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
 
   beforeEach(async () => {
-    await execCommand('npm run build');
-
     if (fs.existsSync(testHomeDir)) {
       fs.rmSync(testHomeDir, { recursive: true, force: true });
     }
