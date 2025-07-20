@@ -6,10 +6,11 @@ import { Command } from 'commander';
 import { createAccountCommand } from './commands/account/index.js';
 import { createIssueCommand } from './commands/issue/index.js';
 import { createUpdateCommand } from './commands/update.js';
+import { APP_INFO } from './lib/constants.js';
 
 const program = new Command();
 
-program.name('linear').description('Linear CLI - A GitHub CLI-like tool for Linear').version('1.0.0');
+program.name('linear').description('Linear CLI - A GitHub CLI-like tool for Linear').version(APP_INFO.version);
 
 // Add commands
 program.addCommand(createAccountCommand());
