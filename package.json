@@ -31,6 +31,7 @@
     "test:unit": "vitest run --config tests/unit/vitest.config.ts",
     "test:integration": "vitest run --config tests/integration/vitest.config.ts",
     "test:e2e": "vitest run --config tests/e2e/vitest.config.ts",
+    "package:preview": "npm pack --dry-run",
     "changeset": "changeset",
     "release": "npm run build && changeset publish"
   },

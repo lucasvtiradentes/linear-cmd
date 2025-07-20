@@ -1,0 +1,48 @@
+# Source files
+src/
+tests/
+*.config.ts
+*.config.js
+
+# Development files
+.env*
+.husky/
+.changeset/
+.github/
+.vscode/
+
+# Build artifacts
+node_modules/
+coverage/
+examples/
+schema.json
+
+# Documentation
+*.md
+!README.md
+
+# Configuration files
+.eslintrc*
+.prettierrc*
+tsconfig.json
+vitest.config.ts
+commitlint.config.js
+.commitlintrc
+.lintstagedrc.json
+
+# Git
+.git*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary folders
+tmp/
+temp/
