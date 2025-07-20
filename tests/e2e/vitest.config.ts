@@ -9,6 +9,9 @@ export default mergeConfig(baseConfig, {
     include: ['tests/e2e/**/*.e2e.test.ts'],
     setupFiles: [path.resolve(__dirname, './setup.ts')],
     testTimeout: 60000, // 1 minute for API calls
+    env: {
+      NODE_ENV: 'e2e'
+    },
     coverage: {
       reportsDirectory: '../../coverage/e2e'
     },
