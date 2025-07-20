@@ -7,8 +7,8 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 - 🔐 **Multi-account support** - Switch between personal and work accounts
 - 📋 **Issue management** - View detailed issue information and PR links
 - 🌿 **Branch suggestions** - Get suggested branch names based on issue ID
-- 🎨 **Beautiful output** - Colorized and formatted output with markdown support
 - 🔒 **Secure storage** - Configuration stored with schema validation
+- 🎨 **Beautiful output** - Colorized and formatted output with markdown support
 
 ## Installation
 
