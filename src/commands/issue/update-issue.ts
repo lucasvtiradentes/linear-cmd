@@ -14,6 +14,17 @@ import type { LinearIssueUpdatePayload } from '../../types/linear.js';
 import { linearIssueUpdatePayloadSchema } from '../../types/linear.js';
 import type { Account } from '../../types/local.js';
 
+function getPriorityName(priority: number | null | undefined): string {
+  switch (priority) {
+    case 1: return '🔴 Urgent';
+    case 2: return '🟠 High';
+    case 3: return '🟡 Medium';
+    case 4: return '🔵 Low';
+    case 0:
+    default: return '⚪ None';
+  }
+}
+
 export function createUpdateIssueCommand(): Command {
   return new Command('update')
     .description('Update a Linear issue')
@@ -200,121 +211,164 @@ export function createUpdateIssueCommand(): Command {
         if (!hasUpdates) {
           const currentState = await issue.state;
           const currentAssignee = await issue.assignee;
+          const issueTeam = await issue.team;
 
-          const answers = await inquirer.prompt([
-            {
-              type: 'list',
-              name: 'field',
-              message: 'What would you like to update?',
-              choices: [
-                { name: 'Title', value: 'title' },
-                { name: 'Description', value: 'description' },
-                { name: 'State', value: 'state' },
-                { name: 'Assignee', value: 'assignee' },
-                { name: 'Priority', value: 'priority' },
-                { name: 'Cancel', value: 'cancel' }
-              ]
-            }
-          ]);
+          // Fetch states and users once
+          const states = issueTeam ? await client.workflowStates({
+            filter: { team: { id: { eq: issueTeam.id } } }
+          }) : null;
+          const users = await client.users();
 
-          if (answers.field === 'cancel') {
-            console.log(chalk.dim('Update cancelled'));
-            return;
-          }
+          const pendingUpdates: Record<string, any> = {};
+          
+          let continueEditing = true;
+          while (continueEditing) {
+            // Build menu choices showing current vs updated values
+            const choices = [
+              {
+                name: `Title: ${pendingUpdates.title ? 
+                  `${issue.title} → ${pendingUpdates.title}` : 
+                  issue.title}`,
+                value: 'title'
+              },
+              {
+                name: `Description: ${pendingUpdates.description !== undefined ? 
+                  `${issue.description || '(empty)'} → ${pendingUpdates.description || '(empty)'}` : 
+                  issue.description || '(empty)'}`,
+                value: 'description'
+              },
+              {
+                name: `State: ${pendingUpdates.stateId ? 
+                  `${currentState?.name} → ${states?.nodes.find(s => s.id === pendingUpdates.stateId)?.name}` : 
+                  currentState?.name || 'Unknown'}`,
+                value: 'state'
+              },
+              {
+                name: `Assignee: ${pendingUpdates.assigneeId !== undefined ? 
+                  `${currentAssignee?.name || 'Unassigned'} → ${pendingUpdates.assigneeId ? users.nodes.find(u => u.id === pendingUpdates.assigneeId)?.name : 'Unassigned'}` : 
+                  currentAssignee?.name || 'Unassigned'}`,
+                value: 'assignee'
+              },
+              {
+                name: `Priority: ${pendingUpdates.priority !== undefined ? 
+                  `${getPriorityName(issue.priority)} → ${getPriorityName(pendingUpdates.priority)}` : 
+                  getPriorityName(issue.priority)}`,
+                value: 'priority'
+              },
+              new inquirer.Separator(),
+              { name: 'Apply changes', value: 'apply' },
+              { name: 'Cancel', value: 'cancel' }
+            ];
 
-          switch (answers.field) {
-            case 'title': {
-              const titleAnswer = await inquirer.prompt([
-                {
-                  type: 'input',
-                  name: 'title',
-                  message: 'New title:',
-                  default: issue.title
-                }
-              ]);
-              updatePayload.title = titleAnswer.title;
-              break;
-            }
+            const answer = await inquirer.prompt([
+              {
+                type: 'list',
+                name: 'action',
+                message: 'What would you like to update?',
+                choices: choices
+              }
+            ]);
 
-            case 'description': {
-              const descAnswer = await inquirer.prompt([
-                {
-                  type: 'input',
-                  name: 'description',
-                  message: 'New description:',
-                  default: issue.description || ''
-                }
-              ]);
-              updatePayload.description = descAnswer.description;
-              break;
-            }
-
-            case 'state': {
-              const issueTeam = await issue.team;
-              if (!issueTeam) {
-                console.error(chalk.red('❌ Unable to get issue team'));
-                return;
+            switch (answer.action) {
+              case 'title': {
+                const titleAnswer = await inquirer.prompt([
+                  {
+                    type: 'input',
+                    name: 'title',
+                    message: 'New title:',
+                    default: pendingUpdates.title || issue.title
+                  }
+                ]);
+                pendingUpdates.title = titleAnswer.title;
+                break;
               }
 
-              const states = await client.workflowStates({
-                filter: { team: { id: { eq: issueTeam.id } } }
-              });
-              const stateAnswer = await inquirer.prompt([
-                {
-                  type: 'list',
-                  name: 'state',
-                  message: 'New state:',
-                  choices: states.nodes.map((s) => ({
-                    name: s.name,
-                    value: s.id,
-                    disabled: s.id === currentState?.id
+              case 'description': {
+                const descAnswer = await inquirer.prompt([
+                  {
+                    type: 'input',
+                    name: 'description',
+                    message: 'New description:',
+                    default: pendingUpdates.description !== undefined ? pendingUpdates.description : (issue.description || '')
+                  }
+                ]);
+                pendingUpdates.description = descAnswer.description;
+                break;
+              }
+
+              case 'state': {
+                if (!states) {
+                  console.error(chalk.red('❌ Unable to get team states'));
+                  break;
+                }
+
+                const stateAnswer = await inquirer.prompt([
+                  {
+                    type: 'list',
+                    name: 'state',
+                    message: 'New state:',
+                    choices: states.nodes.map((s) => ({
+                      name: s.name,
+                      value: s.id
+                    })),
+                    default: pendingUpdates.stateId || currentState?.id
+                  }
+                ]);
+                pendingUpdates.stateId = stateAnswer.state;
+                break;
+              }
+
+              case 'assignee': {
+                const assigneeChoices = [
+                  { name: 'Unassigned', value: null },
+                  ...users.nodes.map((u) => ({
+                    name: `${u.name} (${u.email})`,
+                    value: u.id
                   }))
-                }
-              ]);
-              updatePayload.stateId = stateAnswer.state;
-              break;
-            }
+                ];
+                const assigneeAnswer = await inquirer.prompt([
+                  {
+                    type: 'list',
+                    name: 'assignee',
+                    message: 'New assignee:',
+                    choices: assigneeChoices,
+                    default: pendingUpdates.assigneeId !== undefined ? pendingUpdates.assigneeId : currentAssignee?.id
+                  }
+                ]);
+                pendingUpdates.assigneeId = assigneeAnswer.assignee;
+                break;
+              }
 
-            case 'assignee': {
-              const users = await client.users();
-              const assigneeChoices = [
-                { name: 'Unassigned', value: null },
-                ...users.nodes.map((u) => ({
-                  name: `${u.name} (${u.email})`,
-                  value: u.id,
-                  disabled: u.id === currentAssignee?.id
-                }))
-              ];
-              const assigneeAnswer = await inquirer.prompt([
-                {
-                  type: 'list',
-                  name: 'assignee',
-                  message: 'New assignee:',
-                  choices: assigneeChoices
-                }
-              ]);
-              updatePayload.assigneeId = assigneeAnswer.assignee;
-              break;
-            }
+              case 'priority': {
+                const priorityAnswer = await inquirer.prompt([
+                  {
+                    type: 'list',
+                    name: 'priority',
+                    message: 'New priority:',
+                    choices: [
+                      { name: '🔴 Urgent', value: 1 },
+                      { name: '🟠 High', value: 2 },
+                      { name: '🟡 Medium', value: 3 },
+                      { name: '🔵 Low', value: 4 },
+                      { name: '⚪ None', value: 0 }
+                    ],
+                    default: pendingUpdates.priority !== undefined ? pendingUpdates.priority : (issue.priority || 0)
+                  }
+                ]);
+                pendingUpdates.priority = priorityAnswer.priority;
+                break;
+              }
 
-            case 'priority': {
-              const priorityAnswer = await inquirer.prompt([
-                {
-                  type: 'list',
-                  name: 'priority',
-                  message: 'New priority:',
-                  choices: [
-                    { name: '🔴 Urgent', value: 1 },
-                    { name: '🟠 High', value: 2 },
-                    { name: '🟡 Medium', value: 3 },
-                    { name: '🔵 Low', value: 4 },
-                    { name: '⚪ None', value: 0 }
-                  ],
-                  default: issue.priority || 0
-                }
-              ]);
-              updatePayload.priority = priorityAnswer.priority;
-              break;
+              case 'apply': {
+                Object.assign(updatePayload, pendingUpdates);
+                continueEditing = false;
+                break;
+              }
+
+              case 'cancel': {
+                console.log(chalk.dim('Update cancelled'));
+                return;
+              }
             }
           }
         }
