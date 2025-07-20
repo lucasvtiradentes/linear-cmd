@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { ConfigManager } from '../../lib/config.js';
+import { ConfigManager } from '../../lib/config-manager.js';
 
 export function createListAccountsCommand(): Command {
   return new Command('list').description('List all configured accounts').action(async () => {

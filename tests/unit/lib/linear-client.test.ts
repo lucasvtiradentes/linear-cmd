@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ConfigManager } from '../../../src/lib/config';
+import { ConfigManager } from '../../../src/lib/config-manager';
 import { LinearAPIClient } from '../../../src/lib/linear-client';
 
-vi.mock('../../../src/lib/config');
+vi.mock('../../../src/lib/config-manager');
 
 describe('LinearAPIClient', () => {
   let client: LinearAPIClient;

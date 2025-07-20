@@ -2,7 +2,7 @@ import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 import { Command } from 'commander';
 
-import { ConfigManager } from '../../lib/config.js';
+import { ConfigManager } from '../../lib/config-manager.js';
 
 export function createTestAccountsCommand(): Command {
   return new Command('test').description('Test all configured accounts').action(async () => {

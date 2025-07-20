@@ -5,7 +5,7 @@ import type { UserMetadata, LinearConfig, WorkspaceConfig, Account } from '../ty
 import { CONFIG_PATHS } from './constants.js';
 import { readJson, writeJson, readJson5, writeJson5 } from './json-utils.js';
 
-export class NewConfigManager {
+export class ConfigManager {
   private userMetadata: UserMetadata | null = null;
   private config: LinearConfig | null = null;
 
@@ -271,5 +271,14 @@ export class NewConfigManager {
 
     config.workspaces[accountId].workspaces = workspaces;
     this.saveConfig();
+  }
+
+  // Alias methods for backward compatibility with "account" terminology
+  async addAccount(name: string, apiKey: string): Promise<void> {
+    return this.addWorkspace(name, apiKey);
+  }
+
+  async removeAccount(name: string): Promise<void> {
+    return this.removeWorkspace(name);
   }
 }

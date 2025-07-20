@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 import { createShowIssueCommand } from '../../../src/commands/issue/show-issue';
-import { ConfigManager } from '../../../src/lib/config';
+import { ConfigManager } from '../../../src/lib/config-manager';
 import { LinearAPIClient } from '../../../src/lib/linear-client';
 
 vi.mock('../../../src/lib/linear-client');
-vi.mock('../../../src/lib/config');
+vi.mock('../../../src/lib/config-manager');
 
 describe('Show Issue Command Integration', () => {
   let mockLinearClient: any;

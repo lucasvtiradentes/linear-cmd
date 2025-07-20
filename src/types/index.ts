@@ -1,4 +1,4 @@
-// Re-export everything from config.ts
+// Re-export config types
 export * from './config.js';
 
 export interface IssueData {

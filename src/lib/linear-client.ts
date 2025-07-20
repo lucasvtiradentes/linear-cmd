@@ -1,7 +1,7 @@
 import { LinearClient } from '@linear/sdk';
 
 import type { IssueData, Account } from '../types/index.js';
-import { ConfigManager } from './config.js';
+import { ConfigManager } from './config-manager.js';
 
 export class LinearAPIClient {
   private client: LinearClient | null = null;
