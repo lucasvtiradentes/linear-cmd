@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 import { createShowIssueCommand } from '../../../src/commands/issue/show-issue';
 import { ConfigManager } from '../../../src/lib/config';
