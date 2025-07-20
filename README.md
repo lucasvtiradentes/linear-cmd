@@ -9,11 +9,11 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 
 ## Features
 
-- 🔐 **Multi-account support** - Switch between personal and work accounts
-- 📋 **Issue management** - View detailed issue information and PR links
-- 🌿 **Branch suggestions** - Get suggested branch names based on issue ID
-- 🔒 **Secure storage** - Configuration stored with schema validation
-- 🎨 **Beautiful output** - Colorized and formatted output with markdown support
+- **Multi-account support** - Manage multiple Linear accounts with per-command selection
+- **Complete issue management** - Create, list, update, comment, and view detailed issue information
+- **Smart account discovery** - Automatically finds the right account for issue operations
+- **Advanced filtering** - Filter issues by assignee, state, labels, projects, and teams
+- **Self-updating** - Built-in update mechanism that detects your package manager
 
 ## Motivation
 
@@ -24,8 +24,7 @@ Because I want to be able to just paste a Linear issue link into my [Claude code
 ## Quick Start
 
 1. **Get your Linear API Key** from [Linear Settings](https://linear.app/settings) > Security & Access > Personal API keys
-2. **Add your account**: `linear account add`
-  - Then you need to set a name and paste your API_KEY
+2. **Add your account**: `linear account add` (Then you need to set a name and paste your API_KEY)
 3. **View an issue**: `linear issue show WORK-123`
 
 ## Usage
@@ -79,15 +78,6 @@ linear issue create --account work \
   --assignee "user@example.com"
 ```
 
-**Available flags for create:**
-- `--title` - Issue title (required if not prompted)
-- `--description` - Issue description
-- `--priority` - Priority: 0 (none), 1 (urgent), 2 (high), 3 (medium), 4 (low)
-- `--label` - Label name
-- `--team` - Team identifier
-- `--project` - Project identifier
-- `--assignee` - Assignee email or identifier
-
 #### Updating Issues
 
 ```bash
@@ -105,16 +95,6 @@ linear issue update WORK-123 \
   --remove-label "low-priority"
 ```
 
-**Available flags for update:**
-- `--title` - New title
-- `--description` - New description
-- `--state` - New state (e.g., "In Progress", "Done")
-- `--assignee` - Assignee email or "unassign" to remove
-- `--project` - Project name or "none" to remove
-- `--priority` - Priority: 0 (none), 1 (urgent), 2 (high), 3 (medium), 4 (low)
-- `--add-label` - Add a label
-- `--remove-label` - Remove a label
-
 #### Commenting on Issues
 
 ```bash
@@ -124,9 +104,6 @@ linear issue comment WORK-123
 # Direct mode with comment text
 linear issue comment WORK-123 "This is my comment"
 ```
-
-**Available flags for comment:**
-- `--account` - Specify account to use
 
 ## Development
 
