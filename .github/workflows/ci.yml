@@ -53,6 +53,9 @@ jobs:
   test-e2e:
     runs-on: ubuntu-latest
     needs: build
+    env:
+      LINEAR_API_KEY_E2E: ${{ secrets.LINEAR_API_KEY_E2E }}
+      LINEAR_TEST_ISSUE_ID: ${{ secrets.LINEAR_TEST_ISSUE_ID }}
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v4
