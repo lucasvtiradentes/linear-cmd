@@ -1,4 +1,9 @@
-# Linear CLI
+<div align="center">
+<a href="https://linear.app" target="_blank" rel="noopener noreferrer">
+  <img width="64" src="https://raw.githubusercontent.com/linear/linear/master/docs/logo.svg" alt="Linear logo">
+</a>
+<h2>Linear cmd</h2>
+</div>
 
 A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your terminal.
 
@@ -10,71 +15,49 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 - 🔒 **Secure storage** - Configuration stored with schema validation
 - 🎨 **Beautiful output** - Colorized and formatted output with markdown support
 
-## Installation
+## Motivation
 
-```bash
-git clone https://github.com/lucasvtiradentes/linear-cli.git
-cd linear-cli
-pnpm install
-pnpm run build
-pnpm link --global
-```
+Why do this in a time we have [linear MCP](https://linear.app/docs/mcp)?
+
+Because I want to just paste a linear issue link to my claude code and made it solve the problem, and currently the linear MCP server does not have support us to use multiple linear accounts (I use on for work and one for my personal projects).
 
 ## Quick Start
 
-1. **Get your Linear API Key** from [Linear Settings](https://linear.app/settings) > Account > API
+1. **Get your Linear API Key** from [Linear Settings](https://linear.app/settings) > Security & Access > Personal API keys
 2. **Add your workspace**: `linear account add`
-3. **Test connection**: `linear account test`
-4. **View an issue**: `linear issue show WAY-123`
+ - Then you need to sed a name and paste your API_KEY
+3. **View an issue**: `linear issue show WAY-123`
 
 ## Usage
+
+### Installation
+
+```bash
+npm install linear-cmd -g 
+```
 
 ### Account Management
 
 ```bash
-linear account add          # Add workspace
-linear account list         # List workspaces
-linear account switch work  # Switch workspace
-linear account test         # Test connection
+linear account add              # Add workspace
+linear account list             # List workspaces
+linear account test             # Test connection of all your accounts
 ```
 
 ### Issue Management
 
 ```bash
-linear issue show WAY-123                    # Show by ID
-linear issue show <linear-url>               # Show by URL
-linear issue branch WAY-123                  # Get branch name
-```
-
-## Configuration
-
-Config file location:
-
-- **Windows**: `%APPDATA%\linear-cli\config.json5`
-- **Linux/macOS**: `~/.config/linear-cli/config.json5`
-
-Example configuration:
-
-```json5
-{
-  $schema: 'https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json',
-  workspaces: {
-    personal: {
-      name: 'personal',
-      api_key: 'lin_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-      workspaces: ['your-workspace-slug'],
-      default: true
-    }
-  }
-}
+linear issue show WAY-123       # Show by ID
+linear issue show <linear-url>  # Show by URL
+linear issue branch WAY-123     # Get branch name
 ```
 
 ## Development
 
 ```bash
-pnpm run dev     # Run in development
-pnpm run build   # Build for production
-pnpm run test    # Run tests
+pnpm run dev                    # Run in development
+pnpm run build                  # Build for production
+pnpm run test                   # Run tests
 ```
 
 ## License
