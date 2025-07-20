@@ -1,9 +1,6 @@
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-import { beforeEach } from 'vitest';
+import '../load-env';
 
-// Load E2E environment variables
-dotenv.config({ path: path.join(__dirname, '../../.env.e2e') });
+import { beforeEach } from 'vitest';
 
 // Global E2E setup
 beforeEach(() => {

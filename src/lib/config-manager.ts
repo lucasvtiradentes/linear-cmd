@@ -241,8 +241,9 @@ export class ConfigManager {
     }));
   }
 
-  listAccounts(): Account[] {
-    return this.getAllAccounts().then((accounts) => accounts.map((account) => ({ ...account, apiKey: '***' }))) as any; // Type hack for legacy sync method
+  async listAccounts(): Promise<Account[]> {
+    const accounts = await this.getAllAccounts();
+    return accounts.map((account) => ({ ...account, apiKey: '***' }));
   }
 
   findAccountByWorkspace(workspace: string): Account | null {

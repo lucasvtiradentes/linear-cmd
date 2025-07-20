@@ -1,9 +1,6 @@
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-import { vi, beforeEach } from 'vitest';
+import '../load-env';
 
-// Load test environment variables
-dotenv.config({ path: path.join(__dirname, '../../.env.test') });
+import { vi, beforeEach } from 'vitest';
 
 // Global test setup
 beforeEach(() => {
