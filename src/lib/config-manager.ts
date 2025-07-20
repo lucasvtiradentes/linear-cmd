@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { userMetadataSchema, linearConfigSchema } from '../config.js';
 import type { UserMetadata, LinearConfig, WorkspaceConfig, Account } from '../config.js';
 import { CONFIG_PATHS } from './constants.js';
-import { readJson, writeJson, readJson5, writeJson5 } from './json-utils.js';
+import { readJson5, writeJson5 } from './json-utils.js';
 
 export class ConfigManager {
   private userMetadata: UserMetadata | null = null;
@@ -31,12 +31,12 @@ export class ConfigManager {
     const defaultMetadata: UserMetadata = {
       config_path: CONFIG_PATHS.defaultConfigFile
     };
-    writeJson(CONFIG_PATHS.userMetadataFile, defaultMetadata);
+    writeJson5(CONFIG_PATHS.userMetadataFile, defaultMetadata);
   }
 
   private loadUserMetadata(): void {
     try {
-      const data = readJson<UserMetadata>(CONFIG_PATHS.userMetadataFile);
+      const data = readJson5<UserMetadata>(CONFIG_PATHS.userMetadataFile);
       const validated = userMetadataSchema.parse(data);
       this.userMetadata = validated;
     } catch (error) {
@@ -155,7 +155,7 @@ export class ConfigManager {
     }
 
     this.userMetadata.active_workspace = name;
-    writeJson(CONFIG_PATHS.userMetadataFile, this.userMetadata);
+    writeJson5(CONFIG_PATHS.userMetadataFile, this.userMetadata);
   }
 
   private clearActiveWorkspace(): void {
@@ -164,7 +164,7 @@ export class ConfigManager {
     }
 
     delete this.userMetadata.active_workspace;
-    writeJson(CONFIG_PATHS.userMetadataFile, this.userMetadata);
+    writeJson5(CONFIG_PATHS.userMetadataFile, this.userMetadata);
   }
 
   getActiveWorkspace(): WorkspaceConfig | null {
