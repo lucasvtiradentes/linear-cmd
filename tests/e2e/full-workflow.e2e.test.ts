@@ -104,21 +104,27 @@ describe('Complete User Workflow E2E', () => {
 
     // Create fresh test home directory and config directory
     fs.mkdirSync(testConfigDir, { recursive: true });
-    
+
     // Create default config files to ensure proper initialization
     const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
     const configPath = path.join(testConfigDir, 'config.json5');
-    
-    fs.writeFileSync(userMetadataPath, JSON.stringify({
-      config_path: configPath
-    }));
-    
+
+    fs.writeFileSync(
+      userMetadataPath,
+      JSON.stringify({
+        config_path: configPath
+      })
+    );
+
     // Write valid JSON5 config with schema
-    fs.writeFileSync(configPath, `{
+    fs.writeFileSync(
+      configPath,
+      `{
   "$schema": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
   "workspaces": {},
   "accounts": []
-}`);
+}`
+    );
   });
 
   afterEach(() => {

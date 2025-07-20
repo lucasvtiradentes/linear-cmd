@@ -57,7 +57,7 @@ export class LinearAPIClient {
       for (const attachment of attachments.nodes) {
         if (attachment.url && attachment.url.includes('github.com') && attachment.url.includes('/pull/')) {
           // Extract PR info from GitHub URL
-          const prMatch = attachment.url.match(/github\.com\/([^\/]+\/[^\/]+)\/pull\/(\d+)/);
+          const prMatch = attachment.url.match(/github\.com\/([^/]+\/[^/]+)\/pull\/(\d+)/);
           if (prMatch) {
             pullRequests.push({
               id: attachment.id,
@@ -160,7 +160,7 @@ export class LinearAPIClient {
 
   public parseIssueUrl(idOrUrl: string): { workspace: string | null; issueId: string } {
     // If it's a URL, extract workspace and issue identifier
-    const urlMatch = idOrUrl.match(/linear\.app\/([^\/]+)\/issue\/([A-Z]+-\d+)/);
+    const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/issue\/([A-Z]+-\d+)/);
     if (urlMatch) {
       return {
         workspace: urlMatch[1],

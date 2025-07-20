@@ -78,7 +78,7 @@ vi.mock('@linear/sdk', () => {
   };
 
   return {
-    LinearClient: vi.fn().mockImplementation((options: { apiKey: string }) => ({
+    LinearClient: vi.fn().mockImplementation((_options: { apiKey: string }) => ({
       issue: vi.fn((id: string) => {
         if (id === 'INVALID-123') {
           throw new Error('Entity not found: Issue - Could not find referenced Issue.');

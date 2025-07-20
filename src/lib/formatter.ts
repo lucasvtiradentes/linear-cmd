@@ -12,7 +12,6 @@ export class OutputFormatter {
     output.push('');
 
     // State and assignee
-    const stateColor = this.getStateColor(issue.state.name);
     output.push(`${chalk.bold('Status:')} ${chalk.hex(issue.state.color)(issue.state.name)}`);
 
     if (issue.assignee) {

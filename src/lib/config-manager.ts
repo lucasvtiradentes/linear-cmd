@@ -1,9 +1,8 @@
 import * as fs from 'fs';
-import * as path from 'path';
 
 import { userMetadataSchema, linearConfigSchema } from '../types/config.js';
 import type { UserMetadata, LinearConfig, WorkspaceConfig, Account } from '../types/config.js';
-import { CONFIG_PATHS, APP_INFO } from './constants.js';
+import { CONFIG_PATHS } from './constants.js';
 import { readJson, writeJson, readJson5, writeJson5 } from './json-utils.js';
 
 export class NewConfigManager {
