@@ -1,10 +1,10 @@
 import { exec } from 'child_process';
 import { Command } from 'commander';
-import { platform } from 'os';
-import { promisify } from 'util';
 import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { platform } from 'os';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { promisify } from 'util';
 
 import { Logger } from '../lib/logger.js';
 

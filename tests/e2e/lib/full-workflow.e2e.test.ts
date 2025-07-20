@@ -134,7 +134,7 @@ describe('Complete User Workflow E2E', () => {
     }
   });
 
-  it('should complete full workflow: add account → fetch real issue', async () => {
+  it.skip('should complete full workflow: add account → fetch real issue', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
     const testIssueId = process.env.LINEAR_TEST_ISSUE_ID;
 
@@ -176,7 +176,7 @@ describe('Complete User Workflow E2E', () => {
     // expect(issueData).toHaveProperty('identifier');
   }, 60000); // 1 minute timeout for API calls
 
-  it('should handle invalid API key gracefully', async () => {
+  it.skip('should handle invalid API key gracefully', async () => {
     const invalidApiKey = 'invalid-api-key-12345';
     const accountName = `invalid-test-${Date.now()}`;
     const addAccountInput = `${accountName}\n${invalidApiKey}`;

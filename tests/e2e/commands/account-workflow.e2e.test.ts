@@ -144,13 +144,23 @@ describe('Account Management E2E', () => {
     expect(listResult.stdout).toContain('Configured accounts:');
 
     // Step 3: Test accounts (will fail with invalid API but should not crash)
-    const testResult = await execCommand(`node dist/index.js account test ${accountName}`, undefined, 15000, testHomeDir);
-    
+    const testResult = await execCommand(
+      `node dist/index.js account test ${accountName}`,
+      undefined,
+      15000,
+      testHomeDir
+    );
+
     // Test may fail due to invalid API key, but should handle gracefully
     expect(testResult.stdout).toContain('Testing account');
 
     // Step 4: Remove account
-    const removeResult = await execCommand(`node dist/index.js account remove ${accountName}`, undefined, 10000, testHomeDir);
+    const removeResult = await execCommand(
+      `node dist/index.js account remove ${accountName}`,
+      undefined,
+      10000,
+      testHomeDir
+    );
 
     expect(removeResult.exitCode).toBe(0);
     expect(removeResult.stdout).toContain('removed successfully');
@@ -192,7 +202,12 @@ describe('Account Management E2E', () => {
     expect(testAllResult.stdout).toContain('Testing all accounts');
 
     // Remove first account
-    const remove1Result = await execCommand(`node dist/index.js account remove ${account1Name}`, undefined, 10000, testHomeDir);
+    const remove1Result = await execCommand(
+      `node dist/index.js account remove ${account1Name}`,
+      undefined,
+      10000,
+      testHomeDir
+    );
     expect(remove1Result.exitCode).toBe(0);
 
     // Verify only second account remains
@@ -206,14 +221,14 @@ describe('Account Management E2E', () => {
     // Test invalid account name
     const invalidNameInput = `invalid name!\nlin_api_test123456789`;
     const invalidNameResult = await execCommand('node dist/index.js account add', invalidNameInput, 10000, testHomeDir);
-    
+
     // Should handle validation error gracefully
     expect(invalidNameResult.stdout).toContain('Account name');
 
     // Test invalid API key format
     const invalidApiInput = `valid-name\ninvalid-api-key`;
     const invalidApiResult = await execCommand('node dist/index.js account add', invalidApiInput, 10000, testHomeDir);
-    
+
     // Should handle validation error gracefully
     expect(invalidApiResult.stdout).toContain('Linear API key');
 
@@ -224,16 +239,25 @@ describe('Account Management E2E', () => {
 
   it.skip('should handle non-existent account operations', async () => {
     // Try to remove non-existent account
-    const removeResult = await execCommand('node dist/index.js account remove non-existent', undefined, 10000, testHomeDir);
-    
+    const removeResult = await execCommand(
+      'node dist/index.js account remove non-existent',
+      undefined,
+      10000,
+      testHomeDir
+    );
+
     // Should handle error gracefully
-    expect(removeResult.exitCode !== 0 || removeResult.stderr.length > 0 || removeResult.stdout.includes('not found')).toBe(true);
+    expect(
+      removeResult.exitCode !== 0 || removeResult.stderr.length > 0 || removeResult.stdout.includes('not found')
+    ).toBe(true);
 
     // Try to test non-existent account
     const testResult = await execCommand('node dist/index.js account test non-existent', undefined, 10000, testHomeDir);
-    
+
     // Should handle error gracefully
-    expect(testResult.exitCode !== 0 || testResult.stderr.length > 0 || testResult.stdout.includes('not found')).toBe(true);
+    expect(testResult.exitCode !== 0 || testResult.stderr.length > 0 || testResult.stdout.includes('not found')).toBe(
+      true
+    );
   }, 30000);
 
   it.skip('should handle JSON output format for account list', async () => {
@@ -245,23 +269,28 @@ describe('Account Management E2E', () => {
     await execCommand('node dist/index.js account add', addInput, 15000, testHomeDir);
 
     // List accounts in JSON format
-    const jsonResult = await execCommand('node dist/index.js account list --format json', undefined, 10000, testHomeDir);
+    const jsonResult = await execCommand(
+      'node dist/index.js account list --format json',
+      undefined,
+      10000,
+      testHomeDir
+    );
 
     expect(jsonResult.exitCode).toBe(0);
-    
+
     // Should contain valid JSON with account data
     try {
       const output = jsonResult.stdout.trim();
       const lines = output.split('\n');
-      const jsonLine = lines.find(line => line.startsWith('{') || line.includes(accountName));
-      
+      const jsonLine = lines.find((line) => line.startsWith('{') || line.includes(accountName));
+
       if (jsonLine) {
         const data = JSON.parse(jsonLine);
         expect(data).toHaveProperty(accountName);
         expect(data[accountName]).toHaveProperty('name', accountName);
         expect(data[accountName]).toHaveProperty('api_key');
       }
-    } catch (error) {
+    } catch {
       // JSON parsing might fail due to mixed output, but should at least contain account name
       expect(jsonResult.stdout).toContain(accountName);
     }

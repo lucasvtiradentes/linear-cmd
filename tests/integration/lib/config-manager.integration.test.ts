@@ -8,8 +8,8 @@ import { ConfigManager } from '../../../src/lib/config-manager';
 describe('ConfigManager Integration', () => {
   let tempDir: string;
   let configManager: ConfigManager;
-  let configPath: string;
-  let userMetadataPath: string;
+  let _configPath: string;
+  let _userMetadataPath: string;
 
   beforeEach(() => {
     // Create temporary directory for test config
@@ -19,8 +19,8 @@ describe('ConfigManager Integration', () => {
     const configDir = path.join(tempDir, '.config', 'linear-cmd');
     fs.mkdirSync(configDir, { recursive: true });
 
-    configPath = path.join(configDir, 'config.json5');
-    userMetadataPath = path.join(configDir, 'user_metadata.json');
+    _configPath = path.join(configDir, 'config.json5');
+    _userMetadataPath = path.join(configDir, 'user_metadata.json');
 
     // Set up environment to use test directory
     process.env.HOME = tempDir;
@@ -34,7 +34,7 @@ describe('ConfigManager Integration', () => {
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
-    delete process.env.HOME;
+    process.env.HOME = undefined;
   });
 
   it('should initialize with empty config', () => {
@@ -62,7 +62,7 @@ describe('ConfigManager Integration', () => {
     // Create new config manager instance to test persistence
     const newConfigManager = new ConfigManager();
     const retrievedAccount = newConfigManager.getAccount('persistent-account');
-    
+
     expect(retrievedAccount).toEqual({
       name: 'persistent-account',
       api_key: 'persistent-api-key'
@@ -130,7 +130,7 @@ describe('ConfigManager Integration', () => {
     // Just test the functionality with existing accounts
     const accountsList = configManager.listAccounts();
     expect(Array.isArray(accountsList)).toBe(true);
-    
+
     // Each account should have a name property
     for (const account of accountsList) {
       expect(account).toHaveProperty('name');
@@ -141,9 +141,9 @@ describe('ConfigManager Integration', () => {
   it('should handle account validation', async () => {
     // Test duplicate account
     await configManager.addAccount('duplicate-test', 'api-key-1');
-    
-    await expect(
-      configManager.addAccount('duplicate-test', 'api-key-2')
-    ).rejects.toThrow("Account 'duplicate-test' already exists");
+
+    await expect(configManager.addAccount('duplicate-test', 'api-key-2')).rejects.toThrow(
+      "Account 'duplicate-test' already exists"
+    );
   });
 });

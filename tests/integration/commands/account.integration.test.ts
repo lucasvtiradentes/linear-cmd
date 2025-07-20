@@ -8,13 +8,13 @@ vi.mock('../../../src/lib/config-manager');
 describe('Account Commands Integration', () => {
   let mockConfigManager: any;
   let consoleLogSpy: any;
-  let consoleErrorSpy: any;
-  let processExitSpy: any;
+  let _consoleErrorSpy: any;
+  let _processExitSpy: any;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+    _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    _processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit() was called');
     });
 
