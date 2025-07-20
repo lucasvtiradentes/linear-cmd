@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.5
+
+### Patch Changes
+
+- 4ebd38e: update readme
+
 ## 1.0.4
 
 ### Patch Changes
