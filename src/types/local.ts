@@ -13,8 +13,7 @@ export const accountSchema = z.object({
   name: z.string(),
   api_key: z.string(),
   team_id: z.string().optional(),
-  workspaces: z.array(z.string()).optional(),
-  default: z.boolean().optional()
+  workspaces: z.array(z.string()).optional()
 });
 
 // Linear CLI configuration schema

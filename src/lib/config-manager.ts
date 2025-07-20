@@ -107,8 +107,7 @@ export class ConfigManager {
     const account: Account = {
       name,
       api_key: apiKey,
-      team_id: teamId,
-      default: Object.keys(config.accounts).length === 0 // First account is default
+      team_id: teamId
     };
 
     config.accounts[name] = account;
