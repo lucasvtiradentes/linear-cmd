@@ -64,14 +64,6 @@ export class OutputFormatter {
     return output.join('\n');
   }
 
-  private static getStateColor(stateName: string): string {
-    const state = stateName.toLowerCase();
-    if (state.includes('done') || state.includes('completed')) return 'green';
-    if (state.includes('progress') || state.includes('doing')) return 'yellow';
-    if (state.includes('todo') || state.includes('backlog')) return 'blue';
-    if (state.includes('cancelled') || state.includes('canceled')) return 'red';
-    return 'gray';
-  }
 
   private static formatMarkdown(text: string): string {
     // Basic markdown formatting

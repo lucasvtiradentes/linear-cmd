@@ -8,7 +8,7 @@ export const APP_INFO = {
   schema_url: 'https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json'
 };
 
-export type SupportedOS = 'linux' | 'mac' | 'windows' | 'wsl';
+type SupportedOS = 'linux' | 'mac' | 'windows' | 'wsl';
 
 export function getUserOS(): SupportedOS {
   const platform = os.platform();
@@ -56,4 +56,3 @@ export const CONFIG_PATHS = {
   schemaUrl: APP_INFO.schema_url
 };
 
-export const SUPPORTED_OS: SupportedOS[] = ['linux', 'mac', 'windows', 'wsl'];
