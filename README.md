@@ -24,7 +24,7 @@ Because I want to just paste a linear issue link to my claude code and made it s
 ## Quick Start
 
 1. **Get your Linear API Key** from [Linear Settings](https://linear.app/settings) > Security & Access > Personal API keys
-2. **Add your workspace**: `linear account add`
+2. **Add your account**: `linear account add`
 
 - Then you need to sed a name and paste your API_KEY
 
@@ -41,8 +41,9 @@ npm install linear-cmd -g
 ### Account Management
 
 ```bash
-linear account add              # Add workspace
-linear account list             # List workspaces
+linear account add              # Add account
+linear account list             # List accounts
+linear account remove [NAME]    # Remove account 
 linear account test             # Test connection of all your accounts
 ```
 
@@ -51,6 +52,7 @@ linear account test             # Test connection of all your accounts
 ```bash
 linear issue show WAY-123       # Show by ID
 linear issue show <linear-url>  # Show by URL
+linear issue show WORK-123 --account work
 linear issue branch WAY-123     # Get branch name
 ```
 
