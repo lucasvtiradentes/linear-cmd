@@ -11,7 +11,7 @@ import { linearIssuePayloadSchema } from '../../types/linear.js';
 export function createCreateIssueCommand(): Command {
   return new Command('create')
     .description('Create a new Linear issue')
-    .option('-a, --account <account>', 'specify account to use')
+    .requiredOption('-a, --account <account>', 'specify account to use')
     .option('-t, --title <title>', 'issue title')
     .option('-d, --description <description>', 'issue description')
     .option('-p, --priority <priority>', 'priority (0: none, 1: urgent, 2: high, 3: medium, 4: low)')

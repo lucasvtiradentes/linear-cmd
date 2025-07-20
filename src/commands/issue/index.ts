@@ -1,6 +1,5 @@
 import { Command } from 'commander';
 
-import { createBranchIssueCommand } from './branch-issue.js';
 import { createCommentIssueCommand } from './comment-issue.js';
 import { createCreateIssueCommand } from './create-issue.js';
 import { createListIssuesCommand } from './list-issues.js';
@@ -12,7 +11,6 @@ export function createIssueCommand(): Command {
   issue.description('Manage Linear issues');
 
   issue.addCommand(createShowIssueCommand());
-  issue.addCommand(createBranchIssueCommand());
   issue.addCommand(createCreateIssueCommand());
   issue.addCommand(createListIssuesCommand());
   issue.addCommand(createUpdateIssueCommand());

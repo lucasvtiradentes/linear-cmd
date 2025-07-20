@@ -17,17 +17,15 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 
 ## Motivation
 
-Why do this in a time we have [linear MCP](https://linear.app/docs/mcp)?
+Why build this when we already have [Linear MCP](https://linear.app/docs/mcp)?
 
-Because I want to just paste a linear issue link to my claude code and made it solve the problem, and currently the linear MCP server does not have support us to use multiple linear accounts (I use on for work and one for my personal projects).
+Because I want to be able to just paste a Linear issue link into my [Claude code](https://www.anthropic.com/claude-code) and have it solve the problem. Currently, the Linear MCP server does not support using multiple Linear accounts (I use one for work and one for my personal projects).
 
 ## Quick Start
 
 1. **Get your Linear API Key** from [Linear Settings](https://linear.app/settings) > Security & Access > Personal API keys
 2. **Add your account**: `linear account add`
-
-- Then you need to sed a name and paste your API_KEY
-
+  - Then you need to set a name and paste your API_KEY
 3. **View an issue**: `linear issue show WORK-123`
 
 ## Usage
@@ -38,30 +36,41 @@ Because I want to just paste a linear issue link to my claude code and made it s
 npm install linear-cmd -g
 ```
 
+### General
+
+```bash
+linear update                              # Update to latest version
+linear --help                              # Show available commands
+linear <command> --help                    # Show help for specific command
+```
+
 ### Account Management
 
 ```bash
-linear account add              # Add account
-linear account list             # List accounts
-linear account remove [NAME]    # Remove account 
-linear account test             # Test connection of all your accounts
+linear account add                         # Add account
+linear account list                        # List accounts
+linear account remove [NAME]               # Remove account 
+linear account test                        # Test connection of all your accounts
 ```
 
 ### Issue Management
 
 ```bash
-linear issue show WORK-123       # Show by ID
-linear issue show <linear-url>  # Show by URL
-linear issue show WORK-123 --account work
-linear issue branch WORK-123     # Get branch name
+linear issue show <linear-url>             # Show by URL
+linear issue show WORK-123                 # Show by ID
+linear issue show WORK-123 --account work  # Show by ID (specifying account)
+linear issue list --account work           # List issues (requires account)
+linear issue create --account work         # Create new issue (requires account)
+linear issue update WORK-123               # Update issue
+linear issue comment WORK-123              # Add comment to issue
 ```
 
 ## Development
 
 ```bash
-pnpm run dev                    # Run in development
-pnpm run build                  # Build for production
-pnpm run test                   # Run tests
+pnpm run dev                               # Run in development
+pnpm run build                             # Build for production
+pnpm run test                              # Run tests
 ```
 
 ## License
