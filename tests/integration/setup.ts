@@ -25,7 +25,7 @@ vi.mock('fs', async () => {
   const mockFileSystem = new Map<string, string>();
 
   // Setup mock package.json for constants.ts
-  const packageJsonPath = '/home/user/repos/linear-cli/package.json';
+  const packageJsonPath = '/home/user/repos/linear-cmd/package.json';
   mockFileSystem.set(
     packageJsonPath,
     JSON.stringify({

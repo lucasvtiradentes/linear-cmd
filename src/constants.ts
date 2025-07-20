@@ -12,7 +12,7 @@ const packageJsonPath = path.join(__dirname, '..', 'package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 
 export const APP_INFO = {
-  name: 'linear-cli',
+  name: 'linear-cmd',
   display_name: 'Linear CLI',
   version: packageJson.version
 };

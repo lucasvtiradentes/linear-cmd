@@ -90,8 +90,8 @@ async function execCommand(command: string, input?: string, timeout = 30000, hom
 }
 
 describe('Complete User Workflow E2E', () => {
-  const testHomeDir = path.join(os.tmpdir(), `linear-cli-e2e-${Date.now()}`);
-  const testConfigDir = path.join(testHomeDir, '.config', 'linear-cli');
+  const testHomeDir = path.join(os.tmpdir(), `linear-cmd-e2e-${Date.now()}`);
+  const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
 
   beforeEach(async () => {
     // Build the project before each test
