@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 interface CommandResult {
   stdout: string;
@@ -47,7 +47,7 @@ async function execCommand(command: string, input?: string, timeout = 30000, hom
 
       const writeNext = () => {
         if (index < lines.length && child.stdin && !child.stdin.destroyed) {
-          child.stdin.write(lines[index] + '\n');
+          child.stdin.write(`${lines[index]}\n`);
           index++;
           if (index < lines.length) {
             setTimeout(writeNext, 500); // 500ms delay between inputs
@@ -138,8 +138,13 @@ describe('Complete User Workflow E2E', () => {
   });
 
   it('should complete full workflow: add account → fetch real issue', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E!;
-    const testIssueId = process.env.LINEAR_TEST_ISSUE_ID!;
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const testIssueId = process.env.LINEAR_TEST_ISSUE_ID;
+
+    if (!apiKey || !testIssueId) {
+      console.log('Skipping e2e test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_ISSUE_ID');
+      return;
+    }
 
     // Step 1: Add account with real API key (using interactive mode)
     const accountName = `e2e-test-${Date.now()}`;
@@ -187,7 +192,12 @@ describe('Complete User Workflow E2E', () => {
   });
 
   it('should handle non-existent issue gracefully', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E!;
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+
+    if (!apiKey) {
+      console.log('Skipping e2e test: Missing LINEAR_API_KEY_E2E');
+      return;
+    }
 
     // Add account first
     const accountName = `e2e-test-${Date.now()}`;

@@ -27,7 +27,7 @@ export function createCommentIssueCommand(): Command {
 
         // For comment, we'll try to find the account that has access to this issue
         // if not specified
-        let client;
+        let client: LinearClient | undefined;
 
         if (options.account) {
           const account = configManager.getAccount(options.account);

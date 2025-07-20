@@ -1,16 +1,5 @@
 node_modules/
 dist/
 ignore/
-.env
-.env.test
+
 .env.e2e
-coverage/
-.vitest/
-*.log
-.DS_Store
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-ignore/

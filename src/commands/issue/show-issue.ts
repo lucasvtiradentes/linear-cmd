@@ -1,7 +1,6 @@
 import { Command } from 'commander';
-
-import { Logger } from '../../lib/logger.js';
 import { LinearAPIClient } from '../../lib/linear-client.js';
+import { Logger } from '../../lib/logger.js';
 
 export function createShowIssueCommand(): Command {
   return new Command('show')

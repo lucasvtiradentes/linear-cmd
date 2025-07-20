@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createShowIssueCommand } from '../../../src/commands/issue/show-issue';
 import { ConfigManager } from '../../../src/lib/config-manager';
@@ -147,7 +147,9 @@ describe('Show Issue Command Integration', () => {
   });
 
   it('should handle issue not found error', async () => {
-    mockLinearClient.getIssueByIdOrUrl.mockRejectedValue(new Error('Entity not found: Issue - Could not find referenced Issue.'));
+    mockLinearClient.getIssueByIdOrUrl.mockRejectedValue(
+      new Error('Entity not found: Issue - Could not find referenced Issue.')
+    );
 
     const command = createShowIssueCommand();
 

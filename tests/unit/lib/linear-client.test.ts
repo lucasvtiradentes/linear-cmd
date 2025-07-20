@@ -67,7 +67,8 @@ describe('LinearAPIClient', () => {
     });
 
     it('should truncate long titles', () => {
-      const longTitle = 'This is a very long issue title that should be truncated to avoid excessively long branch names';
+      const longTitle =
+        'This is a very long issue title that should be truncated to avoid excessively long branch names';
       const result = client.generateBranchName('WORK-123', longTitle);
 
       expect(result.length).toBeLessThanOrEqual(60); // identifier + / + 50 chars max

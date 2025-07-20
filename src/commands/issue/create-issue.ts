@@ -1,9 +1,7 @@
-import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-
-import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
 import { ConfigManager } from '../../lib/config-manager.js';
+import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
 import { Logger } from '../../lib/logger.js';
 import type { LinearIssuePayload } from '../../types/linear.js';
 import { linearIssuePayloadSchema } from '../../types/linear.js';

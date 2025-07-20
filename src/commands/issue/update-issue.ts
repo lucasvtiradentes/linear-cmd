@@ -2,13 +2,17 @@ import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-
-import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
 import { ConfigManager } from '../../lib/config-manager.js';
-import { LinearAPIClient } from '../../lib/linear-client.js';
+import {
+  getLinearClientForAccount,
+  handleValidationError,
+  LinearAPIClient,
+  ValidationError
+} from '../../lib/linear-client.js';
 import { Logger } from '../../lib/logger.js';
 import type { LinearIssueUpdatePayload } from '../../types/linear.js';
 import { linearIssueUpdatePayloadSchema } from '../../types/linear.js';
+import type { Account } from '../../types/local.js';
 
 export function createUpdateIssueCommand(): Command {
   return new Command('update')
@@ -37,7 +41,7 @@ export function createUpdateIssueCommand(): Command {
 
         // For update, we'll try to find the account that has access to this issue
         // if not specified
-        let account;
+        let account: Account | undefined;
         let client: LinearClient | undefined;
 
         if (options.account) {
@@ -62,7 +66,10 @@ export function createUpdateIssueCommand(): Command {
           }
 
           if (!foundAccount || !client) {
-            throw new ValidationError('Could not find an account with access to this issue', ['Use --account flag to specify which account to use', 'Run `linear account list` to see available accounts']);
+            throw new ValidationError('Could not find an account with access to this issue', [
+              'Use --account flag to specify which account to use',
+              'Run `linear account list` to see available accounts'
+            ]);
           }
           account = foundAccount;
         }

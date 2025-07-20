@@ -1,8 +1,7 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
-
-import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
 import { ConfigManager } from '../../lib/config-manager.js';
+import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
 import { Logger } from '../../lib/logger.js';
 import type { LinearIssueFilter } from '../../types/linear.js';
 import { linearIssueFilterSchema } from '../../types/linear.js';
@@ -93,7 +92,8 @@ export function createListIssuesCommand(): Command {
         Logger.loading(`Fetching issues from account: ${account.name}...`);
 
         // Validate and use the filter
-        const validFilter = Object.keys(filter).length > 0 ? linearIssueFilterSchema.partial().parse(filter) : undefined;
+        const validFilter =
+          Object.keys(filter).length > 0 ? linearIssueFilterSchema.partial().parse(filter) : undefined;
         const issues = await client.issues({
           first: limit,
           filter: validFilter

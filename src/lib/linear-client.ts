@@ -1,7 +1,7 @@
 import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 
-import type { IssueData, Account } from '../types/local.js';
+import type { Account, IssueData } from '../types/local.js';
 import { ConfigManager } from './config-manager.js';
 import { Logger } from './logger.js';
 
@@ -19,14 +19,22 @@ export class ValidationError extends Error {
 
 // ==================== HELPER FUNCTIONS ====================
 
-export async function getLinearClientForAccount(configManager: ConfigManager, accountName?: string): Promise<{ client: LinearClient; account: Account }> {
+export async function getLinearClientForAccount(
+  configManager: ConfigManager,
+  accountName?: string
+): Promise<{ client: LinearClient; account: Account }> {
   if (!accountName) {
-    throw new ValidationError('Account is required', ['Use --account flag to specify which account to use', 'Run `linear account list` to see available accounts']);
+    throw new ValidationError('Account is required', [
+      'Use --account flag to specify which account to use',
+      'Run `linear account list` to see available accounts'
+    ]);
   }
 
   const account = configManager.getAccount(accountName);
   if (!account) {
-    throw new ValidationError(`Account '${accountName}' not found`, ['Run `linear account list` to see available accounts']);
+    throw new ValidationError(`Account '${accountName}' not found`, [
+      'Run `linear account list` to see available accounts'
+    ]);
   }
 
   return {
@@ -90,7 +98,12 @@ export class LinearAPIClient {
 
     // Fetch issue with all related data
     const issue = await client.issue(issueId);
-    const [state, assignee, labels, comments] = await Promise.all([issue.state, issue.assignee, issue.labels(), issue.comments()]);
+    const [state, assignee, labels, comments] = await Promise.all([
+      issue.state,
+      issue.assignee,
+      issue.labels(),
+      issue.comments()
+    ]);
 
     // Generate suggested branch name
     const branchName = this.generateBranchName(issue.identifier, issue.title);
@@ -100,7 +113,7 @@ export class LinearAPIClient {
     try {
       const attachments = await issue.attachments();
       for (const attachment of attachments.nodes) {
-        if (attachment.url && attachment.url.includes('github.com') && attachment.url.includes('/pull/')) {
+        if (attachment.url?.includes('github.com') && attachment.url.includes('/pull/')) {
           // Extract PR info from GitHub URL
           const prMatch = attachment.url.match(/github\.com\/([^/]+\/[^/]+)\/pull\/(\d+)/);
           if (prMatch) {
@@ -116,7 +129,7 @@ export class LinearAPIClient {
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Attachments might not be available
     }
 
@@ -193,10 +206,7 @@ export class LinearAPIClient {
         }
 
         return account;
-      } catch (error) {
-        // This account doesn't have access to this issue, try next one
-        continue;
-      }
+      } catch (_error) {}
     }
 
     return null;
@@ -230,7 +240,8 @@ export class LinearAPIClient {
 
     // Truncate if too long
     const maxLength = 50;
-    const truncatedTitle = cleanTitle.length > maxLength ? cleanTitle.substring(0, maxLength).replace(/-$/, '') : cleanTitle;
+    const truncatedTitle =
+      cleanTitle.length > maxLength ? cleanTitle.substring(0, maxLength).replace(/-$/, '') : cleanTitle;
 
     return `${identifier.toLowerCase()}/${truncatedTitle}`;
   }
@@ -240,7 +251,7 @@ export class LinearAPIClient {
       const client = this.ensureClient();
       await client.viewer;
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -259,7 +270,7 @@ export class LinearAPIClient {
     // Handle Linear URL
     const urlPattern = /linear\.app\/[^/]+\/issue\/([A-Z]+-\d+)/;
     const match = input.match(urlPattern);
-    if (match && match[1]) {
+    if (match?.[1]) {
       return match[1];
     }
 
@@ -288,18 +299,30 @@ export class LinearAPIClient {
 
     // Labels
     if (issue.labels.length > 0) {
-      const labelStrings = issue.labels.map((label: { color: string; name: string }) => chalk.hex(label.color)(label.name));
+      const labelStrings = issue.labels.map((label: { color: string; name: string }) =>
+        chalk.hex(label.color)(label.name)
+      );
       output.push(`${chalk.bold('Labels:')} ${labelStrings.join(', ')}`);
     }
 
     // Pull Requests
     if (issue.pullRequests.length > 0) {
       output.push(`${chalk.bold('Pull Requests:')}`);
-      issue.pullRequests.forEach((pr: { id: string; url: string; title: string; number: number; draft: boolean; merged: boolean; branch: string }) => {
-        const prStatus = pr.merged ? '✅ Merged' : pr.draft ? '📝 Draft' : '🔄 Open';
-        output.push(`  ${prStatus} #${pr.number}: ${pr.title}`);
-        output.push(`    ${chalk.dim(pr.url)}`);
-      });
+      issue.pullRequests.forEach(
+        (pr: {
+          id: string;
+          url: string;
+          title: string;
+          number: number;
+          draft: boolean;
+          merged: boolean;
+          branch: string;
+        }) => {
+          const prStatus = pr.merged ? '✅ Merged' : pr.draft ? '📝 Draft' : '🔄 Open';
+          output.push(`  ${prStatus} #${pr.number}: ${pr.title}`);
+          output.push(`    ${chalk.dim(pr.url)}`);
+        }
+      );
     }
 
     output.push('');
@@ -314,11 +337,16 @@ export class LinearAPIClient {
     // Comments
     if (issue.comments.length > 0) {
       output.push(chalk.bold('Comments:'));
-      issue.comments.forEach((comment: { id: string; body: string; user: { name: string; email: string }; createdAt: Date }, index: number) => {
-        output.push(`\n${chalk.bold(`Comment ${index + 1}:`)} ${comment.user.name} (${comment.user.email})`);
-        output.push(chalk.dim(`${comment.createdAt.toLocaleString()}`));
-        output.push(this.formatMarkdown(comment.body));
-      });
+      issue.comments.forEach(
+        (
+          comment: { id: string; body: string; user: { name: string; email: string }; createdAt: Date },
+          index: number
+        ) => {
+          output.push(`\n${chalk.bold(`Comment ${index + 1}:`)} ${comment.user.name} (${comment.user.email})`);
+          output.push(chalk.dim(`${comment.createdAt.toLocaleString()}`));
+          output.push(this.formatMarkdown(comment.body));
+        }
+      );
     }
 
     // Timestamps

@@ -23,8 +23,8 @@
     "build": "rimraf ./dist && tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
-    "format": "prettier --write ./src",
-    "lint": "eslint ./src --fix",
+    "format": "biome format --write .",
+    "lint": "biome check --write .",
     "prepublish": "npm run build",
     "test": "vitest --config tests/unit/vitest.config.ts",
     "test:run": "vitest run --config tests/unit/vitest.config.ts",
@@ -46,6 +46,7 @@
     "zod": "^4.0.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.1.2",
     "@changesets/cli": "2.27.1",
     "@commitlint/cli": "18.6.1",
     "@commitlint/config-conventional": "18.6.2",
