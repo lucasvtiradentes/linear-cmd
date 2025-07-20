@@ -41,6 +41,67 @@ export interface Account {
   workspaces?: string[];
 }
 
+// Issue data structure
+export const issueDataSchema = z.object({
+  id: z.string(),
+  identifier: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  branchName: z.string(),
+  state: z.object({
+    name: z.string(),
+    color: z.string()
+  }),
+  assignee: z
+    .object({
+      name: z.string(),
+      email: z.string()
+    })
+    .optional(),
+  labels: z.array(
+    z.object({
+      name: z.string(),
+      color: z.string()
+    })
+  ),
+  comments: z.array(
+    z.object({
+      id: z.string(),
+      body: z.string(),
+      user: z.object({
+        name: z.string(),
+        email: z.string()
+      }),
+      createdAt: z.date()
+    })
+  ),
+  pullRequests: z.array(
+    z.object({
+      id: z.string(),
+      url: z.string(),
+      title: z.string(),
+      number: z.number(),
+      draft: z.boolean(),
+      merged: z.boolean(),
+      branch: z.string()
+    })
+  ),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  url: z.string()
+});
+
+export type IssueData = z.infer<typeof issueDataSchema>;
+
+// Legacy account interface for backward compatibility
+export interface Account {
+  id: string;
+  name: string;
+  apiKey: string;
+  isActive: boolean;
+  workspaces?: string[];
+}
+
 // Legacy config interface for backward compatibility
 export interface Config {
   accounts: Account[];

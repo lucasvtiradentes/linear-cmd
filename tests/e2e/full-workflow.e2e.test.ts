@@ -116,11 +116,10 @@ describe('Complete User Workflow E2E', () => {
       })
     );
 
-    // Write valid JSON5 config with schema
+    // Write valid JSON5 config
     fs.writeFileSync(
       configPath,
       `{
-  "$schema": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
   "workspaces": {},
   "accounts": []
 }`

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
-import { userMetadataSchema, linearConfigSchema } from '../types/config.js';
-import type { UserMetadata, LinearConfig, WorkspaceConfig, Account } from '../types/config.js';
+import { userMetadataSchema, linearConfigSchema } from '../config.js';
+import type { UserMetadata, LinearConfig, WorkspaceConfig, Account } from '../config.js';
 import { CONFIG_PATHS } from './constants.js';
 import { readJson, writeJson, readJson5, writeJson5 } from './json-utils.js';
 
@@ -74,7 +74,7 @@ export class ConfigManager {
 
   private createDefaultConfig(): void {
     const defaultConfig: LinearConfig = {
-      $schema: CONFIG_PATHS.schemaUrl,
+      $schema: '',
       workspaces: {},
       settings: {
         max_results: 50,

@@ -4,8 +4,7 @@ import * as path from 'path';
 export const APP_INFO = {
   name: 'linear-cli',
   display_name: 'Linear CLI',
-  version: '1.0.0',
-  schema_url: 'https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json'
+  version: '1.0.0'
 };
 
 type SupportedOS = 'linux' | 'mac' | 'windows' | 'wsl';
@@ -52,6 +51,5 @@ export function getConfigDirectory(): string {
 export const CONFIG_PATHS = {
   configDir: getConfigDirectory(),
   userMetadataFile: path.join(getConfigDirectory(), 'user_metadata.json'),
-  defaultConfigFile: path.join(getConfigDirectory(), 'config.json5'),
-  schemaUrl: APP_INFO.schema_url
+  defaultConfigFile: path.join(getConfigDirectory(), 'config.json5')
 };

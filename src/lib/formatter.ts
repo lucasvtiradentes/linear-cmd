@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 
-import type { IssueData } from '../types/index.js';
+import type { IssueData } from '../config.js';
 
 export class OutputFormatter {
   static formatIssue(issue: IssueData): string {
@@ -23,14 +23,14 @@ export class OutputFormatter {
 
     // Labels
     if (issue.labels.length > 0) {
-      const labelStrings = issue.labels.map((label) => chalk.hex(label.color)(label.name));
+      const labelStrings = issue.labels.map((label: { color: string; name: string }) => chalk.hex(label.color)(label.name));
       output.push(`${chalk.bold('Labels:')} ${labelStrings.join(', ')}`);
     }
 
     // Pull Requests
     if (issue.pullRequests.length > 0) {
       output.push(`${chalk.bold('Pull Requests:')}`);
-      issue.pullRequests.forEach((pr) => {
+      issue.pullRequests.forEach((pr: { id: string; url: string; title: string; number: number; draft: boolean; merged: boolean; branch: string }) => {
         const prStatus = pr.merged ? '✅ Merged' : pr.draft ? '📝 Draft' : '🔄 Open';
         output.push(`  ${prStatus} #${pr.number}: ${pr.title}`);
         output.push(`    ${chalk.dim(pr.url)}`);
@@ -49,7 +49,7 @@ export class OutputFormatter {
     // Comments
     if (issue.comments.length > 0) {
       output.push(chalk.bold('Comments:'));
-      issue.comments.forEach((comment, index) => {
+      issue.comments.forEach((comment: { id: string; body: string; user: { name: string; email: string }; createdAt: Date }, index: number) => {
         output.push(`\n${chalk.bold(`Comment ${index + 1}:`)} ${comment.user.name} (${comment.user.email})`);
         output.push(chalk.dim(`${comment.createdAt.toLocaleString()}`));
         output.push(this.formatMarkdown(comment.body));
