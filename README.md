@@ -50,8 +50,8 @@ linear issue branch WAY-123                  # Get branch name
 
 Config file location:
 
-- **Linux/macOS**: `~/.config/linear-cli/config.json5`
 - **Windows**: `%APPDATA%\linear-cli\config.json5`
+- **Linux/macOS**: `~/.config/linear-cli/config.json5`
 
 Example configuration:
 
