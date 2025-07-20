@@ -16,8 +16,7 @@ export function createListAccountsCommand(): Command {
     console.log(chalk.bold('\nConfigured accounts:'));
     accounts.forEach((account) => {
       const workspaces = account.workspaces?.length ? chalk.dim(`[${account.workspaces.join(', ')}]`) : '';
-      const activeStatus = account.isActive ? chalk.green('✅ Active') : '';
-      console.log(`  • ${account.name} ${workspaces} ${activeStatus}`);
+      console.log(`  • ${account.name} ${workspaces}`);
     });
   });
 }

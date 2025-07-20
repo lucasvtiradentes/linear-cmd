@@ -11,14 +11,18 @@ export class LinearAPIClient {
     this.configManager = new ConfigManager();
   }
 
-  async initialize(): Promise<void> {
-    const account = await this.configManager.getActiveAccount();
-    if (!account) {
-      throw new Error('No active account found. Please add an account first using "linear account add"');
+  async initialize(accountName?: string): Promise<void> {
+    if (!accountName) {
+      throw new Error('Account name is required. Please specify which account to use.');
+    }
+
+    const workspace = this.configManager.getWorkspace(accountName);
+    if (!workspace) {
+      throw new Error(`Account '${accountName}' not found. Please check your accounts using "linear account list"`);
     }
 
     this.client = new LinearClient({
-      apiKey: account.apiKey
+      apiKey: workspace.api_key
     });
   }
 
@@ -130,8 +134,7 @@ export class LinearAPIClient {
     if (workspace) {
       const accountByWorkspace = this.configManager.findAccountByWorkspace(workspace);
       if (accountByWorkspace) {
-        const apiKey = await this.configManager.getActiveAccount();
-        if (apiKey) return accountByWorkspace;
+        return accountByWorkspace;
       }
     }
 

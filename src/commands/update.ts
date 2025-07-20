@@ -1,52 +1,49 @@
 import chalk from 'chalk';
-import { Command } from 'commander';
 import { exec } from 'child_process';
-import { promisify } from 'util';
+import { Command } from 'commander';
 import { platform } from 'os';
+import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
 export function createUpdateCommand(): Command {
-  return new Command('update')
-    .description('Update the linear-cmd package to the latest version')
-    .action(async () => {
-      try {
-        console.log(chalk.dim('Detecting package manager...'));
-        
-        const packageManager = await detectPackageManager();
-        
-        if (!packageManager) {
-          console.error(chalk.red('❌ Could not detect how linear-cmd was installed'));
-          console.log(chalk.dim('Please update manually using your package manager'));
-          return;
-        }
+  return new Command('update').description('Update the linear-cmd package to the latest version').action(async () => {
+    try {
+      console.log(chalk.dim('Detecting package manager...'));
 
-        console.log(chalk.blue(`📦 Detected package manager: ${packageManager}`));
-        console.log(chalk.dim('Updating linear-cmd...'));
+      const packageManager = await detectPackageManager();
 
-        const updateCommand = getUpdateCommand(packageManager);
-        const { stdout, stderr } = await execAsync(updateCommand);
-
-        if (stderr && !stderr.includes('npm WARN')) {
-          console.error(chalk.red(`❌ Error updating: ${stderr}`));
-          return;
-        }
-
-        console.log(chalk.green('✅ linear-cmd updated successfully!'));
-        
-        if (stdout) {
-          console.log(chalk.dim(stdout));
-        }
-      } catch (error) {
-        console.error(chalk.red(`❌ Error updating: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      if (!packageManager) {
+        console.error(chalk.red('❌ Could not detect how linear-cmd was installed'));
+        console.log(chalk.dim('Please update manually using your package manager'));
+        return;
       }
-    });
+
+      console.log(chalk.blue(`📦 Detected package manager: ${packageManager}`));
+      console.log(chalk.dim('Updating linear-cmd...'));
+
+      const updateCommand = getUpdateCommand(packageManager);
+      const { stdout, stderr } = await execAsync(updateCommand);
+
+      if (stderr && !stderr.includes('npm WARN')) {
+        console.error(chalk.red(`❌ Error updating: ${stderr}`));
+        return;
+      }
+
+      console.log(chalk.green('✅ linear-cmd updated successfully!'));
+
+      if (stdout) {
+        console.log(chalk.dim(stdout));
+      }
+    } catch (error) {
+      console.error(chalk.red(`❌ Error updating: ${error instanceof Error ? error.message : 'Unknown error'}`));
+    }
+  });
 }
 
 async function detectPackageManager(): Promise<string | null> {
-  const isWindows = platform() === 'win32';
   const npmPath = await getGlobalNpmPath();
-  
+
   if (!npmPath) {
     return null;
   }
@@ -58,7 +55,7 @@ async function detectPackageManager(): Promise<string | null> {
   ];
 
   for (const { manager, patterns } of possiblePaths) {
-    if (patterns.some(pattern => npmPath.includes(pattern))) {
+    if (patterns.some((pattern) => npmPath.includes(pattern))) {
       return manager;
     }
   }
@@ -69,13 +66,13 @@ async function detectPackageManager(): Promise<string | null> {
 
 async function getGlobalNpmPath(): Promise<string | null> {
   const isWindows = platform() === 'win32';
-  
+
   try {
     // Try to find the linear-cmd executable
     const whereCommand = isWindows ? 'where' : 'which';
     const { stdout } = await execAsync(`${whereCommand} linear-cmd`);
     const execPath = stdout.trim();
-    
+
     if (execPath) {
       // On Unix systems, this might be a symlink, so resolve it
       if (!isWindows) {
@@ -99,7 +96,7 @@ async function getGlobalNpmPath(): Promise<string | null> {
       // Continue to other methods
     }
   }
-  
+
   return null;
 }
 

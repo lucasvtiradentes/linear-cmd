@@ -113,10 +113,7 @@ export class ConfigManager {
 
     config.workspaces[name] = workspaceConfig;
 
-    // Set as active if it's the first one
-    if (Object.keys(config.workspaces).length === 1) {
-      this.setActiveWorkspace(name);
-    }
+    // No longer set as active automatically
 
     this.saveConfig();
   }
@@ -130,53 +127,12 @@ export class ConfigManager {
 
     delete config.workspaces[name];
 
-    // If removed workspace was active, set new active
-    if (this.userMetadata?.active_workspace === name) {
-      const remainingWorkspaces = Object.keys(config.workspaces);
-      if (remainingWorkspaces.length > 0) {
-        this.setActiveWorkspace(remainingWorkspaces[0]);
-      } else {
-        this.clearActiveWorkspace();
-      }
-    }
+    // No longer manage active workspace
 
     this.saveConfig();
   }
 
-  setActiveWorkspace(name: string): void {
-    const config = this.loadConfig();
-
-    if (!config.workspaces[name]) {
-      throw new Error(`Workspace '${name}' not found`);
-    }
-
-    if (!this.userMetadata) {
-      throw new Error('User metadata not loaded');
-    }
-
-    this.userMetadata.active_workspace = name;
-    writeJson5(CONFIG_PATHS.userMetadataFile, this.userMetadata);
-  }
-
-  private clearActiveWorkspace(): void {
-    if (!this.userMetadata) {
-      throw new Error('User metadata not loaded');
-    }
-
-    delete this.userMetadata.active_workspace;
-    writeJson5(CONFIG_PATHS.userMetadataFile, this.userMetadata);
-  }
-
-  getActiveWorkspace(): WorkspaceConfig | null {
-    const config = this.loadConfig();
-
-    if (!this.userMetadata?.active_workspace) {
-      return null;
-    }
-
-    const workspace = config.workspaces[this.userMetadata.active_workspace];
-    return workspace || null;
-  }
+  // Active workspace methods removed - accounts must be specified explicitly
 
   getAllWorkspaces(): WorkspaceConfig[] {
     const config = this.loadConfig();
@@ -188,13 +144,11 @@ export class ConfigManager {
     return config.workspaces[name] || null;
   }
 
-  listWorkspaces(): Array<{ name: string; active: boolean; teamId?: string }> {
+  listWorkspaces(): Array<{ name: string; teamId?: string }> {
     const config = this.loadConfig();
-    const activeWorkspace = this.userMetadata?.active_workspace;
 
     return Object.entries(config.workspaces).map(([name, workspace]) => ({
       name,
-      active: name === activeWorkspace,
       teamId: workspace.team_id
     }));
   }
@@ -212,30 +166,16 @@ export class ConfigManager {
 
   // Legacy methods for backward compatibility
 
-  async getActiveAccount(): Promise<Account | null> {
-    const workspace = this.getActiveWorkspace();
-    if (!workspace) {
-      return null;
-    }
-
-    return {
-      id: workspace.name,
-      name: workspace.name,
-      apiKey: workspace.api_key,
-      isActive: true,
-      workspaces: workspace.workspaces
-    };
-  }
+  // getActiveAccount removed - accounts must be specified explicitly
 
   async getAllAccounts(): Promise<Account[]> {
     const workspaces = this.getAllWorkspaces();
-    const activeWorkspace = this.userMetadata?.active_workspace;
 
     return workspaces.map((workspace) => ({
       id: workspace.name,
       name: workspace.name,
       apiKey: workspace.api_key,
-      isActive: workspace.name === activeWorkspace,
+      isActive: false,
       workspaces: workspace.workspaces
     }));
   }
@@ -257,7 +197,7 @@ export class ConfigManager {
       id: found.name,
       name: found.name,
       apiKey: found.api_key,
-      isActive: found.name === this.userMetadata?.active_workspace,
+      isActive: false,
       workspaces: found.workspaces
     };
   }
