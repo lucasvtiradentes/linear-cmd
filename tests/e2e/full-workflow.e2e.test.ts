@@ -10,7 +10,7 @@ interface CommandResult {
   exitCode: number;
 }
 
-async function execCommand(command: string, input?: string, timeout = 30000): Promise<CommandResult> {
+async function execCommand(command: string, input?: string, timeout = 30000, homeDir?: string): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     const [cmd, ...args] = command.split(' ');
     const child = spawn(cmd, args, {
@@ -18,8 +18,8 @@ async function execCommand(command: string, input?: string, timeout = 30000): Pr
       env: {
         ...process.env,
         NODE_ENV: 'test',
-        // Use test config directory to avoid conflicts
-        HOME: path.join(os.tmpdir(), 'linear-cli-e2e-test'),
+        // Use provided HOME directory or keep original
+        ...(homeDir ? { HOME: homeDir } : {}),
         // Force non-interactive mode for inquirer
         CI: 'true',
         FORCE_TTY: 'false',
@@ -50,14 +50,13 @@ async function execCommand(command: string, input?: string, timeout = 30000): Pr
           child.stdin.write(lines[index] + '\n');
           index++;
           if (index < lines.length) {
-            setTimeout(writeNext, 100); // 100ms delay between inputs
-          } else {
-            child.stdin.end();
+            setTimeout(writeNext, 500); // 500ms delay between inputs
           }
+          // Don't end stdin immediately - let the process finish naturally
         }
       };
 
-      setTimeout(writeNext, 200); // Initial delay
+      setTimeout(writeNext, 1000); // Initial delay of 1 second
     }
 
     child.stdout?.on('data', (data) => {
@@ -91,7 +90,7 @@ async function execCommand(command: string, input?: string, timeout = 30000): Pr
 }
 
 describe('Complete User Workflow E2E', () => {
-  const testHomeDir = path.join(os.tmpdir(), 'linear-cli-e2e-test');
+  const testHomeDir = path.join(os.tmpdir(), `linear-cli-e2e-${Date.now()}`);
   const testConfigDir = path.join(testHomeDir, '.config', 'linear-cli');
 
   beforeEach(async () => {
@@ -103,8 +102,23 @@ describe('Complete User Workflow E2E', () => {
       fs.rmSync(testHomeDir, { recursive: true, force: true });
     }
 
-    // Create fresh test home directory
-    fs.mkdirSync(testHomeDir, { recursive: true });
+    // Create fresh test home directory and config directory
+    fs.mkdirSync(testConfigDir, { recursive: true });
+    
+    // Create default config files to ensure proper initialization
+    const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
+    const configPath = path.join(testConfigDir, 'config.json5');
+    
+    fs.writeFileSync(userMetadataPath, JSON.stringify({
+      config_path: configPath
+    }));
+    
+    // Write valid JSON5 config with schema
+    fs.writeFileSync(configPath, `{
+  "$schema": "https://raw.githubusercontent.com/lucasvtiradentes/linear-cli/main/schema.json",
+  "workspaces": {},
+  "accounts": []
+}`);
   });
 
   afterEach(() => {
@@ -121,21 +135,21 @@ describe('Complete User Workflow E2E', () => {
     // Step 1: Add account with real API key (using interactive mode)
     const accountName = `e2e-test-${Date.now()}`;
     const addAccountInput = `${accountName}\n${apiKey}`;
-    const addResult = await execCommand('node dist/index.js account add', addAccountInput, 10000);
+    const addResult = await execCommand('node dist/index.js account add', addAccountInput, 30000, testHomeDir);
 
     expect(addResult.exitCode).toBe(0);
     expect(addResult.stdout).toContain('Account name');
     expect(addResult.stdout).toContain('Linear API key');
 
     // Step 2: List accounts to verify it was added
-    const listResult = await execCommand('node dist/index.js account list');
+    const listResult = await execCommand('node dist/index.js account list', undefined, 30000, testHomeDir);
 
     expect(listResult.exitCode).toBe(0);
     expect(listResult.stdout).toContain(accountName);
     expect(listResult.stdout).toContain('✅ Active');
 
     // Step 3: Fetch real issue details
-    const showResult = await execCommand(`node dist/index.js issue show ${testIssueId}`);
+    const showResult = await execCommand(`node dist/index.js issue show ${testIssueId}`, undefined, 30000, testHomeDir);
 
     expect(showResult.exitCode).toBe(0);
     expect(showResult.stdout).toContain('🎯');
@@ -143,7 +157,7 @@ describe('Complete User Workflow E2E', () => {
     expect(showResult.stdout).toContain('Suggested Branch:');
 
     // Step 4: Get branch name for the issue
-    const branchResult = await execCommand(`node dist/index.js issue branch ${testIssueId}`);
+    const branchResult = await execCommand(`node dist/index.js issue branch ${testIssueId}`, undefined, 30000, testHomeDir);
 
     expect(branchResult.exitCode).toBe(0);
     expect(branchResult.stdout.trim()).toMatch(/^[a-z]+-\d+\/[a-z0-9-]+$/);
@@ -160,7 +174,7 @@ describe('Complete User Workflow E2E', () => {
     const accountName = `invalid-test-${Date.now()}`;
     const addAccountInput = `${accountName}\n${invalidApiKey}`;
 
-    const result = await execCommand('node dist/index.js account add', addAccountInput, 10000);
+    const result = await execCommand('node dist/index.js account add', addAccountInput, 10000, testHomeDir);
 
     // Should still prompt for input but handle invalid key gracefully
     expect(result.stdout).toContain('Account name');
@@ -173,10 +187,10 @@ describe('Complete User Workflow E2E', () => {
     // Add account first
     const accountName = `e2e-test-${Date.now()}`;
     const addAccountInput = `${accountName}\n${apiKey}`;
-    await execCommand('node dist/index.js account add', addAccountInput, 10000);
+    await execCommand('node dist/index.js account add', addAccountInput, 10000, testHomeDir);
 
     // Try to fetch non-existent issue
-    const result = await execCommand('node dist/index.js issue show INVALID-999', undefined, 10000);
+    const result = await execCommand('node dist/index.js issue show INVALID-999', undefined, 10000, testHomeDir);
 
     // Should handle error gracefully - might return different exit codes
     expect(result.exitCode !== 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
