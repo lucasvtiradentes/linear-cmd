@@ -43,20 +43,3 @@ export class Logger {
     console.log(chalk.dim(`🔗 ${linkText}`));
   }
 }
-
-// Legacy function exports for backward compatibility
-export function logError(message: string, error?: unknown): void {
-  Logger.error(message, error);
-}
-
-export function logSuccess(message: string): void {
-  Logger.success(message);
-}
-
-export function logWarning(message: string): void {
-  Logger.warning(message);
-}
-
-export function logInfo(message: string): void {
-  Logger.info(message);
-}
