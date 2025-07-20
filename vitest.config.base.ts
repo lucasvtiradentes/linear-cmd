@@ -9,11 +9,6 @@ export const baseConfig = defineConfig({
   },
   test: {
     globals: true,
-    environment: 'node',
-    coverage: {
-      provider: 'c8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'tests/', '**/*.d.ts', '**/*.config.*', '**/index.ts']
-    }
+    environment: 'node'
   }
 });
