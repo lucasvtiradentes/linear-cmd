@@ -1,8 +1,11 @@
-import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 import { Command } from 'commander';
 
+import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/client-helper.js';
 import { ConfigManager } from '../../lib/config-manager.js';
+import { logError } from '../../lib/error-handler.js';
+import type { LinearIssueFilter } from '../../types/linear.js';
+import { linearIssueFilterSchema } from '../../types/linear.js';
 
 export function createListIssuesCommand(): Command {
   return new Command('list')
@@ -20,26 +23,11 @@ export function createListIssuesCommand(): Command {
       const configManager = new ConfigManager();
 
       try {
-        // Get account - required
-        if (!options.account) {
-          console.error(chalk.red('❌ Account is required'));
-          console.log(chalk.dim('Use --account flag to specify which account to use'));
-          console.log(chalk.dim('Run `linear account list` to see available accounts'));
-          return;
-        }
-
-        const account = configManager.getAccount(options.account);
-        if (!account) {
-          console.error(chalk.red(`❌ Account '${options.account}' not found`));
-          console.log(chalk.dim('Run `linear account list` to see available accounts'));
-          return;
-        }
-
-        const client = new LinearClient({ apiKey: account.api_key });
+        const { client, account } = await getLinearClientForAccount(configManager, options.account);
         const limit = parseInt(options.limit);
 
         // Build filter
-        const filter: any = {};
+        const filter: Partial<LinearIssueFilter> = {};
 
         // Handle assignee filter
         if (options.assignee) {
@@ -102,11 +90,13 @@ export function createListIssuesCommand(): Command {
         }
 
         // Fetch issues
-        console.log(chalk.dim('Fetching issues...'));
+        console.log(chalk.dim(`Fetching issues from account: ${account.name}...`));
 
+        // Validate and use the filter
+        const validFilter = Object.keys(filter).length > 0 ? linearIssueFilterSchema.partial().parse(filter) : undefined;
         const issues = await client.issues({
           first: limit,
-          filter: Object.keys(filter).length > 0 ? filter : undefined
+          filter: validFilter
         });
 
         if (issues.nodes.length === 0) {
@@ -164,7 +154,11 @@ export function createListIssuesCommand(): Command {
           }
         }
       } catch (error) {
-        console.error(chalk.red(`❌ Error listing issues: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        if (error instanceof ValidationError) {
+          handleValidationError(error);
+        } else {
+          logError('Error listing issues', error);
+        }
       }
     });
 }

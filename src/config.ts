@@ -83,11 +83,5 @@ export const issueDataSchema = z.object({
 
 export type IssueData = z.infer<typeof issueDataSchema>;
 
-// Account interface - unified type
-export interface Account {
-  name: string;
-  api_key: string;
-  team_id?: string;
-  workspaces?: string[];
-  default?: boolean;
-}
+// Account type using z.infer from schema
+export type Account = z.infer<typeof accountSchema>;

@@ -1,9 +1,12 @@
-import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 
+import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/client-helper.js';
 import { ConfigManager } from '../../lib/config-manager.js';
+import { logError, logSuccess, logWarning } from '../../lib/error-handler.js';
+import type { LinearIssuePayload } from '../../types/linear.js';
+import { linearIssuePayloadSchema } from '../../types/linear.js';
 
 export function createCreateIssueCommand(): Command {
   return new Command('create')
@@ -20,22 +23,7 @@ export function createCreateIssueCommand(): Command {
       const configManager = new ConfigManager();
 
       try {
-        // Get account - required
-        if (!options.account) {
-          console.error(chalk.red('❌ Account is required'));
-          console.log(chalk.dim('Use --account flag to specify which account to use'));
-          console.log(chalk.dim('Run `linear account list` to see available accounts'));
-          return;
-        }
-
-        const account = configManager.getAccount(options.account);
-        if (!account) {
-          console.error(chalk.red(`❌ Account '${options.account}' not found`));
-          console.log(chalk.dim('Run `linear account list` to see available accounts'));
-          return;
-        }
-
-        const client = new LinearClient({ apiKey: account.api_key });
+        const { client, account } = await getLinearClientForAccount(configManager, options.account);
 
         // Get teams if not specified
         let teamId = options.team;
@@ -82,9 +70,9 @@ export function createCreateIssueCommand(): Command {
         const description = options.description || answers.description || undefined;
 
         // Create the issue
-        console.log(chalk.dim('Creating issue...'));
+        console.log(chalk.dim(`Creating issue in account: ${account.name}...`));
 
-        const issuePayload: any = {
+        const issuePayload: Partial<LinearIssuePayload> = {
           teamId,
           title,
           description
@@ -92,7 +80,10 @@ export function createCreateIssueCommand(): Command {
 
         // Add priority if specified
         if (options.priority !== undefined) {
-          issuePayload.priority = parseInt(options.priority);
+          const priority = parseInt(options.priority);
+          if (priority >= 0 && priority <= 4) {
+            issuePayload.priority = priority;
+          }
         }
 
         // Add assignee if specified
@@ -101,7 +92,7 @@ export function createCreateIssueCommand(): Command {
           if (users.nodes.length > 0) {
             issuePayload.assigneeId = users.nodes[0].id;
           } else {
-            console.warn(chalk.yellow(`⚠️  User '${options.assignee}' not found, creating without assignee`));
+            logWarning(`User '${options.assignee}' not found, creating without assignee`);
           }
         }
 
@@ -111,7 +102,7 @@ export function createCreateIssueCommand(): Command {
           if (projects.nodes.length > 0) {
             issuePayload.projectId = projects.nodes[0].id;
           } else {
-            console.warn(chalk.yellow(`⚠️  Project '${options.project}' not found, creating without project`));
+            logWarning(`Project '${options.project}' not found, creating without project`);
           }
         }
 
@@ -121,18 +112,21 @@ export function createCreateIssueCommand(): Command {
           if (labels.nodes.length > 0) {
             issuePayload.labelIds = [labels.nodes[0].id];
           } else {
-            console.warn(chalk.yellow(`⚠️  Label '${options.label}' not found, creating without label`));
+            logWarning(`Label '${options.label}' not found, creating without label`);
           }
         }
 
-        const issue = await client.createIssue(issuePayload);
+        // Validate the payload
+        const validPayload = linearIssuePayloadSchema.parse(issuePayload);
+
+        const issue = await client.createIssue(validPayload);
         const createdIssue = await issue.issue;
 
         if (!createdIssue) {
           throw new Error('Failed to create issue');
         }
 
-        console.log(chalk.green(`✅ Issue created successfully!`));
+        logSuccess('Issue created successfully!');
         console.log(chalk.blue(`📋 ID: ${createdIssue.identifier}`));
         console.log(chalk.dim(`🔗 URL: ${createdIssue.url}`));
 
@@ -146,7 +140,11 @@ export function createCreateIssueCommand(): Command {
           console.log(chalk.dim(`📁 Project: ${project.name}`));
         }
       } catch (error) {
-        console.error(chalk.red(`❌ Error creating issue: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        if (error instanceof ValidationError) {
+          handleValidationError(error);
+        } else {
+          logError('Error creating issue', error);
+        }
       }
     });
 }

@@ -164,7 +164,6 @@ export class ConfigManager {
     this.saveConfig();
   }
 
-
   findAccountByWorkspace(workspace: string): Account | null {
     const accounts = this.getAllAccounts();
     return accounts.find((a) => a.workspaces?.includes(workspace)) || null;

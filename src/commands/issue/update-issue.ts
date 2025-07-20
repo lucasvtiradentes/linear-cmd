@@ -3,8 +3,12 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 
+import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/client-helper.js';
 import { ConfigManager } from '../../lib/config-manager.js';
+import { logError, logSuccess, logWarning } from '../../lib/error-handler.js';
 import { parseIssueIdentifier } from '../../lib/issue-utils.js';
+import type { LinearIssueUpdatePayload } from '../../types/linear.js';
+import { linearIssueUpdatePayloadSchema } from '../../types/linear.js';
 
 export function createUpdateIssueCommand(): Command {
   return new Command('update')
@@ -33,16 +37,12 @@ export function createUpdateIssueCommand(): Command {
         // For update, we'll try to find the account that has access to this issue
         // if not specified
         let account;
-        let client;
+        let client: LinearClient | undefined;
 
         if (options.account) {
-          account = configManager.getAccount(options.account);
-          if (!account) {
-            console.error(chalk.red(`❌ Account '${options.account}' not found`));
-            console.log(chalk.dim('Run `linear account list` to see available accounts'));
-            return;
-          }
-          client = new LinearClient({ apiKey: account.api_key });
+          const result = await getLinearClientForAccount(configManager, options.account);
+          client = result.client;
+          account = result.account;
         } else {
           // Try to find which account can access this issue
           const accounts = configManager.getAllAccounts();
@@ -61,11 +61,9 @@ export function createUpdateIssueCommand(): Command {
           }
 
           if (!foundAccount || !client) {
-            console.error(chalk.red('❌ Could not find an account with access to this issue'));
-            console.log(chalk.dim('Use --account flag to specify which account to use'));
-            console.log(chalk.dim('Run `linear account list` to see available accounts'));
-            return;
+            throw new ValidationError('Could not find an account with access to this issue', ['Use --account flag to specify which account to use', 'Run `linear account list` to see available accounts']);
           }
+          account = foundAccount;
         }
 
         // Fetch the issue
@@ -76,7 +74,7 @@ export function createUpdateIssueCommand(): Command {
         }
 
         // Build update payload
-        const updatePayload: any = {};
+        const updatePayload: Partial<LinearIssueUpdatePayload> = {};
         let hasUpdates = false;
 
         // Handle title update
@@ -151,8 +149,11 @@ export function createUpdateIssueCommand(): Command {
 
         // Handle priority update
         if (options.priority !== undefined) {
-          updatePayload.priority = parseInt(options.priority);
-          hasUpdates = true;
+          const priority = parseInt(options.priority);
+          if (priority >= 0 && priority <= 4) {
+            updatePayload.priority = priority;
+            hasUpdates = true;
+          }
         }
 
         // Handle label additions
@@ -166,7 +167,7 @@ export function createUpdateIssueCommand(): Command {
               updatePayload.labelIds = [...currentLabelIds, labels.nodes[0].id];
               hasUpdates = true;
             } else {
-              console.warn(chalk.yellow(`⚠️  Label '${options.addLabel}' already added`));
+              logWarning(`Label '${options.addLabel}' already added`);
             }
           } else {
             console.error(chalk.red(`❌ Label '${options.addLabel}' not found`));
@@ -183,7 +184,7 @@ export function createUpdateIssueCommand(): Command {
             updatePayload.labelIds = currentLabels.nodes.filter((l) => l.id !== labelToRemove.id).map((l) => l.id);
             hasUpdates = true;
           } else {
-            console.warn(chalk.yellow(`⚠️  Label '${options.removeLabel}' not found on issue`));
+            logWarning(`Label '${options.removeLabel}' not found on issue`);
           }
         }
 
@@ -310,14 +311,20 @@ export function createUpdateIssueCommand(): Command {
           }
         }
 
-        // Update the issue
-        console.log(chalk.dim('Updating issue...'));
-        await client.updateIssue(issue.id, updatePayload);
+        // Validate and update the issue
+        const validPayload = linearIssueUpdatePayloadSchema.parse(updatePayload);
 
-        console.log(chalk.green(`✅ Issue ${issue.identifier} updated successfully!`));
+        console.log(chalk.dim(`Updating issue in account: ${account?.name || 'unknown'}...`));
+        await client.updateIssue(issue.id, validPayload);
+
+        logSuccess(`Issue ${issue.identifier} updated successfully!`);
         console.log(chalk.dim(`🔗 ${issue.url}`));
       } catch (error) {
-        console.error(chalk.red(`❌ Error updating issue: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        if (error instanceof ValidationError) {
+          handleValidationError(error);
+        } else {
+          logError('Error updating issue', error);
+        }
       }
     });
 }
