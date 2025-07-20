@@ -1,5 +1,3 @@
-import '../load-env';
-
 import { vi, beforeEach } from 'vitest';
 
 // Global test setup
