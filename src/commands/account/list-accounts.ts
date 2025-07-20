@@ -6,7 +6,7 @@ import { ConfigManager } from '../../lib/config-manager.js';
 export function createListAccountsCommand(): Command {
   return new Command('list').description('List all configured accounts').action(async () => {
     const configManager = new ConfigManager();
-    const accounts = await configManager.listAccounts();
+    const accounts = await configManager.getLegacyAccounts();
 
     if (accounts.length === 0) {
       console.log(chalk.yellow('No accounts configured. Use "linear account add" to add one.'));

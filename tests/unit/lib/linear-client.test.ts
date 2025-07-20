@@ -7,11 +7,11 @@ vi.mock('../../../src/lib/config-manager');
 
 describe('LinearAPIClient', () => {
   let client: LinearAPIClient;
-  let mockConfigManager: Pick<ConfigManager, 'getAllAccounts' | 'findAccountByWorkspace' | 'updateAccountWorkspaces' | 'getActiveAccount'>;
+  let mockConfigManager: Pick<ConfigManager, 'getLegacyAccounts' | 'findAccountByWorkspace' | 'updateAccountWorkspaces'>;
 
   beforeEach(() => {
     mockConfigManager = {
-      getAllAccounts: vi.fn().mockResolvedValue([
+      getLegacyAccounts: vi.fn().mockResolvedValue([
         {
           id: 'work-123',
           name: 'work',
@@ -34,12 +34,7 @@ describe('LinearAPIClient', () => {
         }
         return null;
       }) as ConfigManager['findAccountByWorkspace'],
-      updateAccountWorkspaces: vi.fn(),
-      getActiveAccount: vi.fn().mockResolvedValue({
-        id: 'work-123',
-        name: 'work',
-        apiKey: 'work-api-key'
-      })
+      updateAccountWorkspaces: vi.fn()
     };
 
     vi.mocked(ConfigManager).mockImplementation(() => mockConfigManager as ConfigManager);
@@ -111,7 +106,7 @@ describe('LinearAPIClient', () => {
     });
 
     it('should throw error when no account can access the issue', async () => {
-      vi.mocked(mockConfigManager.getAllAccounts).mockResolvedValue([]);
+      vi.mocked(mockConfigManager.getLegacyAccounts).mockResolvedValue([]);
 
       await expect(client.getIssueByIdOrUrl('WAY-123')).rejects.toThrow('No accounts configured');
     });

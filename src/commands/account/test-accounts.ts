@@ -8,7 +8,7 @@ export function createTestAccountsCommand(): Command {
   return new Command('test').description('Test all configured accounts').action(async () => {
     try {
       const configManager = new ConfigManager();
-      const accounts = await configManager.getAllAccounts();
+      const accounts = await configManager.getLegacyAccounts();
 
       if (accounts.length === 0) {
         console.log(chalk.yellow('No accounts configured. Use "linear account add" to add one.'));
