@@ -6,7 +6,7 @@ import { Command } from 'commander';
 import { createAccountCommand } from './commands/account/index.js';
 import { createIssueCommand } from './commands/issue/index.js';
 import { createUpdateCommand } from './commands/update.js';
-import { APP_INFO } from './lib/constants.js';
+import { APP_INFO } from './constants.js';
 
 const program = new Command();
 

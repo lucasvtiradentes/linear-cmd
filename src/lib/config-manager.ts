@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 
-import { userMetadataSchema, linearConfigSchema } from '../config.js';
-import type { UserMetadata, LinearConfig, Account } from '../config.js';
-import { CONFIG_PATHS } from './constants.js';
-import { readJson5, writeJson5 } from './json-utils.js';
+import { CONFIG_PATHS } from '../constants.js';
+import type { Account, LinearConfig, UserMetadata } from '../types/local.js';
+import { linearConfigSchema, userMetadataSchema } from '../types/local.js';
+import { readJson5, writeJson5 } from '../utils/json-utils.js';
 
 export class ConfigManager {
   private userMetadata: UserMetadata | null = null;

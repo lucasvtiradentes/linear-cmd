@@ -1,7 +1,7 @@
 import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 
-import type { Account } from '../config.js';
+import type { Account } from '../types/local.js';
 import { ConfigManager } from './config-manager.js';
 
 export class ValidationError extends Error {
