@@ -24,7 +24,8 @@ describe('Show Issue Command Integration', () => {
 
     // Mock LinearAPIClient
     mockLinearClient = {
-      getIssueByIdOrUrl: vi.fn()
+      getIssueByIdOrUrl: vi.fn(),
+      formatIssue: vi.fn().mockReturnValue('🎯 WORK-123: Integration Test Issue\nMocked formatted output')
     };
     vi.mocked(LinearAPIClient).mockImplementation(() => mockLinearClient);
 
@@ -84,14 +85,9 @@ describe('Show Issue Command Integration', () => {
     await command.parseAsync(['WORK-123'], { from: 'user' });
 
     expect(mockLinearClient.getIssueByIdOrUrl).toHaveBeenCalledWith('WORK-123');
+    expect(mockLinearClient.formatIssue).toHaveBeenCalledWith(mockIssueData);
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Fetching issue details...'));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('🎯 WORK-123: Integration Test Issue'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Status: In Progress'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Assignee: Integration Tester'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('work-123/integration-test-issue'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Feature, High Priority'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Pull Requests:'));
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('🔄 Open #456'));
   });
 
   it('should show issue in JSON format', async () => {

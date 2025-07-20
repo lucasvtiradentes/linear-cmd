@@ -11,17 +11,15 @@ describe('LinearAPIClient', () => {
 
   beforeEach(() => {
     mockConfigManager = {
-      getAllAccounts: vi.fn().mockResolvedValue([
+      getAllAccounts: vi.fn().mockReturnValue([
         {
-          id: 'work-123',
           name: 'work',
-          apiKey: 'work-api-key',
+          api_key: 'work-api-key',
           workspaces: ['work_account']
         },
         {
-          id: 'personal-456',
           name: 'personal',
-          apiKey: 'personal-api-key',
+          api_key: 'personal-api-key',
           workspaces: ['personal_account']
         }
       ]),

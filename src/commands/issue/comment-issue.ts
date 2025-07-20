@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
-import { parseIssueIdentifier } from '../../lib/issue-utils.js';
+import { LinearAPIClient } from '../../lib/linear-client.js';
 
 export function createCommentIssueCommand(): Command {
   return new Command('comment')
@@ -18,7 +18,8 @@ export function createCommentIssueCommand(): Command {
 
       try {
         // Parse issue identifier first
-        const issueId = parseIssueIdentifier(issueIdOrUrl);
+        const linearClient = new LinearAPIClient();
+        const issueId = linearClient.parseIssueIdentifier(issueIdOrUrl);
         if (!issueId) {
           console.error(chalk.red('❌ Invalid issue ID or URL'));
           return;
