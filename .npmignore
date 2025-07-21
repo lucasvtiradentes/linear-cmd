@@ -1,48 +1,23 @@
-# Source files
-src/
-tests/
-*.config.ts
-*.config.js
+# FOLDERS ======================================================================
 
-# Development files
-.env*
-.husky/
 .changeset/
 .github/
+.husky/
 .vscode/
+src/
+tests/
 
-# Build artifacts
-node_modules/
-coverage/
-examples/
-schema.json
+# FILES ========================================================================
 
-# Documentation
-*.md
-!README.md
-
-# Configuration files
-.eslintrc*
-.prettierrc*
-tsconfig.json
-vitest.config.ts
-commitlint.config.js
+.env.e2e.example
+CLAUDE.md
+# package.json
 .commitlintrc
+.editorconfig
 .lintstagedrc.json
-
-# Git
-.git*
-
-# Logs
-*.log
-npm-debug.log*
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Temporary folders
-tmp/
-temp/
+biome.json
+# CHANGELOG.md
+pnpm-lock.yaml
+tsconfig.json
+# README.md
+turbo.json
