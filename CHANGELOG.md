@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.7
+
+### Patch Changes
+
+- 604d625: add support to shell autocompletion
+
 ## 1.0.6
 
 ### Patch Changes
