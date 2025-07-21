@@ -7,7 +7,7 @@
 
 A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your terminal.
 
-## Features
+## :star: Features
 
 - **Multi-account support** - Manage multiple Linear accounts with per-command selection
 - **Complete issue management** - Create, list, update, comment, and view detailed issue information
@@ -15,19 +15,19 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 - **Advanced filtering** - Filter issues by assignee, state, labels, projects, and teams
 - **Self-updating** - Built-in update mechanism that detects your package manager
 
-## Motivation
+## :question: Motivation
 
 Why build this when we already have [Linear MCP](https://linear.app/docs/mcp)?
 
 Because I want to be able to just paste a Linear issue link into my [Claude code](https://www.anthropic.com/claude-code) and have it solve the problem. Currently, the Linear MCP server does not support using multiple Linear accounts (I use one for work and one for my personal projects).
 
-## Quick Start
+## :rocket: Quick Start
 
 1. **Get your Linear API Key** from [Linear Settings](https://linear.app/settings) > Security & Access > Personal API keys
 2. **Add your account**: `linear account add` (Then you need to set a name and paste your API_KEY)
 3. **View an issue**: `linear issue show WORK-123`
 
-## Usage
+## :bulb: Usage
 
 ### Installation
 
@@ -105,7 +105,7 @@ linear issue comment WORK-123
 linear issue comment WORK-123 "This is my comment"
 ```
 
-## Shell Completion
+## :gear: Shell Completion
 
 Enable autocompletion for commands and subcommands in your shell:
 
@@ -129,7 +129,7 @@ Now you can use tab completion:
 - `linear account <TAB>` → shows: add, list, remove, test
 - `linear issue <TAB>` → shows: show, create, list, update, comment
 
-## Development
+## :wrench: Development
 
 ```bash
 pnpm run dev                               # Run in development
@@ -137,6 +137,6 @@ pnpm run build                             # Build for production
 pnpm run test                              # Run tests
 ```
 
-## License
+## :scroll: License
 
 MIT License - see [LICENSE](LICENSE) file for details.
