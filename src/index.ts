@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 
 import { createAccountCommand } from './commands/account/index.js';
+import { createCompletionCommand } from './commands/completion.js';
 import { createIssueCommand } from './commands/issue/index.js';
 import { createUpdateCommand } from './commands/update.js';
 import { APP_INFO } from './constants.js';
@@ -16,6 +17,7 @@ program.name('linear').description('Linear CLI - A GitHub CLI-like tool for Line
 program.addCommand(createAccountCommand());
 program.addCommand(createIssueCommand());
 program.addCommand(createUpdateCommand());
+program.addCommand(createCompletionCommand());
 
 // Global help improvements
 program.configureHelp({
@@ -34,6 +36,7 @@ program.on('--help', () => {
   Logger.plain('  $ linear issue show <linear-url>         # Show issue by URL');
   Logger.plain('  $ linear issue branch WORK-123            # Get branch name for issue');
   Logger.plain('  $ linear update                          # Update linear-cmd to latest version');
+  Logger.plain('  $ linear completion install              # Install shell completion');
   Logger.plain('');
   Logger.bold('Getting Started:');
   Logger.plain('  1. Get your API key from Linear Settings > Account > API');

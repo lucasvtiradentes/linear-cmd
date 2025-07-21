@@ -44,13 +44,6 @@ jobs:
       - name: Build package
         run: npx turbo build
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-files
-          path: dist/
-          retention-days: 1
-
   lint:
     if: inputs.run_lint
     runs-on: ubuntu-latest

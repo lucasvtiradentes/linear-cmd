@@ -105,6 +105,30 @@ linear issue comment WORK-123
 linear issue comment WORK-123 "This is my comment"
 ```
 
+## Shell Completion
+
+Enable autocompletion for commands and subcommands in your shell:
+
+```bash
+# Install completion for your current shell (auto-detects and gives instructions)
+linear completion install
+```
+
+After installation, restart your shell or source your shell config file:
+
+```bash
+# For zsh
+source ~/.zshrc
+
+# For bash  
+source ~/.bashrc
+```
+
+Now you can use tab completion:
+- `linear <TAB>` → shows: account, issue, update, completion
+- `linear account <TAB>` → shows: add, list, remove, test
+- `linear issue <TAB>` → shows: show, create, list, update, comment
+
 ## Development
 
 ```bash

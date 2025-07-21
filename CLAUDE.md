@@ -27,8 +27,15 @@ Commands follow a hierarchical pattern using Commander.js:
 - `linear account [add|list|remove|test]` - Account management
 - `linear issue [show|create|list|update|comment]` - Issue operations  
 - `linear update` - Self-update functionality
+- `linear completion install` - Shell completion management
 
 Each command is modular and self-contained in `src/commands/`.
+
+**⚠️ IMPORTANT: Shell Completion Maintenance**
+When adding, removing, or modifying commands/subcommands, you MUST update the shell completion scripts in `src/commands/completion.ts`:
+- Update `ZSH_COMPLETION_SCRIPT` with new commands and their descriptions
+- Update `BASH_COMPLETION_SCRIPT` with new command lists
+- Test completion works: `npm run build && node dist/index.js completion install`
 
 ### Configuration Management
 The `ConfigManager` class handles all configuration:
