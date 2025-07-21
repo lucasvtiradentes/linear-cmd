@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { accessSync, constants, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import chalk from 'chalk';
@@ -156,22 +156,26 @@ function detectShell(): string {
 async function installZshCompletion(): Promise<void> {
   const homeDir = homedir();
 
-  // Try different zsh completion directories
+  // Try different zsh completion directories (prioritize user directories)
   const possibleDirs = [
     join(homeDir, '.oh-my-zsh', 'completions'),
     join(homeDir, '.zsh', 'completions'),
     join(homeDir, '.config', 'zsh', 'completions'),
-    '/usr/local/share/zsh/site-functions',
-    join(homeDir, '.local', 'share', 'zsh', 'site-functions')
+    join(homeDir, '.local', 'share', 'zsh', 'site-functions'),
+    '/usr/local/share/zsh/site-functions'
   ];
 
   let targetDir: string | null = null;
 
-  // Find the first existing directory
+  // Find the first existing and writable directory
   for (const dir of possibleDirs) {
     if (existsSync(dir)) {
-      targetDir = dir;
-      break;
+      try {
+        // Check if we can write to this directory
+        accessSync(dir, constants.W_OK);
+        targetDir = dir;
+        break;
+      } catch {}
     }
   }
 
@@ -211,21 +215,25 @@ async function installZshCompletion(): Promise<void> {
 async function installBashCompletion(): Promise<void> {
   const homeDir = homedir();
 
-  // Try different bash completion directories
+  // Try different bash completion directories (prioritize user directories)
   const possibleDirs = [
-    '/usr/local/etc/bash_completion.d',
-    '/etc/bash_completion.d',
     join(homeDir, '.bash_completion.d'),
-    join(homeDir, '.local', 'share', 'bash-completion', 'completions')
+    join(homeDir, '.local', 'share', 'bash-completion', 'completions'),
+    '/usr/local/etc/bash_completion.d',
+    '/etc/bash_completion.d'
   ];
 
   let targetDir: string | null = null;
 
-  // Find the first existing directory
+  // Find the first existing and writable directory
   for (const dir of possibleDirs) {
     if (existsSync(dir)) {
-      targetDir = dir;
-      break;
+      try {
+        // Check if we can write to this directory
+        accessSync(dir, constants.W_OK);
+        targetDir = dir;
+        break;
+      } catch {}
     }
   }
 
