@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.8
+
+### Patch Changes
+
+- 98ff835: fix autocompletions
+
 ## 1.0.7
 
 ### Patch Changes
