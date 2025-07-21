@@ -3,9 +3,10 @@
   <img width="64" src="https://raw.githubusercontent.com/linear/linear/master/docs/logo.svg" alt="Linear logo">
 </a>
 <h2>Linear cmd</h2>
+<p>A GitHub CLI-like tool for Linear</p>
 </div>
 
-A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your terminal.
+
 
 ## :star: Features
 
@@ -19,7 +20,7 @@ A GitHub CLI-like tool for Linear - manage issues, accounts, and more from your 
 
 Why build this when we already have [Linear MCP](https://linear.app/docs/mcp)?
 
-Because I want to be able to just paste a Linear issue link into my [Claude code](https://www.anthropic.com/claude-code) and have it solve the problem. Currently, the Linear MCP server does not support using multiple Linear accounts (I use one for work and one for my personal projects).
+Because I want to be able to just paste a Linear issue link into my [Claude code](https://www.anthropic.com/claude-code) and have it solve the problem. Currently, the Linear MCP server does **not** support using multiple Linear accounts (I use one for work and one for my personal projects).
 
 ## :rocket: Quick Start
 
@@ -33,6 +34,7 @@ Because I want to be able to just paste a Linear issue link into my [Claude code
 
 ```bash
 npm install linear-cmd -g
+# to uninstall run: npm uninstall linear-cmd -g
 ```
 
 ### General
@@ -61,7 +63,10 @@ linear issue show WORK-123 --account work  # Show by ID (specifying account)
 linear issue list --account work           # List issues (requires account)
 ```
 
-#### Creating Issues
+<details>
+<summary>Creating Issues</summary>
+</br>
+
 
 ```bash
 # Interactive mode (prompts for missing fields)
@@ -78,7 +83,11 @@ linear issue create --account work \
   --assignee "user@example.com"
 ```
 
-#### Updating Issues
+</details>
+
+<details>
+<summary>Updating Issues</summary>
+</br>
 
 ```bash
 # Interactive mode (choose what to update)
@@ -95,7 +104,11 @@ linear issue update WORK-123 \
   --remove-label "low-priority"
 ```
 
-#### Commenting on Issues
+</details>
+
+<details>
+<summary>Commenting on Issues</summary>
+</br>
 
 ```bash
 # Interactive mode (prompts for comment)
@@ -104,6 +117,8 @@ linear issue comment WORK-123
 # Direct mode with comment text
 linear issue comment WORK-123 "This is my comment"
 ```
+
+</details>
 
 ## :gear: Shell Completion
 
