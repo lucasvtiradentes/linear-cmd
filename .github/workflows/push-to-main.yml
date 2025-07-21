@@ -2,12 +2,19 @@ name: 'Main Branch & Release'
 
 on:
   push:
-    branches: [main]
-    tags: ['v*']
+    branches:
+      - main
+    tags:
+      - 'v*' # e.g.: v1.0.0
 
 permissions:
+  pull-requests: write
   contents: write
   id-token: write
+
+concurrency:
+  group: main-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   push_to_main_ci:
