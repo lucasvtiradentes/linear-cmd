@@ -24,11 +24,6 @@
         "package.json"
       ]
     },
-    "dev": {
-      "outputLogs": "full",
-      "cache": false,
-      "persistent": true
-    },
     "test:unit": {
       "outputLogs": "full",
       "inputs": [

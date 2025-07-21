@@ -50,7 +50,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build package
-        run: pnpm run build
+        run: npx turbo build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -67,10 +67,10 @@ jobs:
       - uses: ./.github/actions/setup-and-install
 
       - name: Run lint
-        run: pnpm run lint
+        run: npx turbo lint
 
       - name: Run typecheck
-        run: pnpm run typecheck
+        run: npx turbo typecheck
 
   test-unit:
     if: inputs.run_tests
@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-and-install
-      - run: pnpm run test:unit
+      - run: npx turbo test:unit
 
   test-integration:
     if: inputs.run_tests
@@ -86,7 +86,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-and-install
-      - run: pnpm run test:integration
+      - run: npx turbo test:integration
 
   test-e2e:
     if: inputs.run_tests
@@ -97,4 +97,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-and-install
-      - run: pnpm run test:e2e
+      - run: npx turbo test:e2e
