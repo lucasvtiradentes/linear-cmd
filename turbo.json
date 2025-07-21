@@ -51,7 +51,8 @@
         "package.json"
       ],
       "env": [
-        "LINEAR_API_KEY_E2E"
+        "LINEAR_API_KEY_E2E",
+        "LINEAR_TEST_ISSUE_ID"
       ]
     },
     "lint": {
