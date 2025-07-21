@@ -18,14 +18,22 @@ on:
     secrets:
       TURBO_TOKEN:
         description: Turbo token for cache
-        required: false
+        required: true
       TURBO_TEAM:
         description: Turbo team for cache
-        required: false
+        required: true
+      LINEAR_API_KEY_E2E:
+        description: Linear API key for E2E tests
+        required: true
+      LINEAR_TEST_ISSUE_ID:
+        description: Linear test issue ID for E2E tests
+        required: true
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  LINEAR_API_KEY_E2E: ${{ secrets.LINEAR_API_KEY_E2E }}
+  LINEAR_TEST_ISSUE_ID: ${{ secrets.LINEAR_TEST_ISSUE_ID }}
 
 jobs:
   build:
