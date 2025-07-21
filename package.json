@@ -1,6 +1,7 @@
 {
   "name": "linear-cmd",
   "version": "1.0.6",
+  "packageManager": "pnpm@10.11.0",
   "description": "A GitHub CLI-like tool for Linear - manage issues, accounts, and more",
   "keywords": [
     "linear",
@@ -25,7 +26,7 @@
     "start": "node dist/index.js",
     "format": "biome format --write .",
     "lint": "biome check --write .",
-    "prepublish": "npm run build",
+    "prepublish": "pnpm run build",
     "test": "vitest --config tests/unit/vitest.config.ts",
     "test:run": "vitest run --config tests/unit/vitest.config.ts",
     "test:unit": "vitest run --config tests/unit/vitest.config.ts",
@@ -33,7 +34,15 @@
     "test:e2e": "vitest run --config tests/e2e/vitest.config.ts",
     "package:preview": "npm pack --dry-run",
     "changeset": "changeset",
-    "release": "npm run build && changeset publish"
+    "release": "pnpm run build && changeset publish",
+    "turbo:typecheck": "turbo typecheck",
+    "turbo:build": "turbo build",
+    "turbo:dev": "turbo dev",
+    "turbo:format": "turbo format",
+    "turbo:lint": "turbo lint",
+    "turbo:test:unit": "turbo test:unit",
+    "turbo:test:integration": "turbo test:integration",
+    "turbo:test:e2e": "turbo test:e2e"
   },
   "dependencies": {
     "@linear/sdk": "^52.0.0",
@@ -63,6 +72,7 @@
     "prettier": "3.2.5",
     "rimraf": "5.0.5",
     "tsx": "^4.20.3",
+    "turbo": "^2.5.5",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }

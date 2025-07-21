@@ -16,12 +16,16 @@ import type { Account } from '../../types/local.js';
 
 function getPriorityName(priority: number | null | undefined): string {
   switch (priority) {
-    case 1: return '🔴 Urgent';
-    case 2: return '🟠 High';
-    case 3: return '🟡 Medium';
-    case 4: return '🔵 Low';
-    case 0:
-    default: return '⚪ None';
+    case 1:
+      return '🔴 Urgent';
+    case 2:
+      return '🟠 High';
+    case 3:
+      return '🟡 Medium';
+    case 4:
+      return '🔵 Low';
+    default:
+      return '⚪ None';
   }
 }
 
@@ -214,45 +218,53 @@ export function createUpdateIssueCommand(): Command {
           const issueTeam = await issue.team;
 
           // Fetch states and users once
-          const states = issueTeam ? await client.workflowStates({
-            filter: { team: { id: { eq: issueTeam.id } } }
-          }) : null;
+          const states = issueTeam
+            ? await client.workflowStates({
+                filter: { team: { id: { eq: issueTeam.id } } }
+              })
+            : null;
           const users = await client.users();
 
           const pendingUpdates: Record<string, any> = {};
-          
+
           let continueEditing = true;
           while (continueEditing) {
             // Build menu choices showing current vs updated values
             const choices = [
               {
-                name: `Title: ${pendingUpdates.title ? 
-                  `${issue.title} → ${pendingUpdates.title}` : 
-                  issue.title}`,
+                name: `Title: ${pendingUpdates.title ? `${issue.title} → ${pendingUpdates.title}` : issue.title}`,
                 value: 'title'
               },
               {
-                name: `Description: ${pendingUpdates.description !== undefined ? 
-                  `${issue.description || '(empty)'} → ${pendingUpdates.description || '(empty)'}` : 
-                  issue.description || '(empty)'}`,
+                name: `Description: ${
+                  pendingUpdates.description !== undefined
+                    ? `${issue.description || '(empty)'} → ${pendingUpdates.description || '(empty)'}`
+                    : issue.description || '(empty)'
+                }`,
                 value: 'description'
               },
               {
-                name: `State: ${pendingUpdates.stateId ? 
-                  `${currentState?.name} → ${states?.nodes.find(s => s.id === pendingUpdates.stateId)?.name}` : 
-                  currentState?.name || 'Unknown'}`,
+                name: `State: ${
+                  pendingUpdates.stateId
+                    ? `${currentState?.name} → ${states?.nodes.find((s) => s.id === pendingUpdates.stateId)?.name}`
+                    : currentState?.name || 'Unknown'
+                }`,
                 value: 'state'
               },
               {
-                name: `Assignee: ${pendingUpdates.assigneeId !== undefined ? 
-                  `${currentAssignee?.name || 'Unassigned'} → ${pendingUpdates.assigneeId ? users.nodes.find(u => u.id === pendingUpdates.assigneeId)?.name : 'Unassigned'}` : 
-                  currentAssignee?.name || 'Unassigned'}`,
+                name: `Assignee: ${
+                  pendingUpdates.assigneeId !== undefined
+                    ? `${currentAssignee?.name || 'Unassigned'} → ${pendingUpdates.assigneeId ? users.nodes.find((u) => u.id === pendingUpdates.assigneeId)?.name : 'Unassigned'}`
+                    : currentAssignee?.name || 'Unassigned'
+                }`,
                 value: 'assignee'
               },
               {
-                name: `Priority: ${pendingUpdates.priority !== undefined ? 
-                  `${getPriorityName(issue.priority)} → ${getPriorityName(pendingUpdates.priority)}` : 
-                  getPriorityName(issue.priority)}`,
+                name: `Priority: ${
+                  pendingUpdates.priority !== undefined
+                    ? `${getPriorityName(issue.priority)} → ${getPriorityName(pendingUpdates.priority)}`
+                    : getPriorityName(issue.priority)
+                }`,
                 value: 'priority'
               },
               new inquirer.Separator(),
@@ -289,7 +301,8 @@ export function createUpdateIssueCommand(): Command {
                     type: 'input',
                     name: 'description',
                     message: 'New description:',
-                    default: pendingUpdates.description !== undefined ? pendingUpdates.description : (issue.description || '')
+                    default:
+                      pendingUpdates.description !== undefined ? pendingUpdates.description : issue.description || ''
                   }
                 ]);
                 pendingUpdates.description = descAnswer.description;
@@ -352,7 +365,7 @@ export function createUpdateIssueCommand(): Command {
                       { name: '🔵 Low', value: 4 },
                       { name: '⚪ None', value: 0 }
                     ],
-                    default: pendingUpdates.priority !== undefined ? pendingUpdates.priority : (issue.priority || 0)
+                    default: pendingUpdates.priority !== undefined ? pendingUpdates.priority : issue.priority || 0
                   }
                 ]);
                 pendingUpdates.priority = priorityAnswer.priority;
