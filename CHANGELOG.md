@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.9
+
+### Patch Changes
+
+- a216712: add project
+
 ## 1.0.8
 
 ### Patch Changes
