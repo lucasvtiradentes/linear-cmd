@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import { createAccountCommand } from './commands/account/index.js';
 import { createCompletionCommand } from './commands/completion.js';
 import { createIssueCommand } from './commands/issue/index.js';
+import { createProjectCommand } from './commands/project/index.js';
 import { createUpdateCommand } from './commands/update.js';
 import { APP_INFO } from './constants.js';
 import { Logger } from './lib/logger.js';
@@ -16,6 +17,7 @@ program.name('linear').description('Linear CLI - A GitHub CLI-like tool for Line
 // Add commands
 program.addCommand(createAccountCommand());
 program.addCommand(createIssueCommand());
+program.addCommand(createProjectCommand());
 program.addCommand(createUpdateCommand());
 program.addCommand(createCompletionCommand());
 

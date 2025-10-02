@@ -79,8 +79,79 @@ export const issueDataSchema = z.object({
   url: z.string()
 });
 
+// Project data structure (for local processing/display)
+export const projectDataSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  state: z.string(),
+  startDate: z.date().optional(),
+  targetDate: z.date().optional(),
+  lead: z
+    .object({
+      name: z.string(),
+      email: z.string()
+    })
+    .optional(),
+  progress: z.number().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  url: z.string()
+});
+
+// Project issue data structure (for listing issues in a project)
+export const projectIssueDataSchema = z.object({
+  id: z.string(),
+  identifier: z.string(),
+  title: z.string(),
+  state: z.object({
+    name: z.string(),
+    color: z.string()
+  }),
+  assignee: z
+    .object({
+      name: z.string(),
+      email: z.string()
+    })
+    .optional(),
+  dueDate: z.date().optional(),
+  project: z
+    .object({
+      name: z.string(),
+      milestone: z.string().optional()
+    })
+    .optional(),
+  priority: z.number().optional(),
+  labels: z.array(
+    z.object({
+      name: z.string(),
+      color: z.string()
+    })
+  ),
+  pullRequests: z.array(
+    z.object({
+      id: z.string(),
+      url: z.string(),
+      title: z.string(),
+      number: z.number(),
+      draft: z.boolean(),
+      merged: z.boolean()
+    })
+  ),
+  subIssues: z.array(
+    z.object({
+      identifier: z.string(),
+      title: z.string(),
+      completed: z.boolean()
+    })
+  ),
+  url: z.string()
+});
+
 // Export types using z.infer
 export type UserMetadata = z.infer<typeof userMetadataSchema>;
 export type Account = z.infer<typeof accountSchema>;
 export type LinearConfig = z.infer<typeof linearConfigSchema>;
 export type IssueData = z.infer<typeof issueDataSchema>;
+export type ProjectData = z.infer<typeof projectDataSchema>;
+export type ProjectIssueData = z.infer<typeof projectIssueDataSchema>;
