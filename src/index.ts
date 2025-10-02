@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import { createAccountCommand } from './commands/account/index.js';
 import { createCompletionCommand } from './commands/completion.js';
 import { createIssueCommand } from './commands/issue/index.js';
+import { createProjectCommand } from './commands/project/index.js';
 import { createUpdateCommand } from './commands/update.js';
 import { APP_INFO } from './constants.js';
 import { Logger } from './lib/logger.js';
@@ -16,6 +17,7 @@ program.name('linear').description('Linear CLI - A GitHub CLI-like tool for Line
 // Add commands
 program.addCommand(createAccountCommand());
 program.addCommand(createIssueCommand());
+program.addCommand(createProjectCommand());
 program.addCommand(createUpdateCommand());
 program.addCommand(createCompletionCommand());
 
@@ -25,16 +27,17 @@ program.configureHelp({
   subcommandTerm: (cmd) => cmd.name()
 });
 
-// Custom help
 program.on('--help', () => {
   Logger.plain('');
   Logger.bold('Examples:');
   Logger.plain('  $ linear account add                     # Add a new account');
   Logger.plain('  $ linear account list                    # List all accounts');
   Logger.plain('  $ linear account switch work             # Switch to work account');
-  Logger.plain('  $ linear issue show WORK-123              # Show issue by ID');
+  Logger.plain('  $ linear issue show WORK-123             # Show issue by ID');
   Logger.plain('  $ linear issue show <linear-url>         # Show issue by URL');
-  Logger.plain('  $ linear issue branch WORK-123            # Get branch name for issue');
+  Logger.plain('  $ linear issue branch WORK-123           # Get branch name for issue');
+  Logger.plain('  $ linear project show <project-url>      # Show project details');
+  Logger.plain('  $ linear project issues <project-url>    # List project issues');
   Logger.plain('  $ linear update                          # Update linear-cmd to latest version');
   Logger.plain('  $ linear completion install              # Install shell completion');
   Logger.plain('');
