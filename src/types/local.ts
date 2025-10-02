@@ -148,6 +148,28 @@ export const projectIssueDataSchema = z.object({
   url: z.string()
 });
 
+// Document data structure (for local processing/display)
+export const documentDataSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  content: z.string().optional(),
+  createdBy: z
+    .object({
+      name: z.string(),
+      email: z.string()
+    })
+    .optional(),
+  updatedBy: z
+    .object({
+      name: z.string(),
+      email: z.string()
+    })
+    .optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  url: z.string()
+});
+
 // Export types using z.infer
 export type UserMetadata = z.infer<typeof userMetadataSchema>;
 export type Account = z.infer<typeof accountSchema>;
@@ -155,3 +177,4 @@ export type LinearConfig = z.infer<typeof linearConfigSchema>;
 export type IssueData = z.infer<typeof issueDataSchema>;
 export type ProjectData = z.infer<typeof projectDataSchema>;
 export type ProjectIssueData = z.infer<typeof projectIssueDataSchema>;
+export type DocumentData = z.infer<typeof documentDataSchema>;

@@ -1,7 +1,7 @@
 import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 
-import type { Account, IssueData, ProjectData, ProjectIssueData } from '../types/local.js';
+import type { Account, DocumentData, IssueData, ProjectData, ProjectIssueData } from '../types/local.js';
 import { ConfigManager } from './config-manager.js';
 import { Logger } from './logger.js';
 
@@ -645,6 +645,91 @@ export class LinearAPIClient {
 
       output.push('');
     }
+
+    return output.join('\n');
+  }
+
+  // ==================== DOCUMENT METHODS ====================
+
+  public parseDocumentUrl(idOrUrl: string): { workspace: string | null; documentId: string } {
+    const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/document\/([^/?]+)/);
+    if (urlMatch) {
+      const slugPart = urlMatch[2];
+      const idMatch = slugPart.match(/([a-f0-9]{8,})/);
+      const documentId = idMatch ? idMatch[1] : slugPart;
+
+      return {
+        workspace: urlMatch[1],
+        documentId
+      };
+    }
+
+    return {
+      workspace: null,
+      documentId: idOrUrl
+    };
+  }
+
+  async getDocumentByIdOrUrl(idOrUrl: string): Promise<DocumentData> {
+    const { workspace, documentId } = this.parseDocumentUrl(idOrUrl);
+    const account = await this.findAccountForWorkspace(workspace, documentId);
+
+    if (!account) {
+      throw new Error(`No account found that can access this document. Please check your accounts and API keys.`);
+    }
+
+    const client = new LinearClient({ apiKey: account.api_key });
+    const document = await client.document(documentId);
+    const creator = await document.creator;
+    const updatedBy = await document.updatedBy;
+
+    return {
+      id: document.id,
+      title: document.title,
+      content: document.content,
+      createdBy: creator
+        ? {
+            name: creator.name,
+            email: creator.email
+          }
+        : undefined,
+      updatedBy: updatedBy
+        ? {
+            name: updatedBy.name,
+            email: updatedBy.email
+          }
+        : undefined,
+      createdAt: document.createdAt,
+      updatedAt: document.updatedAt,
+      url: document.url
+    };
+  }
+
+  formatDocument(document: DocumentData): string {
+    const output: string[] = [];
+
+    output.push(chalk.bold.blue(`\n📄 ${document.title}`));
+    output.push(chalk.dim(`${document.url}`));
+    output.push('');
+
+    if (document.createdBy) {
+      output.push(`${chalk.bold('Created by:')} ${document.createdBy.name} (${document.createdBy.email})`);
+    }
+
+    if (document.updatedBy) {
+      output.push(`${chalk.bold('Last updated by:')} ${document.updatedBy.name} (${document.updatedBy.email})`);
+    }
+
+    output.push('');
+
+    if (document.content) {
+      output.push(chalk.bold('Content:'));
+      output.push(this.formatMarkdown(document.content));
+      output.push('');
+    }
+
+    output.push(chalk.dim(`Created: ${document.createdAt.toLocaleString()}`));
+    output.push(chalk.dim(`Updated: ${document.updatedAt.toLocaleString()}`));
 
     return output.join('\n');
   }

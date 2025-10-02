@@ -28,6 +28,9 @@ _linear() {
                 project)
                     _linear_project
                     ;;
+                document)
+                    _linear_document
+                    ;;
                 update)
                     # No subcommands for update
                     ;;
@@ -42,6 +45,7 @@ _linear_commands() {
         'account:Manage Linear accounts'
         'issue:Manage Linear issues'
         'project:Manage Linear projects'
+        'document:Manage Linear documents'
         'update:Update linear-cmd to latest version'
         'completion:Generate shell completion scripts'
     )
@@ -80,6 +84,14 @@ _linear_project() {
     _describe 'project command' project_commands
 }
 
+_linear_document() {
+    local document_commands
+    document_commands=(
+        'show:Show details of a document'
+    )
+    _describe 'document command' document_commands
+}
+
 _linear "$@"
 `;
 
@@ -90,7 +102,7 @@ _linear_completion() {
     _init_completion || return
 
     # Main commands
-    local commands="account issue project update completion"
+    local commands="account issue project document update completion"
 
     # Account subcommands
     local account_commands="add list remove test"
@@ -100,6 +112,9 @@ _linear_completion() {
 
     # Project subcommands
     local project_commands="show issues"
+
+    # Document subcommands
+    local document_commands="show"
 
     if [[ \$cword -eq 1 ]]; then
         COMPREPLY=(\$(compgen -W "\$commands" -- "\$cur"))
@@ -113,6 +128,9 @@ _linear_completion() {
                 ;;
             project)
                 COMPREPLY=(\$(compgen -W "\$project_commands" -- "\$cur"))
+                ;;
+            document)
+                COMPREPLY=(\$(compgen -W "\$document_commands" -- "\$cur"))
                 ;;
             completion)
                 COMPREPLY=(\$(compgen -W "install" -- "\$cur"))
