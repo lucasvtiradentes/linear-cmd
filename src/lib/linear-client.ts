@@ -371,23 +371,18 @@ export class LinearAPIClient {
   // ==================== PROJECT METHODS ====================
 
   public parseProjectUrl(idOrUrl: string): { workspace: string | null; projectId: string } {
-    // If it's a URL, extract workspace and project ID/slug
-    // Handle both /project/{slug} and /project/{slug}/overview formats
     const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/project\/([^/?]+)/);
     if (urlMatch) {
       const slugPart = urlMatch[2];
-      // Extract ID from slug (usually format: name-ID or just ID)
-      // Try to get the last part after the last hyphen if it looks like an ID
       const idMatch = slugPart.match(/([a-f0-9]{8,})/);
       const projectId = idMatch ? idMatch[1] : slugPart;
 
       return {
         workspace: urlMatch[1],
-        projectId: projectId
+        projectId
       };
     }
 
-    // Otherwise, assume it's already a project ID
     return {
       workspace: null,
       projectId: idOrUrl
@@ -395,25 +390,18 @@ export class LinearAPIClient {
   }
 
   async getProjectByIdOrUrl(idOrUrl: string): Promise<ProjectData> {
-    // Extract workspace and project ID from URL
     const { workspace, projectId } = this.parseProjectUrl(idOrUrl);
-
-    // Try to find the right account for this workspace
     const account = await this.findAccountForWorkspace(workspace, projectId);
 
     if (!account) {
       throw new Error(`No account found that can access this project. Please check your accounts and API keys.`);
     }
 
-    // Initialize client with the correct account
     const client = new LinearClient({ apiKey: account.api_key });
-
-    // Fetch project with all related data
     const project = await client.project(projectId);
     const [lead, content] = await Promise.all([project.lead, project.content]);
 
-    // Build project data
-    const projectData: ProjectData = {
+    return {
       id: project.id,
       name: project.name,
       description: content || project.description,
@@ -431,32 +419,21 @@ export class LinearAPIClient {
       updatedAt: project.updatedAt,
       url: project.url
     };
-
-    return projectData;
   }
 
   async getProjectIssues(idOrUrl: string): Promise<ProjectIssueData[]> {
-    // Extract workspace and project ID from URL
     const { workspace, projectId } = this.parseProjectUrl(idOrUrl);
-
-    // Try to find the right account for this workspace
     const account = await this.findAccountForWorkspace(workspace, projectId);
 
     if (!account) {
       throw new Error(`No account found that can access this project. Please check your accounts and API keys.`);
     }
 
-    // Initialize client with the correct account
     const client = new LinearClient({ apiKey: account.api_key });
-
-    // Fetch project
     const project = await client.project(projectId);
-
-    // Fetch all issues for this project
     const issues = await project.issues();
 
-    // Build issue data with all related information
-    const issuesData: ProjectIssueData[] = await Promise.all(
+    return await Promise.all(
       issues.nodes.map(async (issue) => {
         const [state, assignee, project, labels, attachments, children] = await Promise.all([
           issue.state,
@@ -467,7 +444,6 @@ export class LinearAPIClient {
           issue.children()
         ]);
 
-        // Extract pull requests from attachments
         const pullRequests: ProjectIssueData['pullRequests'] = [];
         for (const attachment of attachments.nodes) {
           if (attachment.url?.includes('github.com') && attachment.url.includes('/pull/')) {
@@ -485,7 +461,6 @@ export class LinearAPIClient {
           }
         }
 
-        // Extract sub-issues
         const subIssues: ProjectIssueData['subIssues'] = await Promise.all(
           children.nodes.map(async (child) => {
             const childState = await child.state;
@@ -497,7 +472,6 @@ export class LinearAPIClient {
           })
         );
 
-        // Get milestone from project
         const projectMilestones = project ? await project.projectMilestones() : null;
         const projectMilestone =
           projectMilestones && projectMilestones.nodes.length > 0 ? projectMilestones.nodes[0] : null;
@@ -534,19 +508,15 @@ export class LinearAPIClient {
         };
       })
     );
-
-    return issuesData;
   }
 
   formatProject(project: ProjectData): string {
     const output: string[] = [];
 
-    // Header
     output.push(chalk.bold.blue(`\n📊 ${project.name}`));
     output.push(chalk.dim(`${project.url}`));
     output.push('');
 
-    // State and progress
     output.push(`${chalk.bold('State:')} ${project.state}`);
 
     if (project.progress !== undefined) {
@@ -554,12 +524,10 @@ export class LinearAPIClient {
       output.push(`${chalk.bold('Progress:')} ${progressPercent}%`);
     }
 
-    // Lead
     if (project.lead) {
       output.push(`${chalk.bold('Lead:')} ${project.lead.name} (${project.lead.email})`);
     }
 
-    // Dates
     if (project.startDate) {
       output.push(`${chalk.bold('Start Date:')} ${project.startDate.toLocaleDateString()}`);
     }
@@ -570,14 +538,12 @@ export class LinearAPIClient {
 
     output.push('');
 
-    // Description
     if (project.description) {
       output.push(chalk.bold('Description:'));
       output.push(this.formatMarkdown(project.description));
       output.push('');
     }
 
-    // Timestamps
     output.push(chalk.dim(`Created: ${project.createdAt.toLocaleString()}`));
     output.push(chalk.dim(`Updated: ${project.updatedAt.toLocaleString()}`));
 
@@ -595,7 +561,6 @@ export class LinearAPIClient {
       return output.join('\n');
     }
 
-    // Group issues by status
     const issuesByStatus = new Map<string, ProjectIssueData[]>();
 
     for (const issue of issues) {
@@ -606,70 +571,56 @@ export class LinearAPIClient {
       issuesByStatus.get(statusName)?.push(issue);
     }
 
-    // Sort status groups (you can customize this order)
     const statusOrder = ['Product Review', 'In Progress', 'Todo', 'Done', 'Canceled'];
     const sortedStatuses = Array.from(issuesByStatus.keys()).sort((a, b) => {
       const indexA = statusOrder.indexOf(a);
       const indexB = statusOrder.indexOf(b);
 
-      // If both are in the order list, sort by order
       if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-      // If only A is in the order list, it comes first
       if (indexA !== -1) return -1;
-      // If only B is in the order list, it comes first
       if (indexB !== -1) return 1;
-      // Otherwise, sort alphabetically
       return a.localeCompare(b);
     });
 
-    // Format issues grouped by status
     for (const statusName of sortedStatuses) {
       const statusIssues = issuesByStatus.get(statusName) || [];
       const statusColor = statusIssues[0]?.state.color || '#000000';
 
-      // Status header
       output.push(chalk.hex(statusColor).bold(`${statusName} (${statusIssues.length})`));
       output.push('');
 
-      // Format each issue in this status
       for (const issue of statusIssues) {
         const identifier = chalk.bold(issue.identifier);
         output.push(`  ${identifier} ${issue.title}`);
 
         const details: string[] = [];
 
-        // Assignee
         if (issue.assignee) {
           details.push(`Assigned: ${issue.assignee.name}`);
         } else {
           details.push(`Assigned: ${chalk.dim('Unassigned')}`);
         }
 
-        // Priority
         if (issue.priority !== undefined) {
           const priorityLabels = ['No priority', 'Urgent', 'High', 'Medium', 'Low'];
           details.push(`Priority: ${priorityLabels[issue.priority] || 'Unknown'}`);
         }
 
-        // Due date
         if (issue.dueDate) {
           details.push(`Due: ${issue.dueDate.toLocaleDateString()}`);
         }
 
-        // Milestone
         if (issue.project?.milestone) {
           details.push(`Milestone: ${issue.project.milestone}`);
         }
 
         output.push(chalk.dim(`    ${details.join(' • ')}`));
 
-        // Labels
         if (issue.labels.length > 0) {
           const labelStrings = issue.labels.map((label) => chalk.hex(label.color)(label.name));
           output.push(chalk.dim(`    Labels: ${labelStrings.join(', ')}`));
         }
 
-        // Pull Requests
         if (issue.pullRequests.length > 0) {
           output.push(chalk.dim(`    PRs: ${issue.pullRequests.length}`));
           issue.pullRequests.forEach((pr) => {
@@ -679,7 +630,6 @@ export class LinearAPIClient {
           });
         }
 
-        // Sub-issues
         if (issue.subIssues.length > 0) {
           const completed = issue.subIssues.filter((sub) => sub.completed).length;
           output.push(chalk.dim(`    Sub-issues: ${completed}/${issue.subIssues.length} completed`));

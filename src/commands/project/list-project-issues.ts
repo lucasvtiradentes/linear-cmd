@@ -5,7 +5,7 @@ import { Logger } from '../../lib/logger.js';
 export function createListProjectIssuesCommand(): Command {
   return new Command('issues')
     .arguments('<idOrUrl>')
-    .description('List all issues in a project with status, assignment, due date, and milestone')
+    .description('List all issues in a project grouped by status')
     .option('-f, --format <format>', 'Output format (default: pretty)', 'pretty')
     .action(async (idOrUrl: string, options) => {
       try {
