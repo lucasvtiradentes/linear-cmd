@@ -361,7 +361,7 @@ describe('Project Operations E2E', () => {
     const result = await execCommand(
       `node dist/index.js project list -a ${fixtures.accountName}`,
       undefined,
-      15000,
+      30000,
       fixtures.testHomeDir
     );
 

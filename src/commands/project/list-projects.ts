@@ -70,10 +70,16 @@ export function createListProjectsCommand(): Command {
           console.log();
           Logger.success(`Found ${projects.length} project${projects.length === 1 ? '' : 's'}:\n`);
 
-          for (const project of projects) {
-            const lead = await project.lead;
-            const teams = await project.teams();
+          // Fetch all leads and teams in parallel for better performance
+          const projectsData = await Promise.all(
+            projects.map(async (project) => ({
+              project,
+              lead: await project.lead,
+              teams: await project.teams()
+            }))
+          );
 
+          for (const { project, lead, teams } of projectsData) {
             console.log(chalk.bold.cyan(`📁 ${project.name}`));
             console.log(chalk.dim(`   ${project.url}`));
 
