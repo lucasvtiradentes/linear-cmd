@@ -10,8 +10,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run typecheck` - Check TypeScript types without emitting
 
 ### Testing
-- `npm run test:unit` - Run unit tests once
-- `npm run test:integration` - Run integration tests (30s timeout)
 - `npm run test:e2e` - Run E2E tests (requires LINEAR_API_KEY_E2E env var, 60s timeout)
 
 ### Linting & Formatting
@@ -25,7 +23,9 @@ This is a CLI tool for Linear.app that provides GitHub CLI-like functionality. K
 ### Command Structure
 Commands follow a hierarchical pattern using Commander.js:
 - `linear account [add|list|remove|test]` - Account management
-- `linear issue [show|create|list|update|comment]` - Issue operations  
+- `linear issue [show|create|list|update|comment]` - Issue operations
+- `linear project [list|show|issues|create|delete]` - Project management
+- `linear document [show|add|delete]` - Document management
 - `linear update` - Self-update functionality
 - `linear completion install` - Shell completion management
 
@@ -56,9 +56,7 @@ The `LinearAPIClient` wraps the official `@linear/sdk`:
 - Clear separation between Linear API types and internal types
 
 ### Testing Strategy
-Three-tier testing approach:
-- Unit tests: Fast, isolated component tests
-- Integration tests: Component interaction tests
+E2E testing approach:
 - E2E tests: Full command flows with real API (run sequentially to avoid rate limits)
 
 ### Key Design Patterns
