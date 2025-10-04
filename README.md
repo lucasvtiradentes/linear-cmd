@@ -140,14 +140,19 @@ linear issue comment WORK-123 "This is my comment"
 ### Project Management
 
 ```bash
+linear project list -a work                # List all projects
 linear project show <project-url>          # Show project details
 linear project issues <project-url>        # List all issues in a project
+linear project create -a work              # Create new project
+linear project delete <project-url>        # Delete a project
 ```
 
 ### Document Management
 
 ```bash
 linear document show <document-url>        # Show document content
+linear document add -a work                # Create new document
+linear document delete <document-url>      # Delete a document
 ```
 
 ## :gear: Shell Completion
@@ -173,8 +178,8 @@ Now you can use tab completion:
 - `linear <TAB>` → shows: account, issue, project, document, update, completion
 - `linear account <TAB>` → shows: add, list, remove, test
 - `linear issue <TAB>` → shows: show, create, list, update, comment
-- `linear project <TAB>` → shows: show, issues
-- `linear document <TAB>` → shows: show
+- `linear project <TAB>` → shows: list, show, issues, create, delete
+- `linear document <TAB>` → shows: show, add, delete
 
 ## :wrench: Development
 
