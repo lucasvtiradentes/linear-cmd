@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.11
+
+### Patch Changes
+
+- a43aa4d: improve autocompletion
+
 ## 1.0.10
 
 ### Patch Changes
