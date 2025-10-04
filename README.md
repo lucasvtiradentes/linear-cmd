@@ -90,11 +90,11 @@ linear issue create --account work
 
 # Direct mode with flags
 linear issue create --account work \
+  --team "TES" \
   --title "Issue title" \
   --description "Issue description" \
   --priority 2 \
   --label "bug" \
-  --team "TEAM" \
   --project "Project Name" \
   --assignee "user@example.com"
 ```
@@ -114,6 +114,7 @@ linear issue update WORK-123 \
   --title "New title" \
   --description "New description" \
   --state "In Progress" \
+  --team "TES" \
   --assignee "user@example.com" \
   --priority 1 \
   --add-label "urgent" \

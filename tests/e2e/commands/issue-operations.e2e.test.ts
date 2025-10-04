@@ -163,6 +163,7 @@ describe('Issue Operations E2E', () => {
 
   it('should handle issue list command', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
     if (!apiKey) {
       console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
@@ -170,7 +171,7 @@ describe('Issue Operations E2E', () => {
       // Test with mock scenario
       await setupTestAccount(testHomeDir);
 
-      const result = await execCommand('node dist/index.js issue list', undefined, 15000, testHomeDir);
+      const result = await execCommand('node dist/index.js issue list -a test', undefined, 15000, testHomeDir);
 
       // Should handle gracefully
       expect(result.exitCode !== 0 || result.stdout.includes('Error') || result.stdout.includes('No issues')).toBe(
@@ -181,7 +182,12 @@ describe('Issue Operations E2E', () => {
 
     await setupTestAccount(testHomeDir);
 
-    const result = await execCommand('node dist/index.js issue list --limit 5', undefined, 30000, testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js issue list -a test --team ${testTeam}`,
+      undefined,
+      30000,
+      testHomeDir
+    );
 
     // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
@@ -192,11 +198,12 @@ describe('Issue Operations E2E', () => {
   }, 45000);
 
   it('should handle issue creation command (mock)', async () => {
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
     await setupTestAccount(testHomeDir);
 
     // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      'node dist/index.js issue create --title "E2E Test Issue" --description "This is a test issue created by E2E tests"',
+      `node dist/index.js issue create -a test --team ${testTeam} --title "E2E Test Issue" --description "This is a test issue created by E2E tests"`,
       undefined,
       20000,
       testHomeDir

@@ -40,6 +40,7 @@ export function createUpdateIssueCommand(): Command {
     .option('-s, --state <state>', 'new state (e.g., "In Progress", "Done")')
     .option('--assignee <assignee>', 'assignee email or "unassign"')
     .option('--project <project>', 'project name or "none" to remove')
+    .option('--team <team>', 'team key (e.g., "TES")')
     .option('-p, --priority <priority>', 'priority (0: none, 1: urgent, 2: high, 3: medium, 4: low)')
     .option('--add-label <label>', 'add a label')
     .option('--remove-label <label>', 'remove a label')
@@ -154,6 +155,21 @@ export function createUpdateIssueCommand(): Command {
               console.error(chalk.red(`❌ Project '${options.project}' not found`));
               return;
             }
+          }
+        }
+
+        // Handle team update
+        if (options.team) {
+          const teams = await client.teams({ filter: { key: { eq: options.team.toUpperCase() } } });
+          if (teams.nodes.length > 0) {
+            updatePayload.teamId = teams.nodes[0].id;
+            hasUpdates = true;
+          } else {
+            console.error(chalk.red(`❌ Team '${options.team}' not found`));
+            Logger.dim('\nAvailable teams:');
+            const allTeams = await client.teams();
+            allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
+            return;
           }
         }
 
