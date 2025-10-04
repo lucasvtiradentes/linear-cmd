@@ -4,189 +4,142 @@
 </a>
 <h2>Linear cmd</h2>
 <p>A GitHub CLI-like tool for Linear</p>
+<p>
+  <a href="https://www.npmjs.com/package/linear-cmd"><img src="https://img.shields.io/npm/v/linear-cmd.svg" alt="npm version"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <br>
+  <a href="#star-features">Features</a> • <a href="#question-motivation">Motivation</a> • <a href="#rocket-quick-start">Quick Start</a> • <a href="#bulb-usage">Usage</a> • <a href="#wrench-development">Development</a>
+</p>
+
 </div>
-
-
 
 ## :star: Features
 
-- **Multi-account support** - Manage multiple Linear accounts with per-command selection
-- **Complete issue management** - Create, list, update, comment, and view detailed issue information
-- **Smart account discovery** - Automatically finds the right account for issue operations
-- **Advanced filtering** - Filter issues by assignee, state, labels, projects, and teams
-- **Grouped issue views** - List issues organized by status (Todo, In Progress, Done, etc.)
-- **Optimized performance** - Fetches all data in minimal API calls to avoid rate limits
-- **Self-updating** - Built-in update mechanism that detects your package manager
+- **Multi-account support** - Manage multiple Linear accounts
+- **Complete issue management** - Create, list, update, comment
+- **Project & document support** - Full project and document operations
+- **Smart account discovery** - Automatically finds the right account
+- **Advanced filtering** - Filter by assignee, state, labels, teams
+- **Self-updating** - Built-in update mechanism
 
 ## :question: Motivation
 
 Why build this when we already have [Linear MCP](https://linear.app/docs/mcp)?
 
-Because I want to be able to just paste a Linear issue link into my [Claude code](https://www.anthropic.com/claude-code) and have it solve the problem. Currently, the Linear MCP server does **not** support using multiple Linear accounts (I use one for work and one for my personal projects).
+Because I want to paste a Linear issue link into [Claude Code](https://www.anthropic.com/claude-code) and have it work with multiple Linear accounts (work + personal).
 
 ## :rocket: Quick Start
 
-1. **Get your Linear API Key** from [Linear Settings](https://linear.app/settings) > Security & Access > Personal API keys
-2. **Add your account**: `linear account add` (Then you need to set a name and paste your API_KEY)
-3. **View an issue**: `linear issue show WORK-123`
+```bash
+# Install
+npm install linear-cmd -g
+
+# Setup account
+linear account add
+
+# Start using
+linear issue show WORK-123
+```
 
 ## :bulb: Usage
 
-### Installation
+### Commands Overview
 
 ```bash
-npm install linear-cmd -g
-# to uninstall run: npm uninstall linear-cmd -g
-```
-
-### General
-
-```bash
-linear --help                              # Show detailed help and examples
-linear update                              # Update to latest version (auto-detects npm/yarn/pnpm)
-linear <command> --help                    # Show help for specific command
-```
-
-### Account Management
-
-```bash
-linear account add                         # Add account
-linear account list                        # List accounts
-linear account remove [NAME]               # Remove account 
-linear account test                        # Test connection of all your accounts
-```
-
-### Issue Management
-
-```bash
-# Viewing issues
-linear issue show <linear-url>             # Show by URL
-linear issue show WORK-123                 # Show by ID
-linear issue show WORK-123 --account work  # Show by ID (specifying account)
-
-# Listing issues (grouped by status)
-linear issue list -a work                  # List all issues
-linear issue list -a work --assignee me    # List my issues
-linear issue list -a work --state "In Progress"  # Filter by state
-linear issue list -a work --team "TES"     # Filter by team key
-linear issue list -a work --project "API"  # Filter by project
-linear issue list -a work --label "bug"    # Filter by label
-
-# Issues are automatically grouped by status:
-# ✅ Done (415)
-# 🔄 In Progress (5)
-# 📋 Todo (1)
-# ❌ Canceled (12)
+linear --help                    # Show help
+linear update                    # Update to latest version
 ```
 
 <details>
-<summary>Creating Issues</summary>
-</br>
-
+<summary><b>Account Management</b></summary>
 
 ```bash
-# Interactive mode (prompts for missing fields)
-linear issue create --account work
-
-# Direct mode with flags
-linear issue create --account work \
-  --team "TES" \
-  --title "Issue title" \
-  --description "Issue description" \
-  --priority 2 \
-  --label "bug" \
-  --project "Project Name" \
-  --assignee "user@example.com"
+linear account add               # Add account
+linear account list              # List accounts
+linear account remove [NAME]     # Remove account
+linear account test              # Test connection
 ```
 
 </details>
 
 <details>
-<summary>Updating Issues</summary>
-</br>
+<summary><b>Issue Operations</b></summary>
 
 ```bash
-# Interactive mode (choose what to update)
+# View issues
+linear issue show <url|ID>
+linear issue show WORK-123 --account work
+
+# List issues (grouped by status)
+linear issue list -a work
+linear issue list -a work --assignee me
+linear issue list -a work --state "In Progress"
+linear issue list -a work --team "TES"
+
+# Create issue
+linear issue create -a work
+linear issue create -a work --team "TES" --title "Bug fix"
+
+# Update issue
 linear issue update WORK-123
+linear issue update WORK-123 --state "Done"
 
-# Direct mode with flags
-linear issue update WORK-123 \
-  --title "New title" \
-  --description "New description" \
-  --state "In Progress" \
-  --team "TES" \
-  --assignee "user@example.com" \
-  --priority 1 \
-  --add-label "urgent" \
-  --remove-label "low-priority"
+# Add comment
+linear issue comment WORK-123
+linear issue comment WORK-123 "Nice work!"
 ```
 
 </details>
 
 <details>
-<summary>Commenting on Issues</summary>
-</br>
+<summary><b>Project Operations</b></summary>
 
 ```bash
-# Interactive mode (prompts for comment)
-linear issue comment WORK-123
-
-# Direct mode with comment text
-linear issue comment WORK-123 "This is my comment"
+linear project list -a work           # List projects
+linear project show <project-url>     # Show details
+linear project issues <project-url>   # List project issues
+linear project create -a work         # Create project
+linear project delete <project-url>   # Delete project
 ```
 
 </details>
 
-### Project Management
+<details>
+<summary><b>Document Operations</b></summary>
 
 ```bash
-linear project list -a work                # List all projects
-linear project show <project-url>          # Show project details
-linear project issues <project-url>        # List all issues in a project
-linear project create -a work              # Create new project
-linear project delete <project-url>        # Delete a project
+linear document show <document-url>    # Show document
+linear document add -a work            # Create document
+linear document delete <document-url>  # Delete document
 ```
 
-### Document Management
+</details>
+
+<details>
+<summary><b>Shell Completion</b></summary>
 
 ```bash
-linear document show <document-url>        # Show document content
-linear document add -a work                # Create new document
-linear document delete <document-url>      # Delete a document
-```
-
-## :gear: Shell Completion
-
-Enable autocompletion for commands and subcommands in your shell:
-
-```bash
-# Install completion for your current shell (auto-detects and gives instructions)
+# Install completion
 linear completion install
+
+# Reload shell
+source ~/.zshrc   # for zsh
+source ~/.bashrc  # for bash
+
+# Use tab completion
+linear <TAB>
+linear issue <TAB>
 ```
 
-After installation, restart your shell or source your shell config file:
-
-```bash
-# For zsh
-source ~/.zshrc
-
-# For bash  
-source ~/.bashrc
-```
-
-Now you can use tab completion:
-- `linear <TAB>` → shows: account, issue, project, document, update, completion
-- `linear account <TAB>` → shows: add, list, remove, test
-- `linear issue <TAB>` → shows: show, create, list, update, comment
-- `linear project <TAB>` → shows: list, show, issues, create, delete
-- `linear document <TAB>` → shows: show, add, delete
+</details>
 
 ## :wrench: Development
 
 ```bash
-pnpm run dev                               # Run in development
-pnpm run build                             # Build for production
-pnpm run test                              # Run tests
+pnpm install                     # Install dependencies
+pnpm run dev                     # Run in development
+pnpm run build                   # Build for production
+pnpm run test:e2e                # Run E2E tests
 ```
 
 ## :scroll: License
