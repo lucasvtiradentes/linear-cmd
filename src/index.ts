@@ -34,10 +34,13 @@ program.on('--help', () => {
   Logger.bold('Examples:');
   Logger.plain('  $ linear account add                     # Add a new account');
   Logger.plain('  $ linear account list                    # List all accounts');
-  Logger.plain('  $ linear account switch work             # Switch to work account');
+  Logger.plain('  $ linear account test                    # Test all accounts');
   Logger.plain('  $ linear issue show WORK-123             # Show issue by ID');
   Logger.plain('  $ linear issue show <linear-url>         # Show issue by URL');
-  Logger.plain('  $ linear issue branch WORK-123           # Get branch name for issue');
+  Logger.plain('  $ linear issue list -a work              # List issues from account');
+  Logger.plain('  $ linear issue create -a work            # Create new issue (interactive)');
+  Logger.plain('  $ linear issue update WORK-123           # Update issue (interactive)');
+  Logger.plain('  $ linear issue comment WORK-123          # Add comment (interactive)');
   Logger.plain('  $ linear project show <project-url>      # Show project details');
   Logger.plain('  $ linear project issues <project-url>    # List project issues');
   Logger.plain('  $ linear document show <document-url>    # Show document content');

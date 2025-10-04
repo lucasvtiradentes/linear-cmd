@@ -120,6 +120,19 @@ linear issue comment WORK-123 "This is my comment"
 
 </details>
 
+### Project Management
+
+```bash
+linear project show <project-url>          # Show project details
+linear project issues <project-url>        # List all issues in a project
+```
+
+### Document Management
+
+```bash
+linear document show <document-url>        # Show document content
+```
+
 ## :gear: Shell Completion
 
 Enable autocompletion for commands and subcommands in your shell:
@@ -140,9 +153,11 @@ source ~/.bashrc
 ```
 
 Now you can use tab completion:
-- `linear <TAB>` → shows: account, issue, update, completion
+- `linear <TAB>` → shows: account, issue, project, document, update, completion
 - `linear account <TAB>` → shows: add, list, remove, test
 - `linear issue <TAB>` → shows: show, create, list, update, comment
+- `linear project <TAB>` → shows: show, issues
+- `linear document <TAB>` → shows: show
 
 ## :wrench: Development
 
