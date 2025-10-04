@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.13
+
+### Patch Changes
+
+- 716702c: update issue format
+
 ## 1.0.12
 
 ### Patch Changes
