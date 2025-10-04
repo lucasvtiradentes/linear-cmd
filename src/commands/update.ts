@@ -69,7 +69,18 @@ export function createUpdateCommand(): Command {
       // Attempt to reinstall shell completions silently
       const completionReinstalled = await reinstallCompletionSilently();
       if (completionReinstalled) {
-        Logger.dim('Shell completion updated');
+        Logger.dim('✨ Shell completion updated');
+        Logger.info('');
+        Logger.info('To activate the updated completion, run:');
+
+        const currentShell = process.env.SHELL || '';
+        if (currentShell.includes('zsh')) {
+          Logger.info('  exec zsh');
+        } else if (currentShell.includes('bash')) {
+          Logger.info('  exec bash');
+        } else {
+          Logger.info('  # Restart your shell');
+        }
       }
     } catch (error) {
       Logger.error('Error updating', error);

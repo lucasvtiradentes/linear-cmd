@@ -499,6 +499,8 @@ export async function reinstallCompletionSilently(): Promise<boolean> {
     switch (shell) {
       case 'zsh':
         await installZshCompletion(true);
+        // Remove ZSH completion cache to force reload
+        await clearZshCompletionCache();
         return true;
       case 'bash':
         await installBashCompletion(true);
@@ -508,6 +510,31 @@ export async function reinstallCompletionSilently(): Promise<boolean> {
     }
   } catch {
     return false;
+  }
+}
+
+/**
+ * Clear ZSH completion cache to force reload
+ */
+async function clearZshCompletionCache(): Promise<void> {
+  const homeDir = homedir();
+  const fs = require('fs');
+
+  try {
+    // Remove all .zcompdump* files (including hostname variants like .zcompdump.hostname.pid)
+    const files = fs.readdirSync(homeDir);
+    for (const file of files) {
+      if (file.startsWith('.zcompdump')) {
+        const fullPath = join(homeDir, file);
+        try {
+          fs.unlinkSync(fullPath);
+        } catch {
+          // Ignore errors when deleting individual cache files
+        }
+      }
+    }
+  } catch {
+    // Ignore errors when reading directory
   }
 }
 
