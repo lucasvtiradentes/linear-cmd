@@ -712,4 +712,68 @@ export class LinearAPIClient {
 
     return output.join('\n');
   }
+
+  async createDocument(
+    accountName: string,
+    title: string,
+    options: {
+      content?: string;
+      projectId?: string;
+    }
+  ): Promise<DocumentData> {
+    const account = this.configManager.getAccount(accountName);
+    if (!account) {
+      throw new Error(`Account '${accountName}' not found`);
+    }
+    const client = new LinearClient({ apiKey: account.api_key });
+
+    const input: any = {
+      title,
+      ...(options.content && { content: options.content }),
+      ...(options.projectId && { projectId: options.projectId })
+    };
+
+    const payload = await client.createDocument(input);
+    const document = await payload.document;
+
+    if (!document) {
+      throw new Error('Failed to create document');
+    }
+
+    const creator = await document.creator;
+    const updatedBy = await document.updatedBy;
+
+    return {
+      id: document.id,
+      title: document.title,
+      content: document.content,
+      createdBy: creator
+        ? {
+            name: creator.name,
+            email: creator.email
+          }
+        : undefined,
+      updatedBy: updatedBy
+        ? {
+            name: updatedBy.name,
+            email: updatedBy.email
+          }
+        : undefined,
+      createdAt: document.createdAt,
+      updatedAt: document.updatedAt,
+      url: document.url
+    };
+  }
+
+  async deleteDocument(idOrUrl: string): Promise<void> {
+    const { workspace, documentId } = this.parseDocumentUrl(idOrUrl);
+    const account = await this.findAccountForWorkspace(workspace, documentId);
+
+    if (!account) {
+      throw new Error(`No account found that can access this document. Please check your accounts and API keys.`);
+    }
+
+    const client = new LinearClient({ apiKey: account.api_key });
+    await client.deleteDocument(documentId);
+  }
 }

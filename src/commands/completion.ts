@@ -81,6 +81,8 @@ _linear_project() {
     project_commands=(
         'show:Show details of a project'
         'issues:List all issues in a project'
+        'create:Create a new project'
+        'delete:Delete a project'
     )
     _describe 'project command' project_commands
 }
@@ -89,6 +91,8 @@ _linear_document() {
     local document_commands
     document_commands=(
         'show:Show details of a document'
+        'add:Create a new document'
+        'delete:Delete a document'
     )
     _describe 'document command' document_commands
 }
@@ -112,10 +116,10 @@ _linear_completion() {
     local issue_commands="show create list update comment"
 
     # Project subcommands
-    local project_commands="show issues"
+    local project_commands="show issues create delete"
 
     # Document subcommands
-    local document_commands="show"
+    local document_commands="show add delete"
 
     if [[ \$cword -eq 1 ]]; then
         COMPREPLY=(\$(compgen -W "\$commands" -- "\$cur"))

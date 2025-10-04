@@ -14,7 +14,7 @@ async function execCommand(command: string, input?: string, timeout = 30000, hom
   return new Promise((resolve, reject) => {
     const [cmd, ...args] = command.split(' ');
     const child = spawn(cmd, args, {
-      cwd: path.resolve(__dirname, '../../'),
+      cwd: path.resolve(__dirname, '../../../'),
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -129,6 +129,36 @@ describe('Document Operations E2E', () => {
     return accountName;
   }
 
+  async function createTestProject(homeDir: string, accountName: string, team: string): Promise<string | null> {
+    const projectName = `E2E-Test-Project-${Date.now()}`;
+    const result = await execCommand(
+      `node dist/index.js project create -a ${accountName} --team ${team} --name "${projectName}" --description "E2E test project for document tests"`,
+      undefined,
+      30000,
+      homeDir
+    );
+
+    if (result.exitCode !== 0) {
+      console.log(`Failed to create project. Exit code: ${result.exitCode}`);
+      console.log(`Stdout: ${result.stdout}`);
+      console.log(`Stderr: ${result.stderr}`);
+      return null;
+    }
+
+    // Extract URL from output
+    const urlMatch = result.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
+    return urlMatch ? urlMatch[0] : null;
+  }
+
+  async function deleteTestProject(homeDir: string, accountName: string, projectUrl: string): Promise<void> {
+    await execCommand(
+      `node dist/index.js project delete ${projectUrl} -a ${accountName} --yes`,
+      undefined,
+      30000,
+      homeDir
+    );
+  }
+
   it('should handle document show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
     const testDocumentUrl = process.env.LINEAR_TEST_DOCUMENT_URL;
@@ -226,4 +256,71 @@ describe('Document Operations E2E', () => {
       true
     );
   }, 20000);
+
+  it('should create document in project, then delete both without leaving garbage', async () => {
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+
+    if (!apiKey) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
+      return;
+    }
+
+    const accountName = await setupTestAccount(testHomeDir);
+
+    // Step 1: Create a test project
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
+
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
+    }
+
+    let documentUrl: string | null = null;
+
+    try {
+      // Step 2: Create a document linked to the project
+      const documentTitle = `E2E Test Document ${Date.now()}`;
+      const addResult = await execCommand(
+        `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "This is a test document created by e2e tests" --project ${projectUrl}`,
+        undefined,
+        30000,
+        testHomeDir
+      );
+
+      expect(addResult.exitCode).toBe(0);
+      expect(addResult.stdout.includes('Document created successfully')).toBe(true);
+
+      // Extract document URL from output
+      const docUrlMatch = addResult.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
+      documentUrl = docUrlMatch ? docUrlMatch[0] : null;
+
+      if (documentUrl) {
+        // Step 3: Verify document was created by showing it
+        const showResult = await execCommand(
+          `node dist/index.js document show ${documentUrl}`,
+          undefined,
+          30000,
+          testHomeDir
+        );
+
+        expect(showResult.exitCode).toBe(0);
+        expect(showResult.stdout.includes(documentTitle) || showResult.stdout.includes('📄')).toBe(true);
+
+        // Step 4: Delete the document
+        const deleteDocResult = await execCommand(
+          `node dist/index.js document delete ${documentUrl} --yes`,
+          undefined,
+          30000,
+          testHomeDir
+        );
+
+        expect(deleteDocResult.exitCode).toBe(0);
+        expect(deleteDocResult.stdout.includes('deleted successfully')).toBe(true);
+      }
+    } finally {
+      // Step 5: Cleanup - delete the test project
+      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    }
+  }, 90000);
 });
