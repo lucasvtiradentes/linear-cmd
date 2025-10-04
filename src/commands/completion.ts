@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import chalk from 'chalk';
 import { Command } from 'commander';
 
+import { ConfigManager } from '../lib/config-manager.js';
 import { Logger } from '../lib/logger.js';
 
 const ZSH_COMPLETION_SCRIPT = `#compdef linear
@@ -152,6 +153,7 @@ export function createCompletionCommand(): Command {
     .description('Install shell completion for your current shell')
     .action(async () => {
       const shell = detectShell();
+      const configManager = new ConfigManager();
 
       try {
         switch (shell) {
@@ -168,6 +170,9 @@ export function createCompletionCommand(): Command {
             Logger.info('💡 Please switch to a supported shell to use autocompletion');
             process.exit(1);
         }
+
+        // Mark completion as installed in config
+        configManager.markCompletionInstalled();
       } catch (error) {
         Logger.error(`Failed to install completion: ${error}`);
         process.exit(1);
@@ -175,6 +180,35 @@ export function createCompletionCommand(): Command {
     });
 
   return completion;
+}
+
+/**
+ * Reinstall completion silently (used after update) - only if already installed
+ */
+export async function reinstallCompletionSilently(): Promise<boolean> {
+  const configManager = new ConfigManager();
+
+  // Only reinstall if user had previously installed completions
+  if (!configManager.isCompletionInstalled()) {
+    return false;
+  }
+
+  const shell = detectShell();
+
+  try {
+    switch (shell) {
+      case 'zsh':
+        await installZshCompletion(true);
+        return true;
+      case 'bash':
+        await installBashCompletion(true);
+        return true;
+      default:
+        return false;
+    }
+  } catch {
+    return false;
+  }
 }
 
 function detectShell(): string {
@@ -190,7 +224,7 @@ function detectShell(): string {
   return 'zsh';
 }
 
-async function installZshCompletion(): Promise<void> {
+async function installZshCompletion(silent = false): Promise<void> {
   const homeDir = homedir();
 
   // Try different zsh completion directories (prioritize user directories)
@@ -225,31 +259,33 @@ async function installZshCompletion(): Promise<void> {
   const completionFile = join(targetDir, '_linear');
   writeFileSync(completionFile, ZSH_COMPLETION_SCRIPT);
 
-  Logger.success(`✅ Zsh completion installed to ${completionFile}`);
-  Logger.info('');
-  Logger.info('To activate completion, add this to your ~/.zshrc:');
-  Logger.info(chalk.cyan(`  fpath=(${targetDir} $fpath)`));
-  Logger.info(chalk.cyan('  autoload -U compinit && compinit'));
-  Logger.info('');
-  Logger.info('Then restart your shell or run:');
-  Logger.info(chalk.cyan('  source ~/.zshrc'));
+  if (!silent) {
+    Logger.success(`✅ Zsh completion installed to ${completionFile}`);
+    Logger.info('');
+    Logger.info('To activate completion, add this to your ~/.zshrc:');
+    Logger.info(chalk.cyan(`  fpath=(${targetDir} $fpath)`));
+    Logger.info(chalk.cyan('  autoload -U compinit && compinit'));
+    Logger.info('');
+    Logger.info('Then restart your shell or run:');
+    Logger.info(chalk.cyan('  source ~/.zshrc'));
 
-  // Check if fpath already includes the directory
-  try {
-    const zshrc = join(homeDir, '.zshrc');
-    if (existsSync(zshrc)) {
-      const zshrcContent = require('fs').readFileSync(zshrc, 'utf8');
-      if (!zshrcContent.includes(targetDir)) {
-        Logger.info('');
-        Logger.warning('⚠️  Remember to add the fpath line to your ~/.zshrc for autocompletion to work!');
+    // Check if fpath already includes the directory
+    try {
+      const zshrc = join(homeDir, '.zshrc');
+      if (existsSync(zshrc)) {
+        const zshrcContent = require('fs').readFileSync(zshrc, 'utf8');
+        if (!zshrcContent.includes(targetDir)) {
+          Logger.info('');
+          Logger.warning('⚠️  Remember to add the fpath line to your ~/.zshrc for autocompletion to work!');
+        }
       }
+    } catch (_error) {
+      // Ignore errors when checking .zshrc
     }
-  } catch (_error) {
-    // Ignore errors when checking .zshrc
   }
 }
 
-async function installBashCompletion(): Promise<void> {
+async function installBashCompletion(silent = false): Promise<void> {
   const homeDir = homedir();
 
   // Try different bash completion directories (prioritize user directories)
@@ -283,11 +319,13 @@ async function installBashCompletion(): Promise<void> {
   const completionFile = join(targetDir, 'linear');
   writeFileSync(completionFile, BASH_COMPLETION_SCRIPT);
 
-  Logger.success(`✅ Bash completion installed to ${completionFile}`);
-  Logger.info('');
-  Logger.info('To activate completion, add this to your ~/.bashrc:');
-  Logger.info(chalk.cyan(`  source ${completionFile}`));
-  Logger.info('');
-  Logger.info('Then restart your shell or run:');
-  Logger.info(chalk.cyan('  source ~/.bashrc'));
+  if (!silent) {
+    Logger.success(`✅ Bash completion installed to ${completionFile}`);
+    Logger.info('');
+    Logger.info('To activate completion, add this to your ~/.bashrc:');
+    Logger.info(chalk.cyan(`  source ${completionFile}`));
+    Logger.info('');
+    Logger.info('Then restart your shell or run:');
+    Logger.info(chalk.cyan('  source ~/.bashrc'));
+  }
 }

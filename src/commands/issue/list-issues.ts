@@ -16,14 +16,14 @@ export function createListIssuesCommand(): Command {
     .option('--project <project>', 'filter by project name')
     .option('--team <team>', 'filter by team key')
     .option('--limit <number>', 'number of issues to show', '25')
-    .option('--all', 'show all issues (no filters)')
+    .option('--all', 'show all issues (no limit)')
     .option('--json', 'output as JSON')
     .action(async (options) => {
       const configManager = new ConfigManager();
 
       try {
         const { client, account } = await getLinearClientForAccount(configManager, options.account);
-        const limit = parseInt(options.limit);
+        const limit = options.all ? undefined : parseInt(options.limit);
 
         // Build filter
         const filter: Partial<LinearIssueFilter> = {};
@@ -95,7 +95,7 @@ export function createListIssuesCommand(): Command {
         const validFilter =
           Object.keys(filter).length > 0 ? linearIssueFilterSchema.partial().parse(filter) : undefined;
         const issues = await client.issues({
-          first: limit,
+          ...(limit !== undefined && { first: limit }),
           filter: validFilter
         });
 
