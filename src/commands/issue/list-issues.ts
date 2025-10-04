@@ -14,6 +14,7 @@ export function createListIssuesCommand(): Command {
     .option('--state <state>', 'filter by state (case-insensitive)')
     .option('--label <label>', 'filter by label name')
     .option('--project <project>', 'filter by project name')
+    .option('--team <team>', 'filter by team key (e.g., "TES")')
     .action(async (options) => {
       const configManager = new ConfigManager();
 
@@ -73,6 +74,20 @@ export function createListIssuesCommand(): Command {
             filter.project = { id: { eq: projects.nodes[0].id } };
           } else {
             Logger.error(`Project '${options.project}' not found`);
+            return;
+          }
+        }
+
+        // Handle team filter
+        if (options.team) {
+          const teams = await client.teams({ filter: { key: { eq: options.team.toUpperCase() } } });
+          if (teams.nodes.length > 0) {
+            filter.team = { id: { eq: teams.nodes[0].id } };
+          } else {
+            Logger.error(`Team '${options.team}' not found`);
+            Logger.dim('\nAvailable teams:');
+            const allTeams = await client.teams();
+            allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
             return;
           }
         }

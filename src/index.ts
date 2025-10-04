@@ -40,7 +40,7 @@ program.on('--help', () => {
   Logger.plain('  $ linear issue show <linear-url>         # Show issue by URL');
   Logger.plain('  $ linear issue list -a work              # List all issues grouped by status');
   Logger.plain('  $ linear issue list -a work --assignee me  # List my issues');
-  Logger.plain('  $ linear issue list -a work --state "In Progress"  # Filter by state');
+  Logger.plain('  $ linear issue list -a work --team TES   # Filter by team');
   Logger.plain('  $ linear issue create -a work            # Create new issue (interactive)');
   Logger.plain('  $ linear issue update WORK-123           # Update issue (interactive)');
   Logger.plain('  $ linear issue comment WORK-123          # Add comment (interactive)');
