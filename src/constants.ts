@@ -19,7 +19,7 @@ export const APP_INFO = {
 
 type SupportedOS = 'linux' | 'mac' | 'windows' | 'wsl';
 
-export function getUserOS(): SupportedOS {
+function getUserOS(): SupportedOS {
   const platform = os.platform();
 
   if (platform === 'linux') {

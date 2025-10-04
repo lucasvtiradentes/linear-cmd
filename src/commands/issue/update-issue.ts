@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import {
+  findAccountForIssue,
   getLinearClientForAccount,
   handleValidationError,
   LinearAPIClient,
@@ -39,9 +40,11 @@ export function createUpdateIssueCommand(): Command {
     .option('-s, --state <state>', 'new state (e.g., "In Progress", "Done")')
     .option('--assignee <assignee>', 'assignee email or "unassign"')
     .option('--project <project>', 'project name or "none" to remove')
+    .option('--team <team>', 'team key (e.g., "TES")')
     .option('-p, --priority <priority>', 'priority (0: none, 1: urgent, 2: high, 3: medium, 4: low)')
     .option('--add-label <label>', 'add a label')
     .option('--remove-label <label>', 'remove a label')
+    .option('--archive', 'archive the issue')
     .action(async (issueIdOrUrl, options) => {
       const configManager = new ConfigManager();
 
@@ -64,29 +67,15 @@ export function createUpdateIssueCommand(): Command {
           client = result.client;
           account = result.account;
         } else {
-          // Try to find which account can access this issue
-          const accounts = configManager.getAllAccounts();
-          let foundAccount = null;
-
-          for (const acc of accounts) {
-            try {
-              const testClient = new LinearClient({ apiKey: acc.api_key });
-              await testClient.issue(issueId);
-              foundAccount = acc;
-              client = testClient;
-              break;
-            } catch {
-              // This account can't access the issue, try next
-            }
-          }
-
-          if (!foundAccount || !client) {
+          const result = await findAccountForIssue(configManager, issueId);
+          if (!result) {
             throw new ValidationError('Could not find an account with access to this issue', [
               'Use --account flag to specify which account to use',
               'Run `linear account list` to see available accounts'
             ]);
           }
-          account = foundAccount;
+          client = result.client;
+          account = result.account;
         }
 
         // Fetch the issue
@@ -170,6 +159,21 @@ export function createUpdateIssueCommand(): Command {
           }
         }
 
+        // Handle team update
+        if (options.team) {
+          const teams = await client.teams({ filter: { key: { eq: options.team.toUpperCase() } } });
+          if (teams.nodes.length > 0) {
+            updatePayload.teamId = teams.nodes[0].id;
+            hasUpdates = true;
+          } else {
+            console.error(chalk.red(`❌ Team '${options.team}' not found`));
+            Logger.dim('\nAvailable teams:');
+            const allTeams = await client.teams();
+            allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
+            return;
+          }
+        }
+
         // Handle priority update
         if (options.priority !== undefined) {
           const priority = parseInt(options.priority);
@@ -209,6 +213,15 @@ export function createUpdateIssueCommand(): Command {
           } else {
             Logger.warning(`Label '${options.removeLabel}' not found on issue`);
           }
+        }
+
+        // Handle archive
+        if (options.archive) {
+          // Archive is a separate action, not part of the update payload
+          Logger.loading(`Archiving issue in account: ${account?.name || 'unknown'}...`);
+          await client.archiveIssue(issue.id);
+          Logger.success(`Issue ${issue.identifier} archived successfully!`);
+          return;
         }
 
         // If no updates specified, show interactive prompt

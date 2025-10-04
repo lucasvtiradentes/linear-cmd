@@ -1,7 +1,7 @@
 import { LinearClient } from '@linear/sdk';
 import chalk from 'chalk';
 
-import type { Account, IssueData, ProjectData, ProjectIssueData } from '../types/local.js';
+import type { Account, DocumentData, IssueData, ProjectData, ProjectIssueData } from '../types/local.js';
 import { ConfigManager } from './config-manager.js';
 import { Logger } from './logger.js';
 
@@ -50,36 +50,53 @@ export function handleValidationError(error: ValidationError): void {
   });
 }
 
+export async function findAccountForIssue(
+  configManager: ConfigManager,
+  issueId: string
+): Promise<{ client: LinearClient; account: Account } | null> {
+  const accounts = configManager.getAllAccounts();
+
+  for (const account of accounts) {
+    try {
+      const client = new LinearClient({ apiKey: account.api_key });
+      await client.issue(issueId);
+      return { client, account };
+    } catch {
+      // This account can't access the issue, try next
+    }
+  }
+
+  return null;
+}
+
+export async function findAccountForProject(
+  configManager: ConfigManager,
+  projectIdOrUrl: string
+): Promise<{ client: LinearClient; account: Account } | null> {
+  const accounts = configManager.getAllAccounts();
+  const linearClient = new LinearAPIClient();
+
+  for (const account of accounts) {
+    try {
+      const client = new LinearClient({ apiKey: account.api_key });
+      const { projectId } = linearClient.parseProjectUrl(projectIdOrUrl);
+      await client.project(projectId);
+      return { client, account };
+    } catch {
+      // This account can't access the project, try next
+    }
+  }
+
+  return null;
+}
+
 // ==================== MAIN CLIENT CLASS ====================
 
 export class LinearAPIClient {
-  private client: LinearClient | null = null;
   private configManager: ConfigManager;
 
   constructor() {
     this.configManager = new ConfigManager();
-  }
-
-  async initialize(accountName?: string): Promise<void> {
-    if (!accountName) {
-      throw new Error('Account name is required. Please specify which account to use.');
-    }
-
-    const account = this.configManager.getAccount(accountName);
-    if (!account) {
-      throw new Error(`Account '${accountName}' not found. Please check your accounts using "linear account list"`);
-    }
-
-    this.client = new LinearClient({
-      apiKey: account.api_key
-    });
-  }
-
-  private ensureClient(): LinearClient {
-    if (!this.client) {
-      throw new Error('Linear client not initialized. Call initialize() first.');
-    }
-    return this.client;
   }
 
   async getIssueByIdOrUrl(idOrUrl: string): Promise<IssueData> {
@@ -105,9 +122,6 @@ export class LinearAPIClient {
       issue.comments()
     ]);
 
-    // Generate suggested branch name
-    const branchName = this.generateBranchName(issue.identifier, issue.title);
-
     // Fetch pull requests if available
     const pullRequests: IssueData['pullRequests'] = [];
     try {
@@ -123,8 +137,7 @@ export class LinearAPIClient {
               title: attachment.title || 'Pull Request',
               number: parseInt(prMatch[2]),
               draft: false, // Can't determine from Linear
-              merged: false, // Can't determine from Linear
-              branch: 'unknown'
+              merged: false // Can't determine from Linear
             });
           }
         }
@@ -139,7 +152,6 @@ export class LinearAPIClient {
       identifier: issue.identifier,
       title: issue.title,
       description: issue.description,
-      branchName,
       state: {
         name: state?.name || 'Unknown',
         color: state?.color || '#000000'
@@ -177,7 +189,11 @@ export class LinearAPIClient {
     return issueData;
   }
 
-  private async findAccountForWorkspace(workspace: string | null, issueId: string): Promise<Account | null> {
+  private async findAccountForWorkspace(
+    workspace: string | null,
+    entityId: string,
+    entityType: 'issue' | 'project' | 'document' = 'issue'
+  ): Promise<Account | null> {
     const accounts = this.configManager.getAllAccounts();
 
     if (!accounts.length) {
@@ -192,11 +208,31 @@ export class LinearAPIClient {
       }
     }
 
-    // Try each account until we find one that can access this issue
+    // Try each account until we find one that can access this entity
     for (const account of accounts) {
       try {
         const client = new LinearClient({ apiKey: account.api_key });
-        await client.issue(issueId);
+
+        // Try to access the entity based on type
+        if (entityType === 'issue') {
+          await client.issue(entityId);
+        } else if (entityType === 'project') {
+          // Try by ID first, then by slugId
+          try {
+            await client.project(entityId);
+          } catch {
+            const projects = await client.projects({ filter: { slugId: { eq: entityId } } });
+            if (projects.nodes.length === 0) throw new Error('Project not found');
+          }
+        } else if (entityType === 'document') {
+          // Try by ID first, then by slugId
+          try {
+            await client.document(entityId);
+          } catch {
+            const documents = await client.documents({ filter: { slugId: { eq: entityId } } });
+            if (documents.nodes.length === 0) throw new Error('Document not found');
+          }
+        }
 
         // Update workspace cache for this account
         if (workspace && !account.workspaces?.includes(workspace)) {
@@ -212,21 +248,34 @@ export class LinearAPIClient {
     return null;
   }
 
-  public parseIssueUrl(idOrUrl: string): { workspace: string | null; issueId: string } {
-    // If it's a URL, extract workspace and issue identifier
-    const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/issue\/([A-Z]+-\d+)/);
-    if (urlMatch) {
-      return {
-        workspace: urlMatch[1],
-        issueId: urlMatch[2]
-      };
+  private parseLinearUrl(
+    idOrUrl: string,
+    entityType: 'issue' | 'project' | 'document'
+  ): { workspace: string | null; id: string } {
+    if (entityType === 'issue') {
+      const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/issue\/([A-Z]+-\d+)/);
+      if (urlMatch) {
+        return { workspace: urlMatch[1], id: urlMatch[2] };
+      }
+      return { workspace: null, id: idOrUrl };
     }
 
-    // Otherwise, assume it's already an issue identifier
-    return {
-      workspace: null,
-      issueId: idOrUrl
-    };
+    // For project and document - extract the slugId (hash after last hyphen)
+    const urlMatch = idOrUrl.match(new RegExp(`linear\\.app/([^/]+)/${entityType}/([^/?]+)`));
+    if (urlMatch) {
+      const fullSlug = urlMatch[2];
+      // Extract the hash part after the last hyphen (e.g., "project-name-abc123" -> "abc123")
+      const parts = fullSlug.split('-');
+      const slugId = parts[parts.length - 1];
+      return { workspace: urlMatch[1], id: slugId };
+    }
+
+    return { workspace: null, id: idOrUrl };
+  }
+
+  public parseIssueUrl(idOrUrl: string): { workspace: string | null; issueId: string } {
+    const { workspace, id } = this.parseLinearUrl(idOrUrl, 'issue');
+    return { workspace, issueId: id };
   }
 
   public generateBranchName(identifier: string, title: string): string {
@@ -244,16 +293,6 @@ export class LinearAPIClient {
       cleanTitle.length > maxLength ? cleanTitle.substring(0, maxLength).replace(/-$/, '') : cleanTitle;
 
     return `${identifier.toLowerCase()}/${truncatedTitle}`;
-  }
-
-  async testConnection(): Promise<boolean> {
-    try {
-      const client = this.ensureClient();
-      await client.viewer;
-      return true;
-    } catch (_error) {
-      return false;
-    }
   }
 
   // ==================== ISSUE UTILITY METHODS ====================
@@ -294,8 +333,9 @@ export class LinearAPIClient {
       output.push(`${chalk.bold('Assignee:')} ${issue.assignee.name} (${issue.assignee.email})`);
     }
 
-    // Branch name
-    output.push(`${chalk.bold('Suggested Branch:')} ${chalk.green(issue.branchName)}`);
+    // Branch name (generated on-demand)
+    const branchName = this.generateBranchName(issue.identifier, issue.title);
+    output.push(`${chalk.bold('Suggested Branch:')} ${chalk.green(branchName)}`);
 
     // Labels
     if (issue.labels.length > 0) {
@@ -309,15 +349,7 @@ export class LinearAPIClient {
     if (issue.pullRequests.length > 0) {
       output.push(`${chalk.bold('Pull Requests:')}`);
       issue.pullRequests.forEach(
-        (pr: {
-          id: string;
-          url: string;
-          title: string;
-          number: number;
-          draft: boolean;
-          merged: boolean;
-          branch: string;
-        }) => {
+        (pr: { id: string; url: string; title: string; number: number; draft: boolean; merged: boolean }) => {
           const prStatus = pr.merged ? '✅ Merged' : pr.draft ? '📝 Draft' : '🔄 Open';
           output.push(`  ${prStatus} #${pr.number}: ${pr.title}`);
           output.push(`    ${chalk.dim(pr.url)}`);
@@ -371,34 +403,36 @@ export class LinearAPIClient {
   // ==================== PROJECT METHODS ====================
 
   public parseProjectUrl(idOrUrl: string): { workspace: string | null; projectId: string } {
-    const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/project\/([^/?]+)/);
-    if (urlMatch) {
-      const slugPart = urlMatch[2];
-      const idMatch = slugPart.match(/([a-f0-9]{8,})/);
-      const projectId = idMatch ? idMatch[1] : slugPart;
-
-      return {
-        workspace: urlMatch[1],
-        projectId
-      };
-    }
-
-    return {
-      workspace: null,
-      projectId: idOrUrl
-    };
+    const { workspace, id } = this.parseLinearUrl(idOrUrl, 'project');
+    return { workspace, projectId: id };
   }
 
   async getProjectByIdOrUrl(idOrUrl: string): Promise<ProjectData> {
     const { workspace, projectId } = this.parseProjectUrl(idOrUrl);
-    const account = await this.findAccountForWorkspace(workspace, projectId);
+    const account = await this.findAccountForWorkspace(workspace, projectId, 'project');
 
     if (!account) {
       throw new Error(`No account found that can access this project. Please check your accounts and API keys.`);
     }
 
     const client = new LinearClient({ apiKey: account.api_key });
-    const project = await client.project(projectId);
+
+    // Try to get project by ID first, if fails, try by slugId
+    let project: Awaited<ReturnType<LinearClient['project']>>;
+    try {
+      project = await client.project(projectId);
+    } catch {
+      // If ID lookup fails, try searching by slugId
+      const projects = await client.projects({
+        filter: { slugId: { eq: projectId } }
+      });
+
+      if (projects.nodes.length === 0) {
+        throw new Error(`Project not found with ID or slug: ${projectId}`);
+      }
+
+      project = projects.nodes[0];
+    }
     const [lead, content] = await Promise.all([project.lead, project.content]);
 
     return {
@@ -423,7 +457,7 @@ export class LinearAPIClient {
 
   async getProjectIssues(idOrUrl: string): Promise<ProjectIssueData[]> {
     const { workspace, projectId } = this.parseProjectUrl(idOrUrl);
-    const account = await this.findAccountForWorkspace(workspace, projectId);
+    const account = await this.findAccountForWorkspace(workspace, projectId, 'project');
 
     if (!account) {
       throw new Error(`No account found that can access this project. Please check your accounts and API keys.`);
@@ -647,5 +681,140 @@ export class LinearAPIClient {
     }
 
     return output.join('\n');
+  }
+
+  // ==================== DOCUMENT METHODS ====================
+
+  public parseDocumentUrl(idOrUrl: string): { workspace: string | null; documentId: string } {
+    const { workspace, id } = this.parseLinearUrl(idOrUrl, 'document');
+    return { workspace, documentId: id };
+  }
+
+  async getDocumentByIdOrUrl(idOrUrl: string): Promise<DocumentData> {
+    const { workspace, documentId } = this.parseDocumentUrl(idOrUrl);
+    const account = await this.findAccountForWorkspace(workspace, documentId, 'document');
+
+    if (!account) {
+      throw new Error(`No account found that can access this document. Please check your accounts and API keys.`);
+    }
+
+    const client = new LinearClient({ apiKey: account.api_key });
+    const document = await client.document(documentId);
+    const creator = await document.creator;
+    const updatedBy = await document.updatedBy;
+
+    return {
+      id: document.id,
+      title: document.title,
+      content: document.content,
+      createdBy: creator
+        ? {
+            name: creator.name,
+            email: creator.email
+          }
+        : undefined,
+      updatedBy: updatedBy
+        ? {
+            name: updatedBy.name,
+            email: updatedBy.email
+          }
+        : undefined,
+      createdAt: document.createdAt,
+      updatedAt: document.updatedAt,
+      url: document.url
+    };
+  }
+
+  formatDocument(document: DocumentData): string {
+    const output: string[] = [];
+
+    output.push(chalk.bold.blue(`\n📄 ${document.title}`));
+    output.push(chalk.dim(`${document.url}`));
+    output.push('');
+
+    if (document.createdBy) {
+      output.push(`${chalk.bold('Created by:')} ${document.createdBy.name} (${document.createdBy.email})`);
+    }
+
+    if (document.updatedBy) {
+      output.push(`${chalk.bold('Last updated by:')} ${document.updatedBy.name} (${document.updatedBy.email})`);
+    }
+
+    output.push('');
+
+    if (document.content) {
+      output.push(chalk.bold('Content:'));
+      output.push(this.formatMarkdown(document.content));
+      output.push('');
+    }
+
+    output.push(chalk.dim(`Created: ${document.createdAt.toLocaleString()}`));
+    output.push(chalk.dim(`Updated: ${document.updatedAt.toLocaleString()}`));
+
+    return output.join('\n');
+  }
+
+  async createDocument(
+    accountName: string,
+    title: string,
+    options: {
+      content?: string;
+      projectId?: string;
+    }
+  ): Promise<DocumentData> {
+    const account = this.configManager.getAccount(accountName);
+    if (!account) {
+      throw new Error(`Account '${accountName}' not found`);
+    }
+    const client = new LinearClient({ apiKey: account.api_key });
+
+    const input: any = {
+      title,
+      ...(options.content && { content: options.content }),
+      ...(options.projectId && { projectId: options.projectId })
+    };
+
+    const payload = await client.createDocument(input);
+    const document = await payload.document;
+
+    if (!document) {
+      throw new Error('Failed to create document');
+    }
+
+    const creator = await document.creator;
+    const updatedBy = await document.updatedBy;
+
+    return {
+      id: document.id,
+      title: document.title,
+      content: document.content,
+      createdBy: creator
+        ? {
+            name: creator.name,
+            email: creator.email
+          }
+        : undefined,
+      updatedBy: updatedBy
+        ? {
+            name: updatedBy.name,
+            email: updatedBy.email
+          }
+        : undefined,
+      createdAt: document.createdAt,
+      updatedAt: document.updatedAt,
+      url: document.url
+    };
+  }
+
+  async deleteDocument(idOrUrl: string): Promise<void> {
+    const { workspace, documentId } = this.parseDocumentUrl(idOrUrl);
+    const account = await this.findAccountForWorkspace(workspace, documentId, 'document');
+
+    if (!account) {
+      throw new Error(`No account found that can access this document. Please check your accounts and API keys.`);
+    }
+
+    const client = new LinearClient({ apiKey: account.api_key });
+    await client.deleteDocument(documentId);
   }
 }

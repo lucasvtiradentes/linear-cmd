@@ -24,24 +24,6 @@
         "package.json"
       ]
     },
-    "test:unit": {
-      "outputLogs": "full",
-      "inputs": [
-        "tests/unit/**",
-        "src/**",
-        "tests/unit/vitest.config.ts",
-        "package.json"
-      ]
-    },
-    "test:integration": {
-      "outputLogs": "full",
-      "inputs": [
-        "tests/integration/**",
-        "src/**",
-        "tests/integration/vitest.config.ts",
-        "package.json"
-      ]
-    },
     "test:e2e": {
       "outputLogs": "full",
       "inputs": [

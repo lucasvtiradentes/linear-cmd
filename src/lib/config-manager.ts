@@ -74,12 +74,7 @@ export class ConfigManager {
 
   private createDefaultConfig(): void {
     const defaultConfig: LinearConfig = {
-      accounts: {},
-      settings: {
-        max_results: 50,
-        date_format: 'relative',
-        auto_update_accounts: true
-      }
+      accounts: {}
     };
 
     const configPath = this.getConfigPath();
@@ -177,5 +172,19 @@ export class ConfigManager {
 
     config.accounts[accountId].workspaces = workspaces;
     this.saveConfig();
+  }
+
+  markCompletionInstalled(): void {
+    const config = this.loadConfig();
+    if (!config.settings) {
+      config.settings = {};
+    }
+    config.settings.completion_installed = true;
+    this.saveConfig();
+  }
+
+  isCompletionInstalled(): boolean {
+    const config = this.loadConfig();
+    return config.settings?.completion_installed === true;
   }
 }

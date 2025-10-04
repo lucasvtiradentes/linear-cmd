@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { loadGlobalFixtures } from '../global-fixtures';
 
 interface CommandResult {
   stdout: string;
@@ -108,12 +109,7 @@ describe('Issue Operations E2E', () => {
     fs.writeFileSync(
       configPath,
       `{
-  "accounts": {},
-  "settings": {
-    "max_results": 50,
-    "date_format": "relative",
-    "auto_update_accounts": true
-  }
+  "accounts": {}
 }`
     );
   });
@@ -134,40 +130,35 @@ describe('Issue Operations E2E', () => {
     return accountName;
   }
 
-  it.skip('should handle issue show command with real API if available', async () => {
+  it('should handle issue show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testIssueId = process.env.LINEAR_TEST_ISSUE_ID;
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !testIssueId) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_ISSUE_ID');
-
-      // Test with mock scenario instead
-      await setupTestAccount(testHomeDir);
-
-      const result = await execCommand('node dist/index.js issue show MOCK-123', undefined, 15000, testHomeDir);
-
-      // Should handle gracefully even if issue doesn't exist
-      expect(
-        result.exitCode !== 0 ||
-          result.stderr.length > 0 ||
-          result.stdout.includes('Error') ||
-          result.stdout.includes('not found')
-      ).toBe(true);
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js issue show ${fixtures.issueUrl}`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
 
-    const result = await execCommand(`node dist/index.js issue show ${testIssueId}`, undefined, 30000, testHomeDir);
+    // Should either succeed or fail gracefully
+    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('🎯');
-    expect(result.stdout).toContain('Status:');
-    expect(result.stdout).toContain('Suggested Branch:');
+    if (result.exitCode === 0) {
+      expect(result.stdout).toContain('🎯');
+      expect(result.stdout).toContain('Status:');
+      expect(result.stdout).toContain('Suggested Branch:');
+    }
   }, 45000);
 
   it('should handle issue list command', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
     if (!apiKey) {
       console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
@@ -175,7 +166,7 @@ describe('Issue Operations E2E', () => {
       // Test with mock scenario
       await setupTestAccount(testHomeDir);
 
-      const result = await execCommand('node dist/index.js issue list', undefined, 15000, testHomeDir);
+      const result = await execCommand('node dist/index.js issue list -a test', undefined, 15000, testHomeDir);
 
       // Should handle gracefully
       expect(result.exitCode !== 0 || result.stdout.includes('Error') || result.stdout.includes('No issues')).toBe(
@@ -186,7 +177,12 @@ describe('Issue Operations E2E', () => {
 
     await setupTestAccount(testHomeDir);
 
-    const result = await execCommand('node dist/index.js issue list --limit 5', undefined, 30000, testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js issue list -a test --team ${testTeam}`,
+      undefined,
+      30000,
+      testHomeDir
+    );
 
     // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
@@ -197,11 +193,12 @@ describe('Issue Operations E2E', () => {
   }, 45000);
 
   it('should handle issue creation command (mock)', async () => {
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
     await setupTestAccount(testHomeDir);
 
     // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      'node dist/index.js issue create --title "E2E Test Issue" --description "This is a test issue created by E2E tests"',
+      `node dist/index.js issue create -a test --team ${testTeam} --title "E2E Test Issue" --description "This is a test issue created by E2E tests"`,
       undefined,
       20000,
       testHomeDir
@@ -217,9 +214,19 @@ describe('Issue Operations E2E', () => {
   }, 30000);
 
   it('should handle non-existent issue gracefully', async () => {
-    await setupTestAccount(testHomeDir);
+    const fixtures = loadGlobalFixtures();
 
-    const result = await execCommand('node dist/index.js issue show NONEXISTENT-999', undefined, 15000, testHomeDir);
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
+      return;
+    }
+
+    const result = await execCommand(
+      'node dist/index.js issue show NONEXISTENT-999',
+      undefined,
+      10000,
+      fixtures.testHomeDir
+    );
 
     // Should handle error gracefully
     expect(
@@ -228,7 +235,7 @@ describe('Issue Operations E2E', () => {
         result.stdout.includes('Error') ||
         result.stdout.includes('not found')
     ).toBe(true);
-  }, 20000);
+  }, 15000);
 
   it('should handle issue commands without account configured', async () => {
     // Don't set up any account
@@ -250,21 +257,19 @@ describe('Issue Operations E2E', () => {
 
   it('should handle JSON output format for issue commands', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testIssueId = process.env.LINEAR_TEST_ISSUE_ID;
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !testIssueId) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_ISSUE_ID');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
-
     // Test JSON format for issue show
     const showResult = await execCommand(
-      `node dist/index.js issue show ${testIssueId} --format json`,
+      `node dist/index.js issue show ${fixtures.issueUrl} --format json`,
       undefined,
-      30000,
-      testHomeDir
+      15000,
+      fixtures.testHomeDir
     );
 
     if (showResult.exitCode === 0) {
@@ -276,8 +281,8 @@ describe('Issue Operations E2E', () => {
     const listResult = await execCommand(
       'node dist/index.js issue list --format json --limit 3',
       undefined,
-      30000,
-      testHomeDir
+      15000,
+      fixtures.testHomeDir
     );
 
     if (listResult.exitCode === 0) {

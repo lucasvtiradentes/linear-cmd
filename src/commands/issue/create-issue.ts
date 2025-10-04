@@ -14,7 +14,7 @@ export function createCreateIssueCommand(): Command {
     .option('-d, --description <description>', 'issue description')
     .option('-p, --priority <priority>', 'priority (0: none, 1: urgent, 2: high, 3: medium, 4: low)')
     .option('-l, --label <label>', 'label name')
-    .option('--team <team>', 'team identifier')
+    .option('--team <team>', 'team key (e.g., "TES")')
     .option('--project <project>', 'project identifier')
     .option('--assignee <assignee>', 'assignee email or identifier')
     .action(async (options) => {
@@ -23,9 +23,22 @@ export function createCreateIssueCommand(): Command {
       try {
         const { client, account } = await getLinearClientForAccount(configManager, options.account);
 
-        // Get teams if not specified
-        let teamId = options.team;
-        if (!teamId) {
+        // Get teams if not specified or convert team key to ID
+        let teamId: string;
+        if (options.team) {
+          // Convert team key (like "TES") to team ID
+          const teams = await client.teams({ filter: { key: { eq: options.team.toUpperCase() } } });
+          if (teams.nodes.length > 0) {
+            teamId = teams.nodes[0].id;
+          } else {
+            Logger.error(`Team '${options.team}' not found`);
+            Logger.dim('\nAvailable teams:');
+            const allTeams = await client.teams();
+            allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
+            return;
+          }
+        } else {
+          // Interactive team selection
           const teams = await client.teams();
           if (teams.nodes.length === 0) {
             Logger.error('No teams found');

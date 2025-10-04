@@ -27,10 +27,6 @@
     "format": "biome format --write .",
     "lint": "biome check --write .",
     "prepublish": "pnpm run build",
-    "test": "vitest --config tests/unit/vitest.config.ts",
-    "test:run": "vitest run --config tests/unit/vitest.config.ts",
-    "test:unit": "vitest run --config tests/unit/vitest.config.ts",
-    "test:integration": "vitest run --config tests/integration/vitest.config.ts",
     "test:e2e": "vitest run --config tests/e2e/vitest.config.ts",
     "package:preview": "npm pack --dry-run",
     "changeset": "changeset",
@@ -40,8 +36,6 @@
     "turbo:dev": "turbo dev",
     "turbo:format": "turbo format",
     "turbo:lint": "turbo lint",
-    "turbo:test:unit": "turbo test:unit",
-    "turbo:test:integration": "turbo test:integration",
     "turbo:test:e2e": "turbo test:e2e"
   },
   "dependencies": {

@@ -20,6 +20,7 @@ export const linearIssueUpdatePayloadSchema = z.object({
   priority: z.number().optional(),
   assigneeId: z.string().optional().nullable(),
   projectId: z.string().optional().nullable(),
+  teamId: z.string().optional(),
   labelIds: z.array(z.string()).optional(),
   stateId: z.string().optional(),
   estimate: z.number().optional(),
