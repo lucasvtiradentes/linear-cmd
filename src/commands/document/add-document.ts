@@ -21,15 +21,29 @@ export function createAddDocumentCommand(): Command {
         // Get project ID if specified
         let projectId: string | undefined;
         if (options.project) {
-          const { projectId: parsedProjectId } = linearClient.parseProjectUrl(options.project);
-          projectId = parsedProjectId;
+          const { projectId: projectIdOrSlug } = linearClient.parseProjectUrl(options.project);
 
-          // Verify the project exists
+          // Verify the project exists - try by ID first, then by slugId
           try {
-            await client.project(projectId);
+            const project = await client.project(projectIdOrSlug);
+            projectId = project.id;
           } catch {
-            Logger.error(`Project '${options.project}' not found`);
-            return;
+            // If ID lookup fails, try searching by slugId
+            try {
+              const projects = await client.projects({
+                filter: { slugId: { eq: projectIdOrSlug } }
+              });
+
+              if (projects.nodes.length === 0) {
+                Logger.error(`Project '${options.project}' not found`);
+                process.exit(1);
+              }
+
+              projectId = projects.nodes[0].id;
+            } catch (error) {
+              Logger.error(`Project '${options.project}' not found`, error);
+              process.exit(1);
+            }
           }
         }
 

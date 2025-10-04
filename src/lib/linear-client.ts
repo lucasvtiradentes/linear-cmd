@@ -189,7 +189,11 @@ export class LinearAPIClient {
     return issueData;
   }
 
-  private async findAccountForWorkspace(workspace: string | null, issueId: string): Promise<Account | null> {
+  private async findAccountForWorkspace(
+    workspace: string | null,
+    entityId: string,
+    entityType: 'issue' | 'project' | 'document' = 'issue'
+  ): Promise<Account | null> {
     const accounts = this.configManager.getAllAccounts();
 
     if (!accounts.length) {
@@ -204,11 +208,31 @@ export class LinearAPIClient {
       }
     }
 
-    // Try each account until we find one that can access this issue
+    // Try each account until we find one that can access this entity
     for (const account of accounts) {
       try {
         const client = new LinearClient({ apiKey: account.api_key });
-        await client.issue(issueId);
+
+        // Try to access the entity based on type
+        if (entityType === 'issue') {
+          await client.issue(entityId);
+        } else if (entityType === 'project') {
+          // Try by ID first, then by slugId
+          try {
+            await client.project(entityId);
+          } catch {
+            const projects = await client.projects({ filter: { slugId: { eq: entityId } } });
+            if (projects.nodes.length === 0) throw new Error('Project not found');
+          }
+        } else if (entityType === 'document') {
+          // Try by ID first, then by slugId
+          try {
+            await client.document(entityId);
+          } catch {
+            const documents = await client.documents({ filter: { slugId: { eq: entityId } } });
+            if (documents.nodes.length === 0) throw new Error('Document not found');
+          }
+        }
 
         // Update workspace cache for this account
         if (workspace && !account.workspaces?.includes(workspace)) {
@@ -236,13 +260,14 @@ export class LinearAPIClient {
       return { workspace: null, id: idOrUrl };
     }
 
-    // For project and document
+    // For project and document - extract the slugId (hash after last hyphen)
     const urlMatch = idOrUrl.match(new RegExp(`linear\\.app/([^/]+)/${entityType}/([^/?]+)`));
     if (urlMatch) {
-      const slugPart = urlMatch[2];
-      const idMatch = slugPart.match(/([a-f0-9]{8,})/);
-      const id = idMatch ? idMatch[1] : slugPart;
-      return { workspace: urlMatch[1], id };
+      const fullSlug = urlMatch[2];
+      // Extract the hash part after the last hyphen (e.g., "project-name-abc123" -> "abc123")
+      const parts = fullSlug.split('-');
+      const slugId = parts[parts.length - 1];
+      return { workspace: urlMatch[1], id: slugId };
     }
 
     return { workspace: null, id: idOrUrl };
@@ -384,14 +409,30 @@ export class LinearAPIClient {
 
   async getProjectByIdOrUrl(idOrUrl: string): Promise<ProjectData> {
     const { workspace, projectId } = this.parseProjectUrl(idOrUrl);
-    const account = await this.findAccountForWorkspace(workspace, projectId);
+    const account = await this.findAccountForWorkspace(workspace, projectId, 'project');
 
     if (!account) {
       throw new Error(`No account found that can access this project. Please check your accounts and API keys.`);
     }
 
     const client = new LinearClient({ apiKey: account.api_key });
-    const project = await client.project(projectId);
+
+    // Try to get project by ID first, if fails, try by slugId
+    let project: Awaited<ReturnType<LinearClient['project']>>;
+    try {
+      project = await client.project(projectId);
+    } catch {
+      // If ID lookup fails, try searching by slugId
+      const projects = await client.projects({
+        filter: { slugId: { eq: projectId } }
+      });
+
+      if (projects.nodes.length === 0) {
+        throw new Error(`Project not found with ID or slug: ${projectId}`);
+      }
+
+      project = projects.nodes[0];
+    }
     const [lead, content] = await Promise.all([project.lead, project.content]);
 
     return {
@@ -416,7 +457,7 @@ export class LinearAPIClient {
 
   async getProjectIssues(idOrUrl: string): Promise<ProjectIssueData[]> {
     const { workspace, projectId } = this.parseProjectUrl(idOrUrl);
-    const account = await this.findAccountForWorkspace(workspace, projectId);
+    const account = await this.findAccountForWorkspace(workspace, projectId, 'project');
 
     if (!account) {
       throw new Error(`No account found that can access this project. Please check your accounts and API keys.`);
@@ -651,7 +692,7 @@ export class LinearAPIClient {
 
   async getDocumentByIdOrUrl(idOrUrl: string): Promise<DocumentData> {
     const { workspace, documentId } = this.parseDocumentUrl(idOrUrl);
-    const account = await this.findAccountForWorkspace(workspace, documentId);
+    const account = await this.findAccountForWorkspace(workspace, documentId, 'document');
 
     if (!account) {
       throw new Error(`No account found that can access this document. Please check your accounts and API keys.`);
@@ -767,7 +808,7 @@ export class LinearAPIClient {
 
   async deleteDocument(idOrUrl: string): Promise<void> {
     const { workspace, documentId } = this.parseDocumentUrl(idOrUrl);
-    const account = await this.findAccountForWorkspace(workspace, documentId);
+    const account = await this.findAccountForWorkspace(workspace, documentId, 'document');
 
     if (!account) {
       throw new Error(`No account found that can access this document. Please check your accounts and API keys.`);

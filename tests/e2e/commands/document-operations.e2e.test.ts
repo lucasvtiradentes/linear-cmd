@@ -12,7 +12,29 @@ interface CommandResult {
 
 async function execCommand(command: string, input?: string, timeout = 30000, homeDir?: string): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
-    const [cmd, ...args] = command.split(' ');
+    // Parse command respecting quoted arguments
+    const parts: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < command.length; i++) {
+      const char = command[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ' ' && !inQuotes) {
+        if (current) {
+          parts.push(current);
+          current = '';
+        }
+      } else {
+        current += char;
+      }
+    }
+    if (current) {
+      parts.push(current);
+    }
+
+    const [cmd, ...args] = parts;
     const child = spawn(cmd, args, {
       cwd: path.resolve(__dirname, '../../../'),
       env: {
@@ -161,42 +183,60 @@ describe('Document Operations E2E', () => {
 
   it('should handle document show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testDocumentUrl = process.env.LINEAR_TEST_DOCUMENT_URL;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
-    if (!apiKey || !testDocumentUrl) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_DOCUMENT_URL');
-
-      // Test with mock scenario instead
-      await setupTestAccount(testHomeDir);
-
-      const result = await execCommand('node dist/index.js document show MOCK-DOC-123', undefined, 15000, testHomeDir);
-
-      // Should handle gracefully even if document doesn't exist
-      expect(
-        result.exitCode !== 0 ||
-          result.stderr.length > 0 ||
-          result.stdout.includes('Error') ||
-          result.stdout.includes('not found')
-      ).toBe(true);
+    if (!apiKey) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
+    const accountName = await setupTestAccount(testHomeDir);
 
-    const result = await execCommand(
-      `node dist/index.js document show ${testDocumentUrl}`,
-      undefined,
-      30000,
-      testHomeDir
-    );
+    // Create a test project
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
 
-    // Should either succeed or fail gracefully
-    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
-
-    if (result.exitCode === 0) {
-      expect(result.stdout.includes('📄') || result.stdout.includes('Document') || result.stdout.length > 0).toBe(true);
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
     }
-  }, 45000);
+
+    let documentUrl: string | null = null;
+
+    try {
+      // Create a test document
+      const documentTitle = `E2E Test Document ${Date.now()}`;
+      const addResult = await execCommand(
+        `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "Test content" --project ${projectUrl}`,
+        undefined,
+        30000,
+        testHomeDir
+      );
+
+      const docUrlMatch = addResult.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
+      documentUrl = docUrlMatch ? docUrlMatch[0] : null;
+
+      if (documentUrl) {
+        // Test showing the document
+        const result = await execCommand(
+          `node dist/index.js document show ${documentUrl}`,
+          undefined,
+          30000,
+          testHomeDir
+        );
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout.includes('📄') || result.stdout.includes('Document') || result.stdout.length > 0).toBe(
+          true
+        );
+
+        // Cleanup: delete the document
+        await execCommand(`node dist/index.js document delete ${documentUrl} --yes`, undefined, 30000, testHomeDir);
+      }
+    } finally {
+      // Cleanup: delete the test project
+      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    }
+  }, 90000);
 
   it('should handle non-existent document gracefully', async () => {
     await setupTestAccount(testHomeDir);
@@ -214,29 +254,60 @@ describe('Document Operations E2E', () => {
 
   it('should handle JSON output format for document show', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testDocumentUrl = process.env.LINEAR_TEST_DOCUMENT_URL;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
-    if (!apiKey || !testDocumentUrl) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_DOCUMENT_URL');
+    if (!apiKey) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
+    const accountName = await setupTestAccount(testHomeDir);
 
-    const result = await execCommand(
-      `node dist/index.js document show ${testDocumentUrl} --format json`,
-      undefined,
-      30000,
-      testHomeDir
-    );
+    // Create a test project
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
 
-    if (result.exitCode === 0) {
-      // Should contain JSON output
-      expect(result.stdout.includes('{') && (result.stdout.includes('"title"') || result.stdout.includes('"id"'))).toBe(
-        true
-      );
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
     }
-  }, 45000);
+
+    let documentUrl: string | null = null;
+
+    try {
+      // Create a test document
+      const documentTitle = `E2E Test Document JSON ${Date.now()}`;
+      const addResult = await execCommand(
+        `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "Test JSON output" --project ${projectUrl}`,
+        undefined,
+        30000,
+        testHomeDir
+      );
+
+      const docUrlMatch = addResult.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
+      documentUrl = docUrlMatch ? docUrlMatch[0] : null;
+
+      if (documentUrl) {
+        // Test JSON output
+        const result = await execCommand(
+          `node dist/index.js document show ${documentUrl} --format json`,
+          undefined,
+          30000,
+          testHomeDir
+        );
+
+        expect(result.exitCode).toBe(0);
+        expect(
+          result.stdout.includes('{') && (result.stdout.includes('"title"') || result.stdout.includes('"id"'))
+        ).toBe(true);
+
+        // Cleanup: delete the document
+        await execCommand(`node dist/index.js document delete ${documentUrl} --yes`, undefined, 30000, testHomeDir);
+      }
+    } finally {
+      // Cleanup: delete the test project
+      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    }
+  }, 90000);
 
   it('should validate required arguments for document commands', async () => {
     await setupTestAccount(testHomeDir);

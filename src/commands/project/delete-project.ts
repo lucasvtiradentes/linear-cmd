@@ -44,9 +44,27 @@ export function createDeleteProjectCommand(): Command {
 
         // Get project details
         Logger.loading('Fetching project details...');
-        const { projectId } = linearClient.parseProjectUrl(idOrUrl);
-        const project = await client.project(projectId);
+        const { projectId: projectIdOrSlug } = linearClient.parseProjectUrl(idOrUrl);
+
+        // Try to get project by ID first, if fails, try by slugId
+        let project: Awaited<ReturnType<LinearClient['project']>>;
+        try {
+          project = await client.project(projectIdOrSlug);
+        } catch {
+          // If ID lookup fails, try searching by slugId
+          const projects = await client.projects({
+            filter: { slugId: { eq: projectIdOrSlug } }
+          });
+
+          if (projects.nodes.length === 0) {
+            throw new Error(`Project not found with ID or slug: ${projectIdOrSlug}`);
+          }
+
+          project = projects.nodes[0];
+        }
+
         const projectName = project.name;
+        const projectId = project.id;
 
         // Confirm deletion unless --yes flag is used
         if (!options.yes) {
@@ -68,7 +86,7 @@ export function createDeleteProjectCommand(): Command {
         // Delete the project
         Logger.loading(`Deleting project from account: ${accountName}...`);
 
-        const deleteResult = await client.deleteProject(project.id);
+        const deleteResult = await client.deleteProject(projectId);
         const success = deleteResult.success;
 
         if (success) {
