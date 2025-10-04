@@ -29,6 +29,7 @@ program.configureHelp({
   subcommandTerm: (cmd) => cmd.name()
 });
 
+// Show detailed help on --help
 program.on('--help', () => {
   Logger.plain('');
   Logger.bold('Examples:');

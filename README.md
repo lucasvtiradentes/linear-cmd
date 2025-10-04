@@ -40,8 +40,8 @@ npm install linear-cmd -g
 ### General
 
 ```bash
+linear --help                              # Show detailed help and examples
 linear update                              # Update to latest version (auto-detects npm/yarn/pnpm)
-linear --help                              # Show available commands
 linear <command> --help                    # Show help for specific command
 ```
 
