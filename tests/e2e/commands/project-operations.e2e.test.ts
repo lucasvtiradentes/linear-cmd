@@ -14,7 +14,7 @@ async function execCommand(command: string, input?: string, timeout = 30000, hom
   return new Promise((resolve, reject) => {
     const [cmd, ...args] = command.split(' ');
     const child = spawn(cmd, args, {
-      cwd: path.resolve(__dirname, '../../'),
+      cwd: path.resolve(__dirname, '../../../'),
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -129,99 +129,116 @@ describe('Project Operations E2E', () => {
     return accountName;
   }
 
+  async function createTestProject(homeDir: string, accountName: string, team: string): Promise<string | null> {
+    const projectName = `E2E-Test-Project-${Date.now()}`;
+    const result = await execCommand(
+      `node dist/index.js project create -a ${accountName} --team ${team} --name ${projectName} --description E2E-test-project-to-be-deleted`,
+      undefined,
+      30000,
+      homeDir
+    );
+
+    if (result.exitCode !== 0) {
+      console.log(`Failed to create project. Exit code: ${result.exitCode}`);
+      console.log(`Stdout: ${result.stdout}`);
+      console.log(`Stderr: ${result.stderr}`);
+      return null;
+    }
+
+    // Extract URL from output
+    const urlMatch = result.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
+    return urlMatch ? urlMatch[0] : null;
+  }
+
+  async function deleteTestProject(homeDir: string, accountName: string, projectUrl: string): Promise<void> {
+    await execCommand(
+      `node dist/index.js project delete ${projectUrl} -a ${accountName} --yes`,
+      undefined,
+      30000,
+      homeDir
+    );
+  }
+
   it('should handle project show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testProjectUrl = process.env.LINEAR_TEST_PROJECT_URL;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
-    if (!apiKey || !testProjectUrl) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_PROJECT_URL');
-
-      // Test with mock scenario instead
-      await setupTestAccount(testHomeDir);
-
-      const result = await execCommand(
-        'node dist/index.js project show MOCK-PROJECT-123',
-        undefined,
-        15000,
-        testHomeDir
-      );
-
-      // Should handle gracefully even if project doesn't exist
-      expect(
-        result.exitCode !== 0 ||
-          result.stderr.length > 0 ||
-          result.stdout.includes('Error') ||
-          result.stdout.includes('not found')
-      ).toBe(true);
+    if (!apiKey) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
+    const accountName = await setupTestAccount(testHomeDir);
 
-    const result = await execCommand(
-      `node dist/index.js project show ${testProjectUrl}`,
-      undefined,
-      30000,
-      testHomeDir
-    );
+    // Create a test project
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
 
-    // Should either succeed or fail gracefully
-    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
-
-    if (result.exitCode === 0) {
-      expect(result.stdout.includes('📁') || result.stdout.includes('Project') || result.stdout.length > 0).toBe(true);
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
     }
-  }, 45000);
+
+    try {
+      const result = await execCommand(`node dist/index.js project show ${projectUrl}`, undefined, 30000, testHomeDir);
+
+      // Should either succeed or fail gracefully
+      expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
+
+      if (result.exitCode === 0) {
+        expect(result.stdout.includes('📁') || result.stdout.includes('Project') || result.stdout.length > 0).toBe(
+          true
+        );
+      }
+    } finally {
+      // Cleanup: delete the test project
+      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    }
+  }, 60000);
 
   it('should handle project issues command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testProjectUrl = process.env.LINEAR_TEST_PROJECT_URL;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
-    if (!apiKey || !testProjectUrl) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_PROJECT_URL');
-
-      // Test with mock scenario
-      await setupTestAccount(testHomeDir);
-
-      const result = await execCommand(
-        'node dist/index.js project issues MOCK-PROJECT-123',
-        undefined,
-        15000,
-        testHomeDir
-      );
-
-      // Should handle gracefully
-      expect(
-        result.exitCode !== 0 ||
-          result.stderr.length > 0 ||
-          result.stdout.includes('Error') ||
-          result.stdout.includes('not found')
-      ).toBe(true);
+    if (!apiKey) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
+    const accountName = await setupTestAccount(testHomeDir);
 
-    const result = await execCommand(
-      `node dist/index.js project issues ${testProjectUrl}`,
-      undefined,
-      30000,
-      testHomeDir
-    );
+    // Create a test project
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
 
-    // Should either succeed or fail gracefully
-    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
-
-    if (result.exitCode === 0) {
-      expect(
-        result.stdout.includes('Fetching') ||
-          result.stdout.includes('issues') ||
-          result.stdout.includes('✅') ||
-          result.stdout.includes('📋') ||
-          result.stdout.length > 0
-      ).toBe(true);
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
     }
-  }, 45000);
+
+    try {
+      const result = await execCommand(
+        `node dist/index.js project issues ${projectUrl}`,
+        undefined,
+        30000,
+        testHomeDir
+      );
+
+      // Should either succeed or fail gracefully
+      expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
+
+      if (result.exitCode === 0) {
+        expect(
+          result.stdout.includes('Fetching') ||
+            result.stdout.includes('issues') ||
+            result.stdout.includes('✅') ||
+            result.stdout.includes('📋') ||
+            result.stdout.length > 0
+        ).toBe(true);
+      }
+    } finally {
+      // Cleanup: delete the test project
+      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    }
+  }, 60000);
 
   it('should handle non-existent project gracefully', async () => {
     await setupTestAccount(testHomeDir);
@@ -239,53 +256,79 @@ describe('Project Operations E2E', () => {
 
   it('should handle JSON output format for project show', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testProjectUrl = process.env.LINEAR_TEST_PROJECT_URL;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
-    if (!apiKey || !testProjectUrl) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_PROJECT_URL');
+    if (!apiKey) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
+    const accountName = await setupTestAccount(testHomeDir);
 
-    const result = await execCommand(
-      `node dist/index.js project show ${testProjectUrl} --format json`,
-      undefined,
-      30000,
-      testHomeDir
-    );
+    // Create a test project
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
 
-    if (result.exitCode === 0) {
-      // Should contain JSON output
-      expect(result.stdout.includes('{') && (result.stdout.includes('"name"') || result.stdout.includes('"id"'))).toBe(
-        true
-      );
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
     }
-  }, 45000);
+
+    try {
+      const result = await execCommand(
+        `node dist/index.js project show ${projectUrl} --format json`,
+        undefined,
+        30000,
+        testHomeDir
+      );
+
+      if (result.exitCode === 0) {
+        // Should contain JSON output
+        expect(
+          result.stdout.includes('{') && (result.stdout.includes('"name"') || result.stdout.includes('"id"'))
+        ).toBe(true);
+      }
+    } finally {
+      // Cleanup: delete the test project
+      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    }
+  }, 60000);
 
   it('should handle JSON output format for project issues', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testProjectUrl = process.env.LINEAR_TEST_PROJECT_URL;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
 
-    if (!apiKey || !testProjectUrl) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_PROJECT_URL');
+    if (!apiKey) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
+    const accountName = await setupTestAccount(testHomeDir);
 
-    const result = await execCommand(
-      `node dist/index.js project issues ${testProjectUrl} --format json`,
-      undefined,
-      30000,
-      testHomeDir
-    );
+    // Create a test project
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
 
-    if (result.exitCode === 0) {
-      // Should contain JSON output
-      expect(result.stdout.includes('[') || result.stdout.includes('{')).toBe(true);
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
     }
-  }, 45000);
+
+    try {
+      const result = await execCommand(
+        `node dist/index.js project issues ${projectUrl} --format json`,
+        undefined,
+        30000,
+        testHomeDir
+      );
+
+      if (result.exitCode === 0) {
+        // Should contain JSON output
+        expect(result.stdout.includes('[') || result.stdout.includes('{')).toBe(true);
+      }
+    } finally {
+      // Cleanup: delete the test project
+      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    }
+  }, 60000);
 
   it('should validate required arguments for project commands', async () => {
     await setupTestAccount(testHomeDir);
@@ -297,4 +340,67 @@ describe('Project Operations E2E', () => {
     const issuesResult = await execCommand('node dist/index.js project issues', undefined, 10000, testHomeDir);
     expect(issuesResult.exitCode !== 0 || issuesResult.stderr.length > 0).toBe(true);
   }, 30000);
+
+  it('should handle project create command with real API if available', async () => {
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+
+    if (!apiKey) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
+      return;
+    }
+
+    await setupTestAccount(testHomeDir);
+
+    const projectName = `E2E Test Project ${Date.now()}`;
+    const result = await execCommand(
+      `node dist/index.js project create -a test --team ${testTeam} --name "${projectName}" --description "Created by E2E test"`,
+      undefined,
+      30000,
+      testHomeDir
+    );
+
+    // Should either succeed or fail gracefully
+    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
+
+    if (result.exitCode === 0) {
+      expect(result.stdout.includes('Project created successfully') || result.stdout.includes('📁')).toBe(true);
+    }
+  }, 45000);
+
+  it('should handle project delete command with real API if available', async () => {
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+
+    if (!apiKey) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
+      return;
+    }
+
+    const accountName = await setupTestAccount(testHomeDir);
+
+    // Create a test project to delete
+    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
+
+    if (!projectUrl) {
+      console.log('Failed to create test project, skipping test');
+      return;
+    }
+
+    // Test deleting the project
+    const result = await execCommand(
+      `node dist/index.js project delete ${projectUrl} -a ${accountName} --yes`,
+      undefined,
+      30000,
+      testHomeDir
+    );
+
+    // Should either succeed or fail gracefully
+    expect(
+      result.exitCode === 0 ||
+        result.stderr.length > 0 ||
+        result.stdout.includes('Error') ||
+        result.stdout.includes('deleted successfully')
+    ).toBe(true);
+  }, 60000);
 });

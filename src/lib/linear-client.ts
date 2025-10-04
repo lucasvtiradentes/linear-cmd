@@ -69,6 +69,27 @@ export async function findAccountForIssue(
   return null;
 }
 
+export async function findAccountForProject(
+  configManager: ConfigManager,
+  projectIdOrUrl: string
+): Promise<{ client: LinearClient; account: Account } | null> {
+  const accounts = configManager.getAllAccounts();
+  const linearClient = new LinearAPIClient();
+
+  for (const account of accounts) {
+    try {
+      const client = new LinearClient({ apiKey: account.api_key });
+      const { projectId } = linearClient.parseProjectUrl(projectIdOrUrl);
+      await client.project(projectId);
+      return { client, account };
+    } catch {
+      // This account can't access the project, try next
+    }
+  }
+
+  return null;
+}
+
 // ==================== MAIN CLIENT CLASS ====================
 
 export class LinearAPIClient {
