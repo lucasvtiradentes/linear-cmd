@@ -69,7 +69,7 @@ _linear_issue() {
     issue_commands=(
         'show:Show details of an issue'
         'create:Create a new issue'
-        'list:List issues'
+        'list:List all issues grouped by status'
         'update:Update an issue'
         'comment:Add a comment to an issue'
     )

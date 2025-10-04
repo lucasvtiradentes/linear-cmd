@@ -13,7 +13,9 @@
 - **Multi-account support** - Manage multiple Linear accounts with per-command selection
 - **Complete issue management** - Create, list, update, comment, and view detailed issue information
 - **Smart account discovery** - Automatically finds the right account for issue operations
-- **Advanced filtering** - Filter issues by assignee, state, labels, projects, and teams
+- **Advanced filtering** - Filter issues by assignee, state, labels, and projects
+- **Grouped issue views** - List issues organized by status (Todo, In Progress, Done, etc.)
+- **Optimized performance** - Fetches all data in minimal API calls to avoid rate limits
 - **Self-updating** - Built-in update mechanism that detects your package manager
 
 ## :question: Motivation
@@ -57,10 +59,23 @@ linear account test                        # Test connection of all your account
 ### Issue Management
 
 ```bash
+# Viewing issues
 linear issue show <linear-url>             # Show by URL
 linear issue show WORK-123                 # Show by ID
 linear issue show WORK-123 --account work  # Show by ID (specifying account)
-linear issue list --account work           # List issues (requires account)
+
+# Listing issues (grouped by status)
+linear issue list -a work                  # List all issues
+linear issue list -a work --assignee me    # List my issues
+linear issue list -a work --state "In Progress"  # Filter by state
+linear issue list -a work --project "API"  # Filter by project
+linear issue list -a work --label "bug"    # Filter by label
+
+# Issues are automatically grouped by status:
+# ✅ Done (415)
+# 🔄 In Progress (5)
+# 📋 Todo (1)
+# ❌ Canceled (12)
 ```
 
 <details>

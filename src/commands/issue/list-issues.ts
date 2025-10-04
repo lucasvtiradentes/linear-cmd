@@ -8,10 +8,10 @@ import { linearIssueFilterSchema } from '../../types/linear.js';
 
 export function createListIssuesCommand(): Command {
   return new Command('list')
-    .description('List Linear issues with filters')
+    .description('List all issues grouped by status')
     .requiredOption('-a, --account <account>', 'specify account to use')
     .option('--assignee <assignee>', 'filter by assignee (email or "me")')
-    .option('--state <state>', 'filter by state (e.g., "In Progress", "Todo")')
+    .option('--state <state>', 'filter by state (case-insensitive)')
     .option('--label <label>', 'filter by label name')
     .option('--project <project>', 'filter by project name')
     .action(async (options) => {
