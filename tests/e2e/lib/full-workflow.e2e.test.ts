@@ -117,12 +117,7 @@ describe('Complete User Workflow E2E', () => {
     fs.writeFileSync(
       configPath,
       `{
-  "accounts": {},
-  "settings": {
-    "max_results": 50,
-    "date_format": "relative",
-    "auto_update_accounts": true
-  }
+  "accounts": {}
 }`
     );
   });

@@ -22,9 +22,6 @@ export const linearConfigSchema = z.object({
   accounts: z.record(z.string(), accountSchema),
   settings: z
     .object({
-      max_results: z.number().default(50),
-      date_format: z.enum(['iso', 'local', 'relative']).default('relative'),
-      auto_update_accounts: z.boolean().default(true),
       completion_installed: z.boolean().optional()
     })
     .optional()
