@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
-import { LinearAPIClient } from '../../lib/linear-client.js';
+import { findAccountForIssue, LinearAPIClient } from '../../lib/linear-client.js';
 import { Logger } from '../../lib/logger.js';
 
 export function createCommentIssueCommand(): Command {
@@ -24,9 +24,8 @@ export function createCommentIssueCommand(): Command {
           return;
         }
 
-        // For comment, we'll try to find the account that has access to this issue
-        // if not specified
-        let client: LinearClient | undefined;
+        // Find the account that has access to this issue
+        let client: LinearClient;
 
         if (options.account) {
           const account = configManager.getAccount(options.account);
@@ -37,28 +36,14 @@ export function createCommentIssueCommand(): Command {
           }
           client = new LinearClient({ apiKey: account.api_key });
         } else {
-          // Try to find which account can access this issue
-          const accounts = configManager.getAllAccounts();
-          let foundAccount = null;
-
-          for (const acc of accounts) {
-            try {
-              const testClient = new LinearClient({ apiKey: acc.api_key });
-              await testClient.issue(issueId);
-              foundAccount = acc;
-              client = testClient;
-              break;
-            } catch {
-              // This account can't access the issue, try next
-            }
-          }
-
-          if (!foundAccount || !client) {
+          const result = await findAccountForIssue(configManager, issueId);
+          if (!result) {
             Logger.error('Could not find an account with access to this issue');
             Logger.dim('Use --account flag to specify which account to use');
             Logger.dim('Run `linear account list` to see available accounts');
             return;
           }
+          client = result.client;
         }
 
         // Fetch the issue

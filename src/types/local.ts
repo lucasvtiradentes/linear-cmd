@@ -33,7 +33,6 @@ export const issueDataSchema = z.object({
   identifier: z.string(),
   title: z.string(),
   description: z.string().optional(),
-  branchName: z.string(),
   state: z.object({
     name: z.string(),
     color: z.string()
@@ -68,8 +67,7 @@ export const issueDataSchema = z.object({
       title: z.string(),
       number: z.number(),
       draft: z.boolean(),
-      merged: z.boolean(),
-      branch: z.string()
+      merged: z.boolean()
     })
   ),
   createdAt: z.date(),

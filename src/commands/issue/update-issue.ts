@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import {
+  findAccountForIssue,
   getLinearClientForAccount,
   handleValidationError,
   LinearAPIClient,
@@ -64,29 +65,15 @@ export function createUpdateIssueCommand(): Command {
           client = result.client;
           account = result.account;
         } else {
-          // Try to find which account can access this issue
-          const accounts = configManager.getAllAccounts();
-          let foundAccount = null;
-
-          for (const acc of accounts) {
-            try {
-              const testClient = new LinearClient({ apiKey: acc.api_key });
-              await testClient.issue(issueId);
-              foundAccount = acc;
-              client = testClient;
-              break;
-            } catch {
-              // This account can't access the issue, try next
-            }
-          }
-
-          if (!foundAccount || !client) {
+          const result = await findAccountForIssue(configManager, issueId);
+          if (!result) {
             throw new ValidationError('Could not find an account with access to this issue', [
               'Use --account flag to specify which account to use',
               'Run `linear account list` to see available accounts'
             ]);
           }
-          account = foundAccount;
+          client = result.client;
+          account = result.account;
         }
 
         // Fetch the issue

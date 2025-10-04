@@ -50,36 +50,32 @@ export function handleValidationError(error: ValidationError): void {
   });
 }
 
+export async function findAccountForIssue(
+  configManager: ConfigManager,
+  issueId: string
+): Promise<{ client: LinearClient; account: Account } | null> {
+  const accounts = configManager.getAllAccounts();
+
+  for (const account of accounts) {
+    try {
+      const client = new LinearClient({ apiKey: account.api_key });
+      await client.issue(issueId);
+      return { client, account };
+    } catch {
+      // This account can't access the issue, try next
+    }
+  }
+
+  return null;
+}
+
 // ==================== MAIN CLIENT CLASS ====================
 
 export class LinearAPIClient {
-  private client: LinearClient | null = null;
   private configManager: ConfigManager;
 
   constructor() {
     this.configManager = new ConfigManager();
-  }
-
-  async initialize(accountName?: string): Promise<void> {
-    if (!accountName) {
-      throw new Error('Account name is required. Please specify which account to use.');
-    }
-
-    const account = this.configManager.getAccount(accountName);
-    if (!account) {
-      throw new Error(`Account '${accountName}' not found. Please check your accounts using "linear account list"`);
-    }
-
-    this.client = new LinearClient({
-      apiKey: account.api_key
-    });
-  }
-
-  private ensureClient(): LinearClient {
-    if (!this.client) {
-      throw new Error('Linear client not initialized. Call initialize() first.');
-    }
-    return this.client;
   }
 
   async getIssueByIdOrUrl(idOrUrl: string): Promise<IssueData> {
@@ -105,9 +101,6 @@ export class LinearAPIClient {
       issue.comments()
     ]);
 
-    // Generate suggested branch name
-    const branchName = this.generateBranchName(issue.identifier, issue.title);
-
     // Fetch pull requests if available
     const pullRequests: IssueData['pullRequests'] = [];
     try {
@@ -123,8 +116,7 @@ export class LinearAPIClient {
               title: attachment.title || 'Pull Request',
               number: parseInt(prMatch[2]),
               draft: false, // Can't determine from Linear
-              merged: false, // Can't determine from Linear
-              branch: 'unknown'
+              merged: false // Can't determine from Linear
             });
           }
         }
@@ -139,7 +131,6 @@ export class LinearAPIClient {
       identifier: issue.identifier,
       title: issue.title,
       description: issue.description,
-      branchName,
       state: {
         name: state?.name || 'Unknown',
         color: state?.color || '#000000'
@@ -212,21 +203,33 @@ export class LinearAPIClient {
     return null;
   }
 
-  public parseIssueUrl(idOrUrl: string): { workspace: string | null; issueId: string } {
-    // If it's a URL, extract workspace and issue identifier
-    const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/issue\/([A-Z]+-\d+)/);
-    if (urlMatch) {
-      return {
-        workspace: urlMatch[1],
-        issueId: urlMatch[2]
-      };
+  private parseLinearUrl(
+    idOrUrl: string,
+    entityType: 'issue' | 'project' | 'document'
+  ): { workspace: string | null; id: string } {
+    if (entityType === 'issue') {
+      const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/issue\/([A-Z]+-\d+)/);
+      if (urlMatch) {
+        return { workspace: urlMatch[1], id: urlMatch[2] };
+      }
+      return { workspace: null, id: idOrUrl };
     }
 
-    // Otherwise, assume it's already an issue identifier
-    return {
-      workspace: null,
-      issueId: idOrUrl
-    };
+    // For project and document
+    const urlMatch = idOrUrl.match(new RegExp(`linear\\.app/([^/]+)/${entityType}/([^/?]+)`));
+    if (urlMatch) {
+      const slugPart = urlMatch[2];
+      const idMatch = slugPart.match(/([a-f0-9]{8,})/);
+      const id = idMatch ? idMatch[1] : slugPart;
+      return { workspace: urlMatch[1], id };
+    }
+
+    return { workspace: null, id: idOrUrl };
+  }
+
+  public parseIssueUrl(idOrUrl: string): { workspace: string | null; issueId: string } {
+    const { workspace, id } = this.parseLinearUrl(idOrUrl, 'issue');
+    return { workspace, issueId: id };
   }
 
   public generateBranchName(identifier: string, title: string): string {
@@ -244,16 +247,6 @@ export class LinearAPIClient {
       cleanTitle.length > maxLength ? cleanTitle.substring(0, maxLength).replace(/-$/, '') : cleanTitle;
 
     return `${identifier.toLowerCase()}/${truncatedTitle}`;
-  }
-
-  async testConnection(): Promise<boolean> {
-    try {
-      const client = this.ensureClient();
-      await client.viewer;
-      return true;
-    } catch (_error) {
-      return false;
-    }
   }
 
   // ==================== ISSUE UTILITY METHODS ====================
@@ -294,8 +287,9 @@ export class LinearAPIClient {
       output.push(`${chalk.bold('Assignee:')} ${issue.assignee.name} (${issue.assignee.email})`);
     }
 
-    // Branch name
-    output.push(`${chalk.bold('Suggested Branch:')} ${chalk.green(issue.branchName)}`);
+    // Branch name (generated on-demand)
+    const branchName = this.generateBranchName(issue.identifier, issue.title);
+    output.push(`${chalk.bold('Suggested Branch:')} ${chalk.green(branchName)}`);
 
     // Labels
     if (issue.labels.length > 0) {
@@ -309,15 +303,7 @@ export class LinearAPIClient {
     if (issue.pullRequests.length > 0) {
       output.push(`${chalk.bold('Pull Requests:')}`);
       issue.pullRequests.forEach(
-        (pr: {
-          id: string;
-          url: string;
-          title: string;
-          number: number;
-          draft: boolean;
-          merged: boolean;
-          branch: string;
-        }) => {
+        (pr: { id: string; url: string; title: string; number: number; draft: boolean; merged: boolean }) => {
           const prStatus = pr.merged ? '✅ Merged' : pr.draft ? '📝 Draft' : '🔄 Open';
           output.push(`  ${prStatus} #${pr.number}: ${pr.title}`);
           output.push(`    ${chalk.dim(pr.url)}`);
@@ -371,22 +357,8 @@ export class LinearAPIClient {
   // ==================== PROJECT METHODS ====================
 
   public parseProjectUrl(idOrUrl: string): { workspace: string | null; projectId: string } {
-    const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/project\/([^/?]+)/);
-    if (urlMatch) {
-      const slugPart = urlMatch[2];
-      const idMatch = slugPart.match(/([a-f0-9]{8,})/);
-      const projectId = idMatch ? idMatch[1] : slugPart;
-
-      return {
-        workspace: urlMatch[1],
-        projectId
-      };
-    }
-
-    return {
-      workspace: null,
-      projectId: idOrUrl
-    };
+    const { workspace, id } = this.parseLinearUrl(idOrUrl, 'project');
+    return { workspace, projectId: id };
   }
 
   async getProjectByIdOrUrl(idOrUrl: string): Promise<ProjectData> {
@@ -652,22 +624,8 @@ export class LinearAPIClient {
   // ==================== DOCUMENT METHODS ====================
 
   public parseDocumentUrl(idOrUrl: string): { workspace: string | null; documentId: string } {
-    const urlMatch = idOrUrl.match(/linear\.app\/([^/]+)\/document\/([^/?]+)/);
-    if (urlMatch) {
-      const slugPart = urlMatch[2];
-      const idMatch = slugPart.match(/([a-f0-9]{8,})/);
-      const documentId = idMatch ? idMatch[1] : slugPart;
-
-      return {
-        workspace: urlMatch[1],
-        documentId
-      };
-    }
-
-    return {
-      workspace: null,
-      documentId: idOrUrl
-    };
+    const { workspace, id } = this.parseLinearUrl(idOrUrl, 'document');
+    return { workspace, documentId: id };
   }
 
   async getDocumentByIdOrUrl(idOrUrl: string): Promise<DocumentData> {

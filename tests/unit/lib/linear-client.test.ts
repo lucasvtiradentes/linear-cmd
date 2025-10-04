@@ -83,7 +83,6 @@ describe('LinearAPIClient', () => {
       expect(issue).toBeDefined();
       expect(issue.identifier).toBe('WORK-123');
       expect(issue.title).toBe('Test Issue');
-      expect(issue.branchName).toBe('work-123/test-issue');
     });
 
     it('should fetch issue by ID trying all accounts', async () => {

@@ -47,7 +47,6 @@ describe('Show Issue Command Integration', () => {
       identifier: 'WORK-123',
       title: 'Integration Test Issue',
       description: 'This is a **test** issue with `code` and more content.',
-      branchName: 'work-123/integration-test-issue',
       state: {
         name: 'In Progress',
         color: '#f59e0b'
@@ -96,7 +95,6 @@ describe('Show Issue Command Integration', () => {
       identifier: 'WORK-123',
       title: 'Integration Test Issue',
       description: 'This is a test issue.',
-      branchName: 'work-123/integration-test-issue',
       state: {
         name: 'In Progress',
         color: '#f59e0b'
@@ -137,7 +135,6 @@ describe('Show Issue Command Integration', () => {
       expect(parsedData).toMatchObject({
         identifier: 'WORK-123',
         title: 'Integration Test Issue',
-        branchName: 'work-123/integration-test-issue',
         state: {
           name: 'In Progress',
           color: '#f59e0b'
