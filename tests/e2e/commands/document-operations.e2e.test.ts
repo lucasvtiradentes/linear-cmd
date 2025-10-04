@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { loadGlobalFixtures } from '../global-fixtures';
 
 interface CommandResult {
   stdout: string;
@@ -183,65 +184,38 @@ describe('Document Operations E2E', () => {
 
   it('should handle document show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    const accountName = await setupTestAccount(testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js document show ${fixtures.documentUrl}`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
 
-    // Create a test project
-    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
-
-    if (!projectUrl) {
-      console.log('Failed to create test project, skipping test');
-      return;
-    }
-
-    let documentUrl: string | null = null;
-
-    try {
-      // Create a test document
-      const documentTitle = `E2E Test Document ${Date.now()}`;
-      const addResult = await execCommand(
-        `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "Test content" --project ${projectUrl}`,
-        undefined,
-        30000,
-        testHomeDir
-      );
-
-      const docUrlMatch = addResult.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
-      documentUrl = docUrlMatch ? docUrlMatch[0] : null;
-
-      if (documentUrl) {
-        // Test showing the document
-        const result = await execCommand(
-          `node dist/index.js document show ${documentUrl}`,
-          undefined,
-          30000,
-          testHomeDir
-        );
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout.includes('📄') || result.stdout.includes('Document') || result.stdout.length > 0).toBe(
-          true
-        );
-
-        // Cleanup: delete the document
-        await execCommand(`node dist/index.js document delete ${documentUrl} --yes`, undefined, 30000, testHomeDir);
-      }
-    } finally {
-      // Cleanup: delete the test project
-      await deleteTestProject(testHomeDir, accountName, projectUrl);
-    }
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.includes('📄') || result.stdout.includes('Document') || result.stdout.length > 0).toBe(true);
   }, 90000);
 
   it('should handle non-existent document gracefully', async () => {
-    await setupTestAccount(testHomeDir);
+    const fixtures = loadGlobalFixtures();
 
-    const result = await execCommand('node dist/index.js document show NONEXISTENT-999', undefined, 15000, testHomeDir);
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
+      return;
+    }
+
+    const result = await execCommand(
+      'node dist/index.js document show NONEXISTENT-999',
+      undefined,
+      10000,
+      fixtures.testHomeDir
+    );
 
     // Should handle error gracefully
     expect(
@@ -250,63 +224,28 @@ describe('Document Operations E2E', () => {
         result.stdout.includes('Error') ||
         result.stdout.includes('not found')
     ).toBe(true);
-  }, 20000);
+  }, 15000);
 
   it('should handle JSON output format for document show', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    const accountName = await setupTestAccount(testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js document show ${fixtures.documentUrl} --format json`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
 
-    // Create a test project
-    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
-
-    if (!projectUrl) {
-      console.log('Failed to create test project, skipping test');
-      return;
-    }
-
-    let documentUrl: string | null = null;
-
-    try {
-      // Create a test document
-      const documentTitle = `E2E Test Document JSON ${Date.now()}`;
-      const addResult = await execCommand(
-        `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "Test JSON output" --project ${projectUrl}`,
-        undefined,
-        30000,
-        testHomeDir
-      );
-
-      const docUrlMatch = addResult.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
-      documentUrl = docUrlMatch ? docUrlMatch[0] : null;
-
-      if (documentUrl) {
-        // Test JSON output
-        const result = await execCommand(
-          `node dist/index.js document show ${documentUrl} --format json`,
-          undefined,
-          30000,
-          testHomeDir
-        );
-
-        expect(result.exitCode).toBe(0);
-        expect(
-          result.stdout.includes('{') && (result.stdout.includes('"title"') || result.stdout.includes('"id"'))
-        ).toBe(true);
-
-        // Cleanup: delete the document
-        await execCommand(`node dist/index.js document delete ${documentUrl} --yes`, undefined, 30000, testHomeDir);
-      }
-    } finally {
-      // Cleanup: delete the test project
-      await deleteTestProject(testHomeDir, accountName, projectUrl);
-    }
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.includes('{') && (result.stdout.includes('"title"') || result.stdout.includes('"id"'))).toBe(
+      true
+    );
   }, 90000);
 
   it('should validate required arguments for document commands', async () => {
@@ -331,16 +270,18 @@ describe('Document Operations E2E', () => {
   it('should create document in project, then delete both without leaving garbage', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
     const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    const accountName = await setupTestAccount(testHomeDir);
+    // Use global account instead of creating a new one
+    const accountName = fixtures.accountName;
 
     // Step 1: Create a test project
-    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
+    const projectUrl = await createTestProject(fixtures.testHomeDir, accountName, testTeam);
 
     if (!projectUrl) {
       console.log('Failed to create test project, skipping test');
@@ -355,8 +296,8 @@ describe('Document Operations E2E', () => {
       const addResult = await execCommand(
         `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "This is a test document created by e2e tests" --project ${projectUrl}`,
         undefined,
-        30000,
-        testHomeDir
+        20000,
+        fixtures.testHomeDir
       );
 
       expect(addResult.exitCode).toBe(0);
@@ -371,8 +312,8 @@ describe('Document Operations E2E', () => {
         const showResult = await execCommand(
           `node dist/index.js document show ${documentUrl}`,
           undefined,
-          30000,
-          testHomeDir
+          20000,
+          fixtures.testHomeDir
         );
 
         expect(showResult.exitCode).toBe(0);
@@ -382,8 +323,8 @@ describe('Document Operations E2E', () => {
         const deleteDocResult = await execCommand(
           `node dist/index.js document delete ${documentUrl} --yes`,
           undefined,
-          30000,
-          testHomeDir
+          20000,
+          fixtures.testHomeDir
         );
 
         expect(deleteDocResult.exitCode).toBe(0);
@@ -391,7 +332,7 @@ describe('Document Operations E2E', () => {
       }
     } finally {
       // Step 5: Cleanup - delete the test project
-      await deleteTestProject(testHomeDir, accountName, projectUrl);
+      await deleteTestProject(fixtures.testHomeDir, accountName, projectUrl);
     }
-  }, 90000);
+  }, 60000);
 });

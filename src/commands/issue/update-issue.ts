@@ -44,6 +44,7 @@ export function createUpdateIssueCommand(): Command {
     .option('-p, --priority <priority>', 'priority (0: none, 1: urgent, 2: high, 3: medium, 4: low)')
     .option('--add-label <label>', 'add a label')
     .option('--remove-label <label>', 'remove a label')
+    .option('--archive', 'archive the issue')
     .action(async (issueIdOrUrl, options) => {
       const configManager = new ConfigManager();
 
@@ -212,6 +213,15 @@ export function createUpdateIssueCommand(): Command {
           } else {
             Logger.warning(`Label '${options.removeLabel}' not found on issue`);
           }
+        }
+
+        // Handle archive
+        if (options.archive) {
+          // Archive is a separate action, not part of the update payload
+          Logger.loading(`Archiving issue in account: ${account?.name || 'unknown'}...`);
+          await client.archiveIssue(issue.id);
+          Logger.success(`Issue ${issue.identifier} archived successfully!`);
+          return;
         }
 
         // If no updates specified, show interactive prompt

@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { loadGlobalFixtures } from '../global-fixtures';
 
 interface CommandResult {
   stdout: string;
@@ -161,89 +162,72 @@ describe('Project Operations E2E', () => {
 
   it('should handle project show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    const accountName = await setupTestAccount(testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js project show ${fixtures.projectUrl}`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
 
-    // Create a test project
-    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
+    // Should either succeed or fail gracefully
+    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
-    if (!projectUrl) {
-      console.log('Failed to create test project, skipping test');
-      return;
-    }
-
-    try {
-      const result = await execCommand(`node dist/index.js project show ${projectUrl}`, undefined, 30000, testHomeDir);
-
-      // Should either succeed or fail gracefully
-      expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
-
-      if (result.exitCode === 0) {
-        expect(result.stdout.includes('📁') || result.stdout.includes('Project') || result.stdout.length > 0).toBe(
-          true
-        );
-      }
-    } finally {
-      // Cleanup: delete the test project
-      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    if (result.exitCode === 0) {
+      expect(result.stdout.includes('📁') || result.stdout.includes('Project') || result.stdout.length > 0).toBe(true);
     }
   }, 60000);
 
   it('should handle project issues command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    const accountName = await setupTestAccount(testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js project issues ${fixtures.projectUrl}`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
 
-    // Create a test project
-    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
+    // Should either succeed or fail gracefully
+    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
-    if (!projectUrl) {
-      console.log('Failed to create test project, skipping test');
-      return;
-    }
-
-    try {
-      const result = await execCommand(
-        `node dist/index.js project issues ${projectUrl}`,
-        undefined,
-        30000,
-        testHomeDir
-      );
-
-      // Should either succeed or fail gracefully
-      expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
-
-      if (result.exitCode === 0) {
-        expect(
-          result.stdout.includes('Fetching') ||
-            result.stdout.includes('issues') ||
-            result.stdout.includes('✅') ||
-            result.stdout.includes('📋') ||
-            result.stdout.length > 0
-        ).toBe(true);
-      }
-    } finally {
-      // Cleanup: delete the test project
-      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    if (result.exitCode === 0) {
+      expect(
+        result.stdout.includes('Fetching') ||
+          result.stdout.includes('issues') ||
+          result.stdout.includes('✅') ||
+          result.stdout.includes('📋') ||
+          result.stdout.length > 0
+      ).toBe(true);
     }
   }, 60000);
 
   it('should handle non-existent project gracefully', async () => {
-    await setupTestAccount(testHomeDir);
+    const fixtures = loadGlobalFixtures();
 
-    const result = await execCommand('node dist/index.js project show NONEXISTENT-999', undefined, 15000, testHomeDir);
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
+      return;
+    }
+
+    const result = await execCommand(
+      'node dist/index.js project show NONEXISTENT-999',
+      undefined,
+      10000,
+      fixtures.testHomeDir
+    );
 
     // Should handle error gracefully
     expect(
@@ -252,81 +236,51 @@ describe('Project Operations E2E', () => {
         result.stdout.includes('Error') ||
         result.stdout.includes('not found')
     ).toBe(true);
-  }, 20000);
+  }, 15000);
 
   it('should handle JSON output format for project show', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    const accountName = await setupTestAccount(testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js project show ${fixtures.projectUrl} --format json`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
 
-    // Create a test project
-    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
-
-    if (!projectUrl) {
-      console.log('Failed to create test project, skipping test');
-      return;
-    }
-
-    try {
-      const result = await execCommand(
-        `node dist/index.js project show ${projectUrl} --format json`,
-        undefined,
-        30000,
-        testHomeDir
+    if (result.exitCode === 0) {
+      // Should contain JSON output
+      expect(result.stdout.includes('{') && (result.stdout.includes('"name"') || result.stdout.includes('"id"'))).toBe(
+        true
       );
-
-      if (result.exitCode === 0) {
-        // Should contain JSON output
-        expect(
-          result.stdout.includes('{') && (result.stdout.includes('"name"') || result.stdout.includes('"id"'))
-        ).toBe(true);
-      }
-    } finally {
-      // Cleanup: delete the test project
-      await deleteTestProject(testHomeDir, accountName, projectUrl);
     }
   }, 60000);
 
   it('should handle JSON output format for project issues', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E');
+    if (!apiKey || !fixtures) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    const accountName = await setupTestAccount(testHomeDir);
+    const result = await execCommand(
+      `node dist/index.js project issues ${fixtures.projectUrl} --format json`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
 
-    // Create a test project
-    const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
-
-    if (!projectUrl) {
-      console.log('Failed to create test project, skipping test');
-      return;
-    }
-
-    try {
-      const result = await execCommand(
-        `node dist/index.js project issues ${projectUrl} --format json`,
-        undefined,
-        30000,
-        testHomeDir
-      );
-
-      if (result.exitCode === 0) {
-        // Should contain JSON output
-        expect(result.stdout.includes('[') || result.stdout.includes('{')).toBe(true);
-      }
-    } finally {
-      // Cleanup: delete the test project
-      await deleteTestProject(testHomeDir, accountName, projectUrl);
+    if (result.exitCode === 0) {
+      // Should contain JSON output
+      expect(result.stdout.includes('[') || result.stdout.includes('{')).toBe(true);
     }
   }, 60000);
 
