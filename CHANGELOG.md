@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.10
+
+### Patch Changes
+
+- 69fe5d9: add new features
+
 ## 1.0.9
 
 ### Patch Changes
