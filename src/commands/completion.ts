@@ -32,6 +32,9 @@ _linear() {
                 document)
                     _linear_document
                     ;;
+                completion)
+                    _linear_completion
+                    ;;
                 update)
                     # No subcommands for update
                     ;;
@@ -54,6 +57,15 @@ _linear_commands() {
 }
 
 _linear_account() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_linear_account_commands' \
+        '*::arg:->args'
+}
+
+_linear_account_commands() {
     local account_commands
     account_commands=(
         'add:Add a new Linear account'
@@ -65,6 +77,83 @@ _linear_account() {
 }
 
 _linear_issue() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_linear_issue_commands' \
+        '*::arg:->args'
+
+    case $state in
+        args)
+            case $line[1] in
+                show)
+                    _arguments \
+                        '-c[Show comments]' \
+                        '--comments[Show comments]' \
+                        '-f[Output format]:format:(pretty json)' \
+                        '--format[Output format]:format:(pretty json)' \
+                        '1:issue ID or URL:'
+                    ;;
+                create)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '-t[Issue title]:title:' \
+                        '--title[Issue title]:title:' \
+                        '-d[Issue description]:description:' \
+                        '--description[Issue description]:description:' \
+                        '-p[Priority (0-4)]:priority:(0 1 2 3 4)' \
+                        '--priority[Priority (0-4)]:priority:(0 1 2 3 4)' \
+                        '-l[Label name]:label:' \
+                        '--label[Label name]:label:' \
+                        '--team[Team key]:team:' \
+                        '--project[Project name]:project:' \
+                        '--assignee[Assignee email]:assignee:'
+                    ;;
+                list)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '--assignee[Filter by assignee]:assignee:' \
+                        '--state[Filter by state]:state:' \
+                        '--label[Filter by label]:label:' \
+                        '--project[Filter by project]:project:' \
+                        '--team[Filter by team]:team:'
+                    ;;
+                update)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '-t[New title]:title:' \
+                        '--title[New title]:title:' \
+                        '-d[New description]:description:' \
+                        '--description[New description]:description:' \
+                        '-s[New state]:state:' \
+                        '--state[New state]:state:' \
+                        '-p[Priority (0-4)]:priority:(0 1 2 3 4)' \
+                        '--priority[Priority (0-4)]:priority:(0 1 2 3 4)' \
+                        '--assignee[Assignee email or "unassign"]:assignee:' \
+                        '--project[Project name or "none"]:project:' \
+                        '--team[Team key]:team:' \
+                        '--add-label[Add a label]:label:' \
+                        '--remove-label[Remove a label]:label:' \
+                        '--archive[Archive the issue]' \
+                        '1:issue ID or URL:'
+                    ;;
+                comment)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '1:issue ID or URL:' \
+                        '2:comment text:'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_linear_issue_commands() {
     local issue_commands
     issue_commands=(
         'show:Show details of an issue'
@@ -77,6 +166,63 @@ _linear_issue() {
 }
 
 _linear_project() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_linear_project_commands' \
+        '*::arg:->args'
+
+    case $state in
+        args)
+            case $line[1] in
+                list)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '--team[Filter by team]:team:' \
+                        '-f[Output format]:format:(pretty json)' \
+                        '--format[Output format]:format:(pretty json)' \
+                        '--limit[Maximum projects to return]:limit:'
+                    ;;
+                show)
+                    _arguments \
+                        '-f[Output format]:format:(pretty json)' \
+                        '--format[Output format]:format:(pretty json)' \
+                        '1:project ID or URL:'
+                    ;;
+                issues)
+                    _arguments \
+                        '-f[Output format]:format:(pretty json)' \
+                        '--format[Output format]:format:(pretty json)' \
+                        '1:project ID or URL:'
+                    ;;
+                create)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '-n[Project name]:name:' \
+                        '--name[Project name]:name:' \
+                        '-d[Project description]:description:' \
+                        '--description[Project description]:description:' \
+                        '--team[Team key]:team:' \
+                        '--state[Project state]:state:(planned started paused completed canceled)' \
+                        '--target-date[Target date (YYYY-MM-DD)]:date:'
+                    ;;
+                delete)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '-y[Skip confirmation]' \
+                        '--yes[Skip confirmation]' \
+                        '1:project ID or URL:'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_linear_project_commands() {
     local project_commands
     project_commands=(
         'list:List all projects'
@@ -89,6 +235,45 @@ _linear_project() {
 }
 
 _linear_document() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '1: :_linear_document_commands' \
+        '*::arg:->args'
+
+    case $state in
+        args)
+            case $line[1] in
+                show)
+                    _arguments \
+                        '-f[Output format]:format:(pretty json)' \
+                        '--format[Output format]:format:(pretty json)' \
+                        '1:document ID or URL:'
+                    ;;
+                add)
+                    _arguments \
+                        '-a[Account name]:account:' \
+                        '--account[Account name]:account:' \
+                        '-t[Document title]:title:' \
+                        '--title[Document title]:title:' \
+                        '-c[Document content]:content:' \
+                        '--content[Document content]:content:' \
+                        '-p[Project ID or URL]:project:' \
+                        '--project[Project ID or URL]:project:'
+                    ;;
+                delete)
+                    _arguments \
+                        '-y[Skip confirmation]' \
+                        '--yes[Skip confirmation]' \
+                        '1:document ID or URL:'
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_linear_document_commands() {
     local document_commands
     document_commands=(
         'show:Show details of a document'
@@ -96,6 +281,14 @@ _linear_document() {
         'delete:Delete a document'
     )
     _describe 'document command' document_commands
+}
+
+_linear_completion() {
+    local completion_commands
+    completion_commands=(
+        'install:Install shell completion'
+    )
+    _describe 'completion command' completion_commands
 }
 
 _linear "$@"
@@ -122,6 +315,11 @@ _linear_completion() {
     # Document subcommands
     local document_commands="show add delete"
 
+    # Common flags
+    local account_flag="-a --account"
+    local format_flag="-f --format"
+    local yes_flag="-y --yes"
+
     if [[ \$cword -eq 1 ]]; then
         COMPREPLY=(\$(compgen -W "\$commands" -- "\$cur"))
     elif [[ \$cword -eq 2 ]]; then
@@ -140,6 +338,103 @@ _linear_completion() {
                 ;;
             completion)
                 COMPREPLY=(\$(compgen -W "install" -- "\$cur"))
+                ;;
+        esac
+    elif [[ \$cword -ge 3 ]]; then
+        # Handle flags based on command and subcommand
+        case "\${COMP_WORDS[1]}" in
+            issue)
+                case "\${COMP_WORDS[2]}" in
+                    show)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-c --comments -f --format" -- "\$cur"))
+                        elif [[ \$prev == "-f" || \$prev == "--format" ]]; then
+                            COMPREPLY=(\$(compgen -W "pretty json" -- "\$cur"))
+                        fi
+                        ;;
+                    create)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account -t --title -d --description -p --priority -l --label --team --project --assignee" -- "\$cur"))
+                        elif [[ \$prev == "-p" || \$prev == "--priority" ]]; then
+                            COMPREPLY=(\$(compgen -W "0 1 2 3 4" -- "\$cur"))
+                        fi
+                        ;;
+                    list)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account --assignee --state --label --project --team" -- "\$cur"))
+                        fi
+                        ;;
+                    update)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account -t --title -d --description -s --state -p --priority --assignee --project --team --add-label --remove-label --archive" -- "\$cur"))
+                        elif [[ \$prev == "-p" || \$prev == "--priority" ]]; then
+                            COMPREPLY=(\$(compgen -W "0 1 2 3 4" -- "\$cur"))
+                        fi
+                        ;;
+                    comment)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account" -- "\$cur"))
+                        fi
+                        ;;
+                esac
+                ;;
+            project)
+                case "\${COMP_WORDS[2]}" in
+                    list)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account --team -f --format --limit" -- "\$cur"))
+                        elif [[ \$prev == "-f" || \$prev == "--format" ]]; then
+                            COMPREPLY=(\$(compgen -W "pretty json" -- "\$cur"))
+                        fi
+                        ;;
+                    show)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-f --format" -- "\$cur"))
+                        elif [[ \$prev == "-f" || \$prev == "--format" ]]; then
+                            COMPREPLY=(\$(compgen -W "pretty json" -- "\$cur"))
+                        fi
+                        ;;
+                    issues)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-f --format" -- "\$cur"))
+                        elif [[ \$prev == "-f" || \$prev == "--format" ]]; then
+                            COMPREPLY=(\$(compgen -W "pretty json" -- "\$cur"))
+                        fi
+                        ;;
+                    create)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account -n --name -d --description --team --state --target-date" -- "\$cur"))
+                        elif [[ \$prev == "--state" ]]; then
+                            COMPREPLY=(\$(compgen -W "planned started paused completed canceled" -- "\$cur"))
+                        fi
+                        ;;
+                    delete)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account -y --yes" -- "\$cur"))
+                        fi
+                        ;;
+                esac
+                ;;
+            document)
+                case "\${COMP_WORDS[2]}" in
+                    show)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-f --format" -- "\$cur"))
+                        elif [[ \$prev == "-f" || \$prev == "--format" ]]; then
+                            COMPREPLY=(\$(compgen -W "pretty json" -- "\$cur"))
+                        fi
+                        ;;
+                    add)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-a --account -t --title -c --content -p --project" -- "\$cur"))
+                        fi
+                        ;;
+                    delete)
+                        if [[ \$cur == -* ]]; then
+                            COMPREPLY=(\$(compgen -W "-y --yes" -- "\$cur"))
+                        fi
+                        ;;
+                esac
                 ;;
         esac
     fi
