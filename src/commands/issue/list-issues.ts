@@ -123,12 +123,19 @@ export function createListIssuesCommand(): Command {
         } else {
           Logger.bold(`\nFound ${issues.nodes.length} issue${issues.nodes.length === 1 ? '' : 's'}:\n`);
 
-          for (const issue of issues.nodes) {
-            const state = await issue.state;
-            const assignee = await issue.assignee;
-            const project = await issue.project;
-            const labels = await issue.labels();
+          // Fetch all issue data in parallel
+          const issuesData = await Promise.all(
+            issues.nodes.map(async (issue) => ({
+              issue,
+              state: await issue.state,
+              assignee: await issue.assignee,
+              project: await issue.project,
+              labels: await issue.labels()
+            }))
+          );
 
+          // Display all issues
+          for (const { issue, state, assignee, project, labels } of issuesData) {
             const stateColor = state?.color || '#999999';
             const stateEmoji = getStateEmoji(state?.name);
 
