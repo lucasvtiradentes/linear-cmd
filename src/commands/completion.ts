@@ -79,6 +79,7 @@ _linear_issue() {
 _linear_project() {
     local project_commands
     project_commands=(
+        'list:List all projects'
         'show:Show details of a project'
         'issues:List all issues in a project'
         'create:Create a new project'
@@ -116,7 +117,7 @@ _linear_completion() {
     local issue_commands="show create list update comment"
 
     # Project subcommands
-    local project_commands="show issues create delete"
+    local project_commands="list show issues create delete"
 
     # Document subcommands
     local document_commands="show add delete"

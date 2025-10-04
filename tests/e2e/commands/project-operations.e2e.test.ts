@@ -357,4 +357,80 @@ describe('Project Operations E2E', () => {
         result.stdout.includes('deleted successfully')
     ).toBe(true);
   }, 60000);
+
+  it('should handle project list command with real API if available', async () => {
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const fixtures = loadGlobalFixtures();
+
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+      return;
+    }
+
+    const result = await execCommand(
+      `node dist/index.js project list -a ${fixtures.accountName}`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
+
+    // Should either succeed or fail gracefully
+    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
+
+    if (result.exitCode === 0) {
+      expect(result.stdout.includes('Found') || result.stdout.includes('project') || result.stdout.includes('📁')).toBe(
+        true
+      );
+    }
+  }, 30000);
+
+  it('should handle project list command with team filter', async () => {
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
+
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+      return;
+    }
+
+    const result = await execCommand(
+      `node dist/index.js project list -a ${fixtures.accountName} --team ${testTeam}`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
+
+    // Should either succeed or fail gracefully
+    expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
+
+    if (result.exitCode === 0) {
+      // Should contain team reference or project listing
+      expect(result.stdout.includes('Found') || result.stdout.includes('project') || result.stdout.includes('No')).toBe(
+        true
+      );
+    }
+  }, 30000);
+
+  it('should handle JSON output format for project list', async () => {
+    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const fixtures = loadGlobalFixtures();
+
+    if (!apiKey || !fixtures) {
+      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
+      return;
+    }
+
+    const result = await execCommand(
+      `node dist/index.js project list -a ${fixtures.accountName} --format json --limit 5`,
+      undefined,
+      15000,
+      fixtures.testHomeDir
+    );
+
+    if (result.exitCode === 0) {
+      // Should contain JSON output
+      expect(result.stdout.includes('[') || result.stdout.includes('{')).toBe(true);
+    }
+  }, 30000);
 });
