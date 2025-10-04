@@ -151,15 +151,6 @@ describe('Project Operations E2E', () => {
     return urlMatch ? urlMatch[0] : null;
   }
 
-  async function deleteTestProject(homeDir: string, accountName: string, projectUrl: string): Promise<void> {
-    await execCommand(
-      `node dist/index.js project delete ${projectUrl} -a ${accountName} --yes`,
-      undefined,
-      30000,
-      homeDir
-    );
-  }
-
   it('should handle project show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();

@@ -31,14 +31,14 @@ export function createCreateProjectCommand(): Command {
             Logger.dim('\nAvailable teams:');
             const allTeams = await client.teams();
             allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
-            return;
+            process.exit(1);
           }
         } else {
           // Interactive team selection
           const teams = await client.teams();
           if (teams.nodes.length === 0) {
             Logger.error('No teams found');
-            return;
+            process.exit(1);
           }
 
           if (teams.nodes.length === 1) {
@@ -95,7 +95,7 @@ export function createCreateProjectCommand(): Command {
           const targetDate = new Date(options.targetDate);
           if (Number.isNaN(targetDate.getTime())) {
             Logger.error('Invalid target date format. Use YYYY-MM-DD');
-            return;
+            process.exit(1);
           }
           projectPayload.targetDate = targetDate;
         }

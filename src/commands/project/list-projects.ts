@@ -30,7 +30,7 @@ export function createListProjectsCommand(): Command {
             Logger.dim('\nAvailable teams:');
             const allTeams = await client.teams();
             allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
-            return;
+            process.exit(1);
           }
         }
 

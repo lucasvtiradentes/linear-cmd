@@ -26,7 +26,7 @@ export function createDeleteProjectCommand(): Command {
           if (!account) {
             Logger.error(`Account '${options.account}' not found`);
             Logger.dim('Run `linear account list` to see available accounts');
-            return;
+            process.exit(1);
           }
           client = new LinearClient({ apiKey: account.api_key });
           accountName = account.name;
@@ -36,7 +36,7 @@ export function createDeleteProjectCommand(): Command {
             Logger.error('Could not find an account with access to this project');
             Logger.dim('Use --account flag to specify which account to use');
             Logger.dim('Run `linear account list` to see available accounts');
-            return;
+            process.exit(1);
           }
           client = result.client;
           accountName = result.account.name;

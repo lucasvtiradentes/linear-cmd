@@ -60,7 +60,7 @@ export function createAddDocumentCommand(): Command {
             type: 'editor',
             name: 'content',
             message: 'Document content (markdown, will open editor):',
-            when: !options.content && !options.title // Only ask for content if title wasn't provided via CLI
+            when: !options.content
           }
         ]);
 
