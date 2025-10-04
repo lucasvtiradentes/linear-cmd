@@ -14,16 +14,11 @@ export function createListIssuesCommand(): Command {
     .option('--state <state>', 'filter by state (e.g., "In Progress", "Todo")')
     .option('--label <label>', 'filter by label name')
     .option('--project <project>', 'filter by project name')
-    .option('--team <team>', 'filter by team key')
-    .option('--limit <number>', 'number of issues to show', '25')
-    .option('--all', 'show all issues (no limit)')
-    .option('--json', 'output as JSON')
     .action(async (options) => {
       const configManager = new ConfigManager();
 
       try {
         const { client, account } = await getLinearClientForAccount(configManager, options.account);
-        const limit = options.all ? undefined : parseInt(options.limit);
 
         // Build filter
         const filter: Partial<LinearIssueFilter> = {};
@@ -46,11 +41,16 @@ export function createListIssuesCommand(): Command {
 
         // Handle state filter
         if (options.state) {
-          const states = await client.workflowStates({ filter: { name: { eq: options.state } } });
-          if (states.nodes.length > 0) {
-            filter.state = { id: { eq: states.nodes[0].id } };
+          // Get all states and find case-insensitive match
+          const allStates = await client.workflowStates();
+          const matchedState = allStates.nodes.find((s) => s.name.toLowerCase() === options.state.toLowerCase());
+
+          if (matchedState) {
+            filter.state = { id: { eq: matchedState.id } };
           } else {
             Logger.error(`State '${options.state}' not found`);
+            Logger.dim('\nAvailable states:');
+            allStates.nodes.forEach((s) => Logger.dim(`  - ${s.name}`));
             return;
           }
         }
@@ -77,87 +77,159 @@ export function createListIssuesCommand(): Command {
           }
         }
 
-        // Handle team filter
-        if (options.team) {
-          const teams = await client.teams({ filter: { key: { eq: options.team.toUpperCase() } } });
-          if (teams.nodes.length > 0) {
-            filter.team = { id: { eq: teams.nodes[0].id } };
-          } else {
-            Logger.error(`Team '${options.team}' not found`);
-            return;
-          }
-        }
-
         // Fetch issues
         Logger.loading(`Fetching issues from account: ${account.name}...`);
 
-        // Validate and use the filter
-        const validFilter =
-          Object.keys(filter).length > 0 ? linearIssueFilterSchema.partial().parse(filter) : undefined;
-        const issues = await client.issues({
-          ...(limit !== undefined && { first: limit }),
-          filter: validFilter
-        });
+        // Fetch all pages
+        const allIssues: any[] = [];
+        let hasNextPage = true;
+        let cursor: string | undefined;
 
-        if (issues.nodes.length === 0) {
+        // Use viewer.assignedIssues() when filtering by "me", otherwise use client.issues()
+        const useViewerEndpoint = options.assignee?.toLowerCase() === 'me' && Object.keys(filter).length === 1;
+
+        if (useViewerEndpoint) {
+          // Use raw GraphQL to fetch all data in one request per page
+          while (hasNextPage) {
+            const result: any = await client.client.rawRequest(
+              `
+              query AssignedIssues($first: Int!, $after: String) {
+                viewer {
+                  assignedIssues(first: $first, after: $after, includeArchived: true) {
+                    nodes {
+                      id
+                      identifier
+                      title
+                      description
+                      url
+                      createdAt
+                      updatedAt
+                      state {
+                        name
+                        color
+                      }
+                      assignee {
+                        name
+                        email
+                      }
+                      project {
+                        name
+                      }
+                      labels {
+                        nodes {
+                          name
+                          color
+                        }
+                      }
+                    }
+                    pageInfo {
+                      hasNextPage
+                      endCursor
+                    }
+                  }
+                }
+              }
+            `,
+              { first: 50, after: cursor }
+            );
+            allIssues.push(...result.data.viewer.assignedIssues.nodes);
+            hasNextPage = result.data.viewer.assignedIssues.pageInfo.hasNextPage;
+            cursor = result.data.viewer.assignedIssues.pageInfo.endCursor;
+          }
+        } else {
+          // Use raw GraphQL for regular issues endpoint too
+          const validFilter =
+            Object.keys(filter).length > 0 ? linearIssueFilterSchema.partial().parse(filter) : undefined;
+
+          while (hasNextPage) {
+            const result: any = await client.client.rawRequest(
+              `
+              query Issues($first: Int!, $after: String, $filter: IssueFilter) {
+                issues(first: $first, after: $after, filter: $filter, includeArchived: true) {
+                  nodes {
+                    id
+                    identifier
+                    title
+                    description
+                    url
+                    createdAt
+                    updatedAt
+                    state {
+                      name
+                      color
+                    }
+                    assignee {
+                      name
+                      email
+                    }
+                    project {
+                      name
+                    }
+                    labels {
+                      nodes {
+                        name
+                        color
+                      }
+                    }
+                  }
+                  pageInfo {
+                    hasNextPage
+                    endCursor
+                  }
+                }
+              }
+            `,
+              { first: 50, after: cursor, filter: validFilter }
+            );
+            allIssues.push(...result.data.issues.nodes);
+            hasNextPage = result.data.issues.pageInfo.hasNextPage;
+            cursor = result.data.issues.pageInfo.endCursor;
+          }
+        }
+
+        if (allIssues.length === 0) {
           Logger.warning('No issues found');
           return;
         }
 
-        // Output results
-        if (options.json) {
-          const jsonOutput = await Promise.all(
-            issues.nodes.map(async (issue) => ({
-              id: issue.identifier,
-              title: issue.title,
-              state: (await issue.state)?.name,
-              assignee: (await issue.assignee)?.name,
-              project: (await issue.project)?.name,
-              labels: await Promise.all((await issue.labels()).nodes.map((l) => l.name)),
-              url: issue.url,
-              createdAt: issue.createdAt,
-              updatedAt: issue.updatedAt
-            }))
-          );
-          Logger.json(jsonOutput);
-        } else {
-          Logger.bold(`\nFound ${issues.nodes.length} issue${issues.nodes.length === 1 ? '' : 's'}:\n`);
+        // Group issues by state
+        const issuesByState: Record<string, any[]> = {};
+        for (const issue of allIssues) {
+          const stateName = issue.state?.name || 'Unknown';
+          if (!issuesByState[stateName]) {
+            issuesByState[stateName] = [];
+          }
+          issuesByState[stateName].push(issue);
+        }
 
-          // Fetch all issue data in parallel
-          const issuesData = await Promise.all(
-            issues.nodes.map(async (issue) => ({
-              issue,
-              state: await issue.state,
-              assignee: await issue.assignee,
-              project: await issue.project,
-              labels: await issue.labels()
-            }))
-          );
+        // Display grouped issues
+        Logger.bold(`\nFound ${allIssues.length} issue${allIssues.length === 1 ? '' : 's'}:\n`);
 
-          // Display all issues
-          for (const { issue, state, assignee, project, labels } of issuesData) {
-            const stateColor = state?.color || '#999999';
-            const stateEmoji = getStateEmoji(state?.name);
+        for (const [stateName, issues] of Object.entries(issuesByState)) {
+          const firstIssue = issues[0];
+          const stateColor = firstIssue.state?.color || '#999999';
+          const stateEmoji = getStateEmoji(stateName);
 
-            Logger.plain(chalk.hex(stateColor)(`${stateEmoji} ${issue.identifier}`) + chalk.white(` ${issue.title}`));
+          Logger.plain('');
+          Logger.bold(chalk.hex(stateColor)(`${stateEmoji} ${stateName} (${issues.length})`));
+          Logger.plain('');
+
+          for (const issue of issues) {
+            Logger.plain(chalk.hex(stateColor)(`  ${issue.identifier}`) + chalk.white(` ${issue.title}`));
 
             const metadata = [];
-            if (assignee) metadata.push(`👤 ${assignee.name}`);
-            if (project) metadata.push(`📁 ${project.name}`);
-            if (labels.nodes.length > 0) {
-              metadata.push(`🏷️  ${labels.nodes.map((l) => l.name).join(', ')}`);
+            if (issue.assignee) metadata.push(`👤 ${issue.assignee.name}`);
+            if (issue.project?.name) metadata.push(`📁 ${issue.project.name}`);
+            if (issue.labels?.nodes?.length > 0) {
+              metadata.push(`🏷️  ${issue.labels.nodes.map((l: any) => l.name).join(', ')}`);
             }
 
             if (metadata.length > 0) {
-              Logger.dim(`  ${metadata.join(' • ')}`);
+              Logger.dim(`    ${metadata.join(' • ')}`);
             }
 
-            Logger.dim(`  ${issue.url}`);
+            Logger.dim(`    ${issue.url}`);
             Logger.plain('');
-          }
-
-          if (issues.pageInfo.hasNextPage) {
-            Logger.dim(`\n... and more. Use --limit to see more issues`);
           }
         }
       } catch (error) {
