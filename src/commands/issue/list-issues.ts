@@ -119,6 +119,11 @@ export function createListIssuesCommand(): Command {
                       url
                       createdAt
                       updatedAt
+                      comments {
+                        nodes {
+                          id
+                        }
+                      }
                       state {
                         name
                         color
@@ -134,6 +139,19 @@ export function createListIssuesCommand(): Command {
                         nodes {
                           name
                           color
+                        }
+                      }
+                      attachments {
+                        nodes {
+                          id
+                          url
+                          title
+                          sourceType
+                        }
+                      }
+                      children {
+                        nodes {
+                          identifier
                         }
                       }
                     }
@@ -169,6 +187,11 @@ export function createListIssuesCommand(): Command {
                     url
                     createdAt
                     updatedAt
+                    comments {
+                      nodes {
+                        id
+                      }
+                    }
                     state {
                       name
                       color
@@ -184,6 +207,19 @@ export function createListIssuesCommand(): Command {
                       nodes {
                         name
                         color
+                      }
+                    }
+                    attachments {
+                      nodes {
+                        id
+                        url
+                        title
+                        sourceType
+                      }
+                    }
+                    children {
+                      nodes {
+                        identifier
                       }
                     }
                   }
@@ -239,11 +275,44 @@ export function createListIssuesCommand(): Command {
               metadata.push(`🏷️  ${issue.labels.nodes.map((l: any) => l.name).join(', ')}`);
             }
 
+            // Add description line count if available
+            if (issue.description) {
+              const lineCount = issue.description.split('\n').length;
+              metadata.push(`📄 has description (${lineCount} line${lineCount === 1 ? '' : 's'})`);
+            }
+
+            // Add comment count if available
+            const commentCount = issue.comments?.nodes?.length || 0;
+            if (commentCount > 0) {
+              metadata.push(`💬 ${commentCount} comment${commentCount === 1 ? '' : 's'}`);
+            }
+
+            // Add sub-issues count if available
+            const subIssuesCount = issue.children?.nodes?.length || 0;
+            if (subIssuesCount > 0) {
+              metadata.push(`🔗 ${subIssuesCount} sub-issue${subIssuesCount === 1 ? '' : 's'}`);
+            }
+
             if (metadata.length > 0) {
               Logger.dim(`    ${metadata.join(' • ')}`);
             }
 
-            Logger.dim(`    ${issue.url}`);
+            // Show PR links if available
+            const prAttachments =
+              issue.attachments?.nodes?.filter(
+                (a: any) =>
+                  a.sourceType?.toLowerCase().includes('pull') ||
+                  a.sourceType?.toLowerCase().includes('pr') ||
+                  (a.url?.includes('github.com') && a.url?.includes('/pull/'))
+              ) || [];
+
+            if (prAttachments.length > 0) {
+              for (const pr of prAttachments) {
+                Logger.dim(`    🔀 PR: ${pr.title} - ${pr.url}`);
+              }
+            }
+
+            Logger.dim(`    issue link: ${issue.url}`);
             Logger.plain('');
           }
         }
