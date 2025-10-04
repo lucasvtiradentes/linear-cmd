@@ -143,7 +143,7 @@ describe('Update Command E2E', () => {
     }
   }, 45000);
 
-  it.skip('should handle network errors gracefully', async () => {
+  it('should handle network errors gracefully', async () => {
     // Simulate network issues by setting invalid npm registry
     const env = {
       ...process.env,
@@ -226,13 +226,6 @@ describe('Update Command E2E', () => {
     ).toBe(true);
   }, 60000);
 
-  it.skip('should show help information', async () => {
-    const result = await execCommand('node dist/index.js update --help', undefined, 10000, testHomeDir);
-
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('update');
-  }, 15000);
-
   it('should handle version comparison logic', async () => {
     const result = await execCommand('node dist/index.js update', undefined, 30000, testHomeDir);
 
@@ -268,7 +261,7 @@ describe('Update Command E2E', () => {
     }
   }, 20000);
 
-  it.skip('should handle npm command not found', async () => {
+  it('should handle npm command not found', async () => {
     // Set PATH to empty to simulate npm not found
     const result = await new Promise<CommandResult>((resolve, reject) => {
       const child = spawn('node', ['dist/index.js', 'update'], {
