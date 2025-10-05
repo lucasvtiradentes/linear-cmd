@@ -7,7 +7,7 @@ import { Command } from 'commander';
 import { ConfigManager } from '../lib/config-manager.js';
 import { Logger } from '../lib/logger.js';
 
-const ZSH_COMPLETION_SCRIPT = `#compdef linear
+const ZSH_COMPLETION_SCRIPT = `#compdef linear-cmd linear lin
 
 _linear() {
     local state line context
@@ -440,6 +440,7 @@ _linear_completion() {
     fi
 }
 
+complete -F _linear_completion linear-cmd
 complete -F _linear_completion linear
 complete -F _linear_completion lin
 `;
