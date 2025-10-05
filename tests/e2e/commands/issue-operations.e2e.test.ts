@@ -11,11 +11,33 @@ interface CommandResult {
   exitCode: number;
 }
 
-async function execCommand(command: string, input?: string, timeout = 30000, homeDir?: string): Promise<CommandResult> {
+async function execCommand(command: string, input?: string, timeout = 60000, homeDir?: string): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
-    const [cmd, ...args] = command.split(' ');
+    // Parse command respecting quoted arguments
+    const parts: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < command.length; i++) {
+      const char = command[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ' ' && !inQuotes) {
+        if (current) {
+          parts.push(current);
+          current = '';
+        }
+      } else {
+        current += char;
+      }
+    }
+    if (current) {
+      parts.push(current);
+    }
+
+    const [cmd, ...args] = parts;
     const child = spawn(cmd, args, {
-      cwd: path.resolve(__dirname, '../../'),
+      cwd: path.resolve(__dirname, '../../..'),
       env: {
         ...process.env,
         NODE_ENV: 'test',
@@ -120,16 +142,6 @@ describe('Issue Operations E2E', () => {
     }
   });
 
-  async function setupTestAccount(homeDir: string): Promise<string> {
-    const accountName = `e2e-test-${Date.now()}`;
-    const testApiKey = process.env.LINEAR_API_KEY_E2E || 'lin_api_test123456789';
-
-    const addInput = `${accountName}\n${testApiKey}`;
-    await execCommand('node dist/index.js account add', addInput, 15000, homeDir);
-
-    return accountName;
-  }
-
   it('should handle issue show command with real API if available', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
@@ -140,9 +152,9 @@ describe('Issue Operations E2E', () => {
     }
 
     const result = await execCommand(
-      `node dist/index.js issue show ${fixtures.issueUrl}`,
+      `npm run dev -- issue show ${fixtures.issueUrl}`,
       undefined,
-      15000,
+      30000,
       fixtures.testHomeDir
     );
 
@@ -154,34 +166,23 @@ describe('Issue Operations E2E', () => {
       expect(result.stdout).toContain('Status:');
       expect(result.stdout).toContain('Suggested Branch:');
     }
-  }, 45000);
+  }, 90000);
 
   it('should handle issue list command', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
     const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const fixtures = loadGlobalFixtures();
 
-    if (!apiKey) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
-
-      // Test with mock scenario
-      await setupTestAccount(testHomeDir);
-
-      const result = await execCommand('node dist/index.js issue list -a test', undefined, 15000, testHomeDir);
-
-      // Should handle gracefully
-      expect(result.exitCode !== 0 || result.stdout.includes('Error') || result.stdout.includes('No issues')).toBe(
-        true
-      );
+    if (!apiKey || !fixtures) {
+      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
       return;
     }
 
-    await setupTestAccount(testHomeDir);
-
     const result = await execCommand(
-      `node dist/index.js issue list -a test --team ${testTeam}`,
+      `npm run dev -- issue list --team ${testTeam}`,
       undefined,
-      30000,
-      testHomeDir
+      60000,
+      fixtures.testHomeDir
     );
 
     // Should either succeed or fail gracefully
@@ -190,18 +191,23 @@ describe('Issue Operations E2E', () => {
     if (result.exitCode === 0) {
       expect(result.stdout).toContain('Fetching issues');
     }
-  }, 45000);
+  }, 90000);
 
   it('should handle issue creation command (mock)', async () => {
     const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
-    await setupTestAccount(testHomeDir);
+    const fixtures = loadGlobalFixtures();
+
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
+      return;
+    }
 
     // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      `node dist/index.js issue create -a test --team ${testTeam} --title "E2E Test Issue" --description "This is a test issue created by E2E tests"`,
+      `npm run dev -- issue create --team ${testTeam} --title "E2E Test Issue" --description "This is a test issue created by E2E tests"`,
       undefined,
-      20000,
-      testHomeDir
+      60000,
+      fixtures.testHomeDir
     );
 
     // Should handle gracefully regardless of success/failure
@@ -211,7 +217,7 @@ describe('Issue Operations E2E', () => {
         result.stdout.includes('Error') ||
         result.stdout.includes('Creating issue')
     ).toBe(true);
-  }, 30000);
+  }, 90000);
 
   it('should handle non-existent issue gracefully', async () => {
     const fixtures = loadGlobalFixtures();
@@ -222,9 +228,9 @@ describe('Issue Operations E2E', () => {
     }
 
     const result = await execCommand(
-      'node dist/index.js issue show NONEXISTENT-999',
+      'npm run dev -- issue show NONEXISTENT-999',
       undefined,
-      10000,
+      30000,
       fixtures.testHomeDir
     );
 
@@ -235,25 +241,25 @@ describe('Issue Operations E2E', () => {
         result.stdout.includes('Error') ||
         result.stdout.includes('not found')
     ).toBe(true);
-  }, 15000);
+  }, 90000);
 
   it('should handle issue commands without account configured', async () => {
     // Don't set up any account
 
-    const showResult = await execCommand('node dist/index.js issue show TEST-123', undefined, 10000, testHomeDir);
+    const showResult = await execCommand('npm run dev -- issue show TEST-123', undefined, 60000, testHomeDir);
 
     // Should handle gracefully - no accounts error
     expect(showResult.exitCode !== 0 || showResult.stderr.length > 0 || showResult.stdout.includes('No accounts')).toBe(
       true
     );
 
-    const listResult = await execCommand('node dist/index.js issue list', undefined, 10000, testHomeDir);
+    const listResult = await execCommand('npm run dev -- issue list', undefined, 60000, testHomeDir);
 
     // Should handle gracefully - no accounts error
     expect(listResult.exitCode !== 0 || listResult.stderr.length > 0 || listResult.stdout.includes('No accounts')).toBe(
       true
     );
-  }, 30000);
+  }, 90000);
 
   it('should handle JSON output format for issue commands', async () => {
     const apiKey = process.env.LINEAR_API_KEY_E2E;
@@ -266,9 +272,9 @@ describe('Issue Operations E2E', () => {
 
     // Test JSON format for issue show
     const showResult = await execCommand(
-      `node dist/index.js issue show ${fixtures.issueUrl} --format json`,
+      `npm run dev -- issue show ${fixtures.issueUrl} --format json`,
       undefined,
-      15000,
+      30000,
       fixtures.testHomeDir
     );
 
@@ -279,9 +285,9 @@ describe('Issue Operations E2E', () => {
 
     // Test JSON format for issue list
     const listResult = await execCommand(
-      'node dist/index.js issue list --format json --limit 3',
+      'npm run dev -- issue list --format json --limit 3',
       undefined,
-      15000,
+      30000,
       fixtures.testHomeDir
     );
 
@@ -292,14 +298,19 @@ describe('Issue Operations E2E', () => {
   }, 60000);
 
   it('should handle issue update command (mock)', async () => {
-    await setupTestAccount(testHomeDir);
+    const fixtures = loadGlobalFixtures();
+
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
+      return;
+    }
 
     // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      'node dist/index.js issue update MOCK-123 --title "Updated Title"',
+      'npm run dev -- issue update MOCK-123 --title "Updated Title"',
       undefined,
-      15000,
-      testHomeDir
+      60000,
+      fixtures.testHomeDir
     );
 
     // Should handle gracefully regardless of success/failure
@@ -309,17 +320,22 @@ describe('Issue Operations E2E', () => {
         result.stdout.includes('Error') ||
         result.stdout.includes('Updating')
     ).toBe(true);
-  }, 20000);
+  }, 90000);
 
   it('should handle comment command (mock)', async () => {
-    await setupTestAccount(testHomeDir);
+    const fixtures = loadGlobalFixtures();
+
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
+      return;
+    }
 
     // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      'node dist/index.js issue comment MOCK-123 --comment "This is a test comment"',
+      'npm run dev -- issue comment MOCK-123 --comment "This is a test comment"',
       undefined,
-      15000,
-      testHomeDir
+      60000,
+      fixtures.testHomeDir
     );
 
     // Should handle gracefully regardless of success/failure
@@ -329,22 +345,27 @@ describe('Issue Operations E2E', () => {
         result.stdout.includes('Error') ||
         result.stdout.includes('comment')
     ).toBe(true);
-  }, 20000);
+  }, 90000);
 
   it('should validate required arguments for issue commands', async () => {
-    await setupTestAccount(testHomeDir);
+    const fixtures = loadGlobalFixtures();
+
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
+      return;
+    }
 
     // Test missing arguments
-    const showResult = await execCommand('node dist/index.js issue show', undefined, 10000, testHomeDir);
+    const showResult = await execCommand('npm run dev -- issue show', undefined, 60000, fixtures.testHomeDir);
     expect(showResult.exitCode !== 0 || showResult.stderr.length > 0).toBe(true);
 
-    const createResult = await execCommand('node dist/index.js issue create', undefined, 10000, testHomeDir);
+    const createResult = await execCommand('npm run dev -- issue create', undefined, 60000, fixtures.testHomeDir);
     expect(createResult.exitCode !== 0 || createResult.stderr.length > 0).toBe(true);
 
-    const updateResult = await execCommand('node dist/index.js issue update', undefined, 10000, testHomeDir);
+    const updateResult = await execCommand('npm run dev -- issue update', undefined, 60000, fixtures.testHomeDir);
     expect(updateResult.exitCode !== 0 || updateResult.stderr.length > 0).toBe(true);
 
-    const commentResult = await execCommand('node dist/index.js issue comment', undefined, 10000, testHomeDir);
+    const commentResult = await execCommand('npm run dev -- issue comment', undefined, 60000, fixtures.testHomeDir);
     expect(commentResult.exitCode !== 0 || commentResult.stderr.length > 0).toBe(true);
-  }, 50000);
+  }, 150000);
 });

@@ -109,21 +109,6 @@ async function execCommand(command: string, input?: string, timeout = 30000, hom
 }
 
 export async function setup() {
-  console.log('\n🔨 Building project for E2E tests...');
-
-  try {
-    // Run the build command
-    execSync('npm run build', {
-      stdio: 'inherit',
-      cwd: process.cwd()
-    });
-
-    console.log('✅ Build completed successfully\n');
-  } catch (error) {
-    console.error('❌ Build failed:', error);
-    process.exit(1);
-  }
-
   // Check if we should create global fixtures
   const apiKey = process.env.LINEAR_API_KEY_E2E;
   const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
