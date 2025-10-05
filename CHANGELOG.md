@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.14
+
+### Patch Changes
+
+- ee44dae: fix completions
+
 ## 1.0.13
 
 ### Patch Changes
