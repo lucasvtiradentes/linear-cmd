@@ -9,32 +9,15 @@ import {
   writeFileSync
 } from 'node:fs';
 import { homedir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 import { colors } from '../../lib/colors.js';
 import { logger } from '../../lib/logger.js';
+import { generateBashCompletion, generateZshCompletion } from '../../schemas/generators/completion-generator.js';
 import { detectShell as detectShellUtil, isWindows } from '../../utils/shell-utils.js';
 
-const COMPLETIONS_DIR = resolve(import.meta.dirname, '../../../completions');
-
-function getZshCompletion(): string {
-  const zshFile = join(COMPLETIONS_DIR, '_linear');
-  if (!existsSync(zshFile)) {
-    throw new Error('Zsh completion file not found. Please run: npm run docs:update');
-  }
-  return readFileSync(zshFile, 'utf-8');
-}
-
-function getBashCompletion(): string {
-  const bashFile = join(COMPLETIONS_DIR, 'linear.bash');
-  if (!existsSync(bashFile)) {
-    throw new Error('Bash completion file not found. Please run: npm run docs:update');
-  }
-  return readFileSync(bashFile, 'utf-8');
-}
-
-const ZSH_COMPLETION_SCRIPT = getZshCompletion();
-const BASH_COMPLETION_SCRIPT = getBashCompletion();
+const ZSH_COMPLETION_SCRIPT = generateZshCompletion();
+const BASH_COMPLETION_SCRIPT = generateBashCompletion();
 
 function findFirstWritableDir(possibleDirs: string[]): string | null {
   for (const dir of possibleDirs) {
