@@ -53,83 +53,124 @@ linear update                    # Update to latest version
 <details>
 <summary><b>Account Management</b></summary>
 
+<!-- BEGIN:ACCOUNT -->
 ```bash
-linear account add               # Add account
-linear account list              # List accounts
-linear account remove [NAME]     # Remove account
-linear account test              # Test connection
+# Add a new Linear account
+linear account add
+
+# List all configured accounts
+linear account list
+
+# Remove a Linear account
+linear account remove
+
+# Test account connections
+linear account test
+
 ```
+
+<!-- END:ACCOUNT -->
 
 </details>
 
 <details>
 <summary><b>Issue Operations</b></summary>
 
+<!-- BEGIN:ISSUE -->
 ```bash
-# View issues
-linear issue show <url|ID>
-linear issue show WORK-123 --account work
+# Show issue details
+linear issue show ISSUE-123
+linear issue show https://linear.app/team/issue/ISSUE-123
+linear issue show ISSUE-123 --format json
 
-# List issues (grouped by status)
-linear issue list -a work
-linear issue list -a work --assignee me
-linear issue list -a work --state "In Progress"
-linear issue list -a work --team "TES"
+# Create a new issue
+linear issue create --title "Fix bug"
+linear issue create --title "New feature" --description "Description" --priority 2
+linear issue create --title "Task" --assignee user@example.com --label bug
 
-# Create issue
-linear issue create -a work
-linear issue create -a work --team "TES" --title "Bug fix"
+# List issues
+linear issue list
+linear issue list --state "In Progress"
+linear issue list --assignee user@example.com --limit 20
+linear issue list --format json
 
-# Update issue
-linear issue update WORK-123
-linear issue update WORK-123 --state "Done"
+# Update an issue
+linear issue update ISSUE-123 --state Done
+linear issue update ISSUE-123 --title "Updated title" --priority 1
+linear issue update ISSUE-123 --assignee user@example.com
 
-# Add comment
-linear issue comment WORK-123
-linear issue comment WORK-123 "Nice work!"
+# Add a comment to an issue
+linear issue comment ISSUE-123 --body "Great work!"
+linear issue comment ISSUE-123 -b "Need more info"
+
 ```
+
+<!-- END:ISSUE -->
 
 </details>
 
 <details>
 <summary><b>Project Operations</b></summary>
 
+<!-- BEGIN:PROJECT -->
 ```bash
-linear project list -a work           # List projects
-linear project show <project-url>     # Show details
-linear project issues <project-url>   # List project issues
-linear project create -a work         # Create project
-linear project delete <project-url>   # Delete project
+# List all projects
+linear project list
+linear project list --format json
+
+# Show project details
+linear project show "My Project"
+linear project show PROJECT-123 --format json
+
+# List issues in a project
+linear project issues "My Project"
+linear project issues PROJECT-123 --limit 50
+
+# Create a new project
+linear project create --name "New Project"
+linear project create --name "Q2 Goals" --description "Goals for Q2 2024"
+
+# Delete a project
+linear project delete "Old Project"
+linear project delete PROJECT-123
+
 ```
+
+<!-- END:PROJECT -->
 
 </details>
 
 <details>
 <summary><b>Document Operations</b></summary>
 
+<!-- BEGIN:DOCUMENT -->
 ```bash
-linear document show <document-url>    # Show document
-linear document add -a work            # Create document
-linear document delete <document-url>  # Delete document
+# Show document details
+linear document show DOC-123
+linear document show https://linear.app/team/doc/DOC-123
+
+# Create a new document
+linear document add --title "Meeting Notes"
+linear document add --title "RFC" --content "# Proposal\n\nDetails..."
+
+# Delete a document
+linear document delete DOC-123
+
 ```
+
+<!-- END:DOCUMENT -->
 
 </details>
 
 <details>
 <summary><b>Shell Completion</b></summary>
 
+<!-- BEGIN:COMPLETION -->
 ```bash
-# Install completion
 linear completion install
-
-# Reload shell
-source ~/.zshrc   # for zsh
-source ~/.bashrc  # for bash
-
-# Use tab completion
-linear <TAB>
-linear issue <TAB>
 ```
+
+<!-- END:COMPLETION -->
 
 </details>
 

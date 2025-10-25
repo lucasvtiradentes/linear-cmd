@@ -138,13 +138,6 @@ function updateReadme(): void {
     '<!-- BEGIN:ISSUE -->': sections.issue,
     '<!-- BEGIN:PROJECT -->': sections.project,
     '<!-- BEGIN:DOCUMENT -->': sections.document,
-    '<!-- BEGIN:ISSUE_SHOW -->': sections.issueShow,
-    '<!-- BEGIN:ISSUE_CREATE -->': sections.issueCreate,
-    '<!-- BEGIN:ISSUE_LIST -->': sections.issueList,
-    '<!-- BEGIN:ISSUE_UPDATE -->': sections.issueUpdate,
-    '<!-- BEGIN:ISSUE_COMMENT -->': sections.issueComment,
-    '<!-- BEGIN:PROJECT_LIST -->': sections.projectList,
-    '<!-- BEGIN:PROJECT_SHOW -->': sections.projectShow,
     '<!-- BEGIN:COMPLETION -->': sections.completion
   };
 

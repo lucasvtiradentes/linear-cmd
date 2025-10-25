@@ -39,13 +39,6 @@ export function generateReadmeSections() {
     issue: generateCommandSection('issue'),
     project: generateCommandSection('project'),
     document: generateCommandSection('document'),
-    issueShow: generateSubCommandSection('issue', 'show'),
-    issueCreate: generateSubCommandSection('issue', 'create'),
-    issueList: generateSubCommandSection('issue', 'list'),
-    issueUpdate: generateSubCommandSection('issue', 'update'),
-    issueComment: generateSubCommandSection('issue', 'comment'),
-    projectList: generateSubCommandSection('project', 'list'),
-    projectShow: generateSubCommandSection('project', 'show'),
     completion: generateSubCommandSection('completion', 'install')
   };
 }

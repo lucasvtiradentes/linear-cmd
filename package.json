@@ -23,6 +23,7 @@
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
     "build": "rimraf ./dist && tsc",
+    "postbuild": "npm run docs:update",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "format": "biome format --write .",
