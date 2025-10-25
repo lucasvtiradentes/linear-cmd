@@ -16,22 +16,12 @@ on:
         type: boolean
         required: true
     secrets:
-      TURBO_TOKEN:
-        description: Turbo token for cache
-        required: true
-      TURBO_TEAM:
-        description: Turbo team for cache
-        required: true
       LINEAR_API_KEY_E2E:
         description: Linear API key for E2E tests
         required: true
       LINEAR_TEST_ISSUE_ID:
         description: Linear test issue ID for E2E tests
         required: true
-
-env:
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   build:
@@ -42,7 +32,7 @@ jobs:
       - uses: ./.github/actions/setup-and-install
 
       - name: Build package
-        run: npx turbo build
+        run: pnpm run build
 
   lint:
     if: inputs.run_lint
@@ -52,10 +42,10 @@ jobs:
       - uses: ./.github/actions/setup-and-install
 
       - name: Run lint
-        run: npx turbo lint
+        run: pnpm run lint
 
       - name: Run typecheck
-        run: npx turbo typecheck
+        run: pnpm run typecheck
 
   test-e2e:
     if: inputs.run_tests
@@ -66,4 +56,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-and-install
-      - run: npx turbo test:e2e
+      - run: pnpm run test:e2e

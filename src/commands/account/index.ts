@@ -2,10 +2,10 @@ import { Command } from 'commander';
 
 import { CommandNames } from '../../schemas/definitions.js';
 import { createCommandFromSchema } from '../../schemas/utils.js';
-import { createAddAccountCommand } from './add-account.js';
-import { createListAccountsCommand } from './list-accounts.js';
-import { createRemoveAccountCommand } from './remove-account.js';
-import { createTestAccountsCommand } from './test-accounts.js';
+import { createAddAccountCommand } from './add.js';
+import { createListAccountsCommand } from './list.js';
+import { createRemoveAccountCommand } from './remove.js';
+import { createTestAccountsCommand } from './test.js';
 
 export function createAccountCommand(): Command {
   const account = createCommandFromSchema(CommandNames.ACCOUNT);

@@ -32,13 +32,7 @@
     "package:preview": "npm pack --dry-run",
     "changeset": "changeset",
     "release": "pnpm run build && changeset publish",
-    "docs:update": "tsx scripts/update-commands-docs.ts",
-    "turbo:typecheck": "turbo typecheck",
-    "turbo:build": "turbo build",
-    "turbo:dev": "turbo dev",
-    "turbo:format": "turbo format",
-    "turbo:lint": "turbo lint",
-    "turbo:test:e2e": "turbo test:e2e"
+    "docs:update": "tsx scripts/update-commands-docs.ts"
   },
   "dependencies": {
     "@linear/sdk": "^52.0.0",
@@ -61,7 +55,6 @@
     "lint-staged": "15.2.2",
     "rimraf": "5.0.5",
     "tsx": "^4.20.3",
-    "turbo": "^2.5.5",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }

@@ -2,14 +2,6 @@ name: Setup Node and install dependencies
 
 description: Setup Node.js, install pnpm packages, and use the cache if possible
 
-inputs:
-  turbo-token:
-    description: 'Turbo token for remote caching'
-    required: false
-  turbo-team:
-    description: 'Turbo team for remote caching'
-    required: false
-
 runs:
   using: 'composite'
   steps:
