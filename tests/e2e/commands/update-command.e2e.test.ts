@@ -52,8 +52,8 @@ describe('Update Command E2E', () => {
     };
 
     const result = await new Promise<CommandResult>((resolve, reject) => {
-      const child = spawn('node', ['dist/index.js', 'update'], {
-        cwd: path.resolve(__dirname, '../../'),
+      const child = spawn('npm', ['run', 'dev', '--', 'update'], {
+        cwd: path.resolve(__dirname, '../../../'),
         env: {
           ...env,
           NODE_ENV: 'test',
@@ -157,8 +157,8 @@ describe('Update Command E2E', () => {
   it('should handle npm command not found', async () => {
     // Set PATH to empty to simulate npm not found
     const result = await new Promise<CommandResult>((resolve, reject) => {
-      const child = spawn('node', ['dist/index.js', 'update'], {
-        cwd: path.resolve(__dirname, '../../'),
+      const child = spawn('npm', ['run', 'dev', '--', 'update'], {
+        cwd: path.resolve(__dirname, '../../../'),
         env: {
           NODE_ENV: 'test',
           HOME: testHomeDir,

@@ -64,6 +64,11 @@ export const documentCommandDefinition: Command = {
           alias: '-a',
           description: 'Account to use (optional, uses active account if not specified)',
           type: 'string'
+        },
+        {
+          name: '--project',
+          description: 'Project name or ID to link the document to',
+          type: 'string'
         }
       ],
       examples: [

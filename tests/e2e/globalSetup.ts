@@ -15,13 +15,15 @@ interface CommandResult {
 
 async function execCommand(command: string, input?: string, timeout = 30000, homeDir?: string): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
+    const fullCommand = `npm run dev -- ${command}`;
+
     // Parse command respecting quoted arguments
     const parts: string[] = [];
     let current = '';
     let inQuotes = false;
 
-    for (let i = 0; i < command.length; i++) {
-      const char = command[i];
+    for (let i = 0; i < fullCommand.length; i++) {
+      const char = fullCommand[i];
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === ' ' && !inQuotes) {
@@ -142,14 +144,14 @@ export async function setup() {
     // Setup test account
     const accountName = `e2e-global-${Date.now()}`;
     const addInput = `${accountName}\n${apiKey}`;
-    await execCommand('node dist/index.js account add', addInput, 15000, testHomeDir);
+    await execCommand('account add', addInput, 15000, testHomeDir);
 
     console.log('  ✓ Created test account');
 
     // Create test project
     const projectName = `E2E-Global-Project-${Date.now()}`;
     const projectResult = await execCommand(
-      `node dist/index.js project create -a ${accountName} --team ${testTeam} --name "${projectName}" --description "Global E2E test project - DO NOT DELETE MANUALLY"`,
+      `project create -a ${accountName} --team ${testTeam} --name "${projectName}" --description "Global E2E test project - DO NOT DELETE MANUALLY"`,
       undefined,
       30000,
       testHomeDir
@@ -171,7 +173,7 @@ export async function setup() {
     // Create test document
     const documentTitle = `E2E Global Document ${Date.now()}`;
     const documentResult = await execCommand(
-      `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "Global test document - DO NOT DELETE MANUALLY" --project ${projectUrl}`,
+      `document add -a ${accountName} --title "${documentTitle}" --content "Global test document - DO NOT DELETE MANUALLY" --project ${projectUrl}`,
       undefined,
       30000,
       testHomeDir
@@ -188,7 +190,7 @@ export async function setup() {
 
     // Create test issue
     const issueResult = await execCommand(
-      `node dist/index.js issue create -a ${accountName} --team ${testTeam} --title "E2E Global Issue ${Date.now()}" --description "Global test issue - DO NOT DELETE MANUALLY" --project ${projectUrl}`,
+      `issue create -a ${accountName} --team ${testTeam} --title "E2E Global Issue ${Date.now()}" --description "Global test issue - DO NOT DELETE MANUALLY" --project ${projectUrl}`,
       undefined,
       30000,
       testHomeDir
@@ -240,19 +242,14 @@ export async function teardown() {
 
     // Delete document
     if (documentUrl) {
-      await execCommand(`node dist/index.js document delete ${documentUrl} --yes`, undefined, 30000, testHomeDir);
+      await execCommand(`document delete ${documentUrl} --yes`, undefined, 30000, testHomeDir);
       console.log('  ✓ Deleted test document');
     }
 
     // Archive issue (Linear doesn't support delete, only archive)
     if (issueUrl) {
       console.log(`  Archiving issue: ${issueUrl}`);
-      const archiveResult = await execCommand(
-        `node dist/index.js issue update ${issueUrl} --archive`,
-        undefined,
-        30000,
-        testHomeDir
-      );
+      const archiveResult = await execCommand(`issue update ${issueUrl} --archive`, undefined, 30000, testHomeDir);
       if (archiveResult.exitCode === 0) {
         console.log('  ✓ Archived test issue successfully');
       } else {
@@ -264,12 +261,7 @@ export async function teardown() {
 
     // Delete project
     if (projectUrl) {
-      await execCommand(
-        `node dist/index.js project delete ${projectUrl} -a ${accountName} --yes`,
-        undefined,
-        30000,
-        testHomeDir
-      );
+      await execCommand(`project delete ${projectUrl} -a ${accountName} --yes`, undefined, 30000, testHomeDir);
       console.log('  ✓ Deleted test project');
     }
 
