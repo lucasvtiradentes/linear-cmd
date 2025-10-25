@@ -4,9 +4,11 @@ import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
 import { Logger } from '../../lib/logger.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createAddAccountCommand(): Command {
-  return new Command('add').description('Add a new Linear account').action(async () => {
+  return createSubCommandFromSchema(CommandNames.ACCOUNT, SubCommandNames.ACCOUNT_ADD, async () => {
     const configManager = new ConfigManager();
 
     const answers = await inquirer.prompt([

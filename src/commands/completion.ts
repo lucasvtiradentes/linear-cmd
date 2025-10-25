@@ -1,13 +1,34 @@
-import { accessSync, constants, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { accessSync, constants, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import chalk from 'chalk';
 import { Command } from 'commander';
 
 import { ConfigManager } from '../lib/config-manager.js';
 import { Logger } from '../lib/logger.js';
 
-const ZSH_COMPLETION_SCRIPT = `#compdef linear-cmd linear lin
+const COMPLETIONS_DIR = resolve(import.meta.dirname, '../../completions');
+
+function getZshCompletion(): string {
+  const zshFile = join(COMPLETIONS_DIR, '_linear');
+  if (!existsSync(zshFile)) {
+    throw new Error('Zsh completion file not found. Please run: npm run docs:update');
+  }
+  return readFileSync(zshFile, 'utf-8');
+}
+
+function getBashCompletion(): string {
+  const bashFile = join(COMPLETIONS_DIR, 'linear.bash');
+  if (!existsSync(bashFile)) {
+    throw new Error('Bash completion file not found. Please run: npm run docs:update');
+  }
+  return readFileSync(bashFile, 'utf-8');
+}
+
+const ZSH_COMPLETION_SCRIPT = getZshCompletion();
+const BASH_COMPLETION_SCRIPT = getBashCompletion();
+
+const _ZSH_COMPLETION_SCRIPT_DEPRECATED = `#compdef linear-cmd linear lin
 
 _linear() {
     local state line context
@@ -294,7 +315,7 @@ _linear_completion() {
 _linear "$@"
 `;
 
-const BASH_COMPLETION_SCRIPT = `#!/bin/bash
+const _BASH_COMPLETION_SCRIPT_DEPRECATED = `#!/bin/bash
 
 _linear_completion() {
     local cur prev words cword

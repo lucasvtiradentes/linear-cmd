@@ -3,9 +3,11 @@ import { Command } from 'commander';
 
 import { ConfigManager } from '../../lib/config-manager.js';
 import { Logger } from '../../lib/logger.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createTestAccountsCommand(): Command {
-  return new Command('test').description('Test all configured accounts').action(async () => {
+  return createSubCommandFromSchema(CommandNames.ACCOUNT, SubCommandNames.ACCOUNT_TEST, async () => {
     try {
       const configManager = new ConfigManager();
       const accounts = configManager.getAllAccounts();

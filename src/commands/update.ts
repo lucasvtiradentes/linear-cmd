@@ -5,15 +5,16 @@ import { platform } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { promisify } from 'util';
-
 import { Logger } from '../lib/logger.js';
+import { CommandNames } from '../schemas/definitions.js';
+import { createCommandFromSchema } from '../schemas/utils.js';
 import { reinstallCompletionSilently } from './completion.js';
 
 const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export function createUpdateCommand(): Command {
-  return new Command('update').description('Update the linear-cmd package to the latest version').action(async () => {
+  return createCommandFromSchema(CommandNames.UPDATE, async () => {
     try {
       Logger.loading('Checking current version...');
 

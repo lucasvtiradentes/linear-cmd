@@ -11,6 +11,8 @@ import {
   ValidationError
 } from '../../lib/linear-client.js';
 import { Logger } from '../../lib/logger.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 import type { LinearIssueUpdatePayload } from '../../types/linear.js';
 import { linearIssueUpdatePayloadSchema } from '../../types/linear.js';
 import type { Account } from '../../types/local.js';
@@ -31,21 +33,10 @@ function getPriorityName(priority: number | null | undefined): string {
 }
 
 export function createUpdateIssueCommand(): Command {
-  return new Command('update')
-    .description('Update a Linear issue')
-    .argument('<issue>', 'issue ID or URL')
-    .option('-a, --account <account>', 'specify account to use')
-    .option('-t, --title <title>', 'new title')
-    .option('-d, --description <description>', 'new description')
-    .option('-s, --state <state>', 'new state (e.g., "In Progress", "Done")')
-    .option('--assignee <assignee>', 'assignee email or "unassign"')
-    .option('--project <project>', 'project name or "none" to remove')
-    .option('--team <team>', 'team key (e.g., "TES")')
-    .option('-p, --priority <priority>', 'priority (0: none, 1: urgent, 2: high, 3: medium, 4: low)')
-    .option('--add-label <label>', 'add a label')
-    .option('--remove-label <label>', 'remove a label')
-    .option('--archive', 'archive the issue')
-    .action(async (issueIdOrUrl, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.ISSUE,
+    SubCommandNames.ISSUE_UPDATE,
+    async (issueIdOrUrl: string, options: any) => {
       const configManager = new ConfigManager();
 
       try {
@@ -414,5 +405,6 @@ export function createUpdateIssueCommand(): Command {
           Logger.error('Error updating issue', error);
         }
       }
-    });
+    }
+  );
 }

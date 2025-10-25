@@ -1,14 +1,14 @@
 import { Command } from 'commander';
 import { LinearAPIClient } from '../../lib/linear-client.js';
 import { Logger } from '../../lib/logger.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createShowIssueCommand(): Command {
-  return new Command('show')
-    .arguments('<idOrUrl>')
-    .description('Show detailed information about an issue')
-    .option('-c, --comments', 'Show comments (default: true)')
-    .option('-f, --format <format>', 'Output format (default: pretty)', 'pretty')
-    .action(async (idOrUrl: string, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.ISSUE,
+    SubCommandNames.ISSUE_SHOW,
+    async (idOrUrl: string, options: { format?: string }) => {
       try {
         const linearClient = new LinearAPIClient();
 
@@ -24,5 +24,6 @@ export function createShowIssueCommand(): Command {
         Logger.error('Error fetching issue', error);
         process.exit(1);
       }
-    });
+    }
+  );
 }

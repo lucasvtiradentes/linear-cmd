@@ -5,14 +5,15 @@ import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { findAccountForIssue, LinearAPIClient } from '../../lib/linear-client.js';
 import { Logger } from '../../lib/logger.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createCommentIssueCommand(): Command {
-  return new Command('comment')
-    .description('Add a comment to a Linear issue')
-    .argument('<issue>', 'issue ID or URL')
-    .argument('[comment]', 'comment text (optional, will prompt if not provided)')
-    .option('-a, --account <account>', 'specify account to use')
-    .action(async (issueIdOrUrl, commentText, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.ISSUE,
+    SubCommandNames.ISSUE_COMMENT,
+    async (issueIdOrUrl: string, options: { body?: string; account?: string }) => {
+      const commentText = options.body;
       const configManager = new ConfigManager();
 
       try {
@@ -95,7 +96,8 @@ export function createCommentIssueCommand(): Command {
       } catch (error) {
         Logger.error('Error adding comment', error);
       }
-    });
+    }
+  );
 }
 
 function getRelativeTime(date: Date): string {

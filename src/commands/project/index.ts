@@ -1,4 +1,6 @@
 import { Command } from 'commander';
+import { CommandNames } from '../../schemas/definitions.js';
+import { createCommandFromSchema } from '../../schemas/utils.js';
 
 import { createCreateProjectCommand } from './create-project.js';
 import { createDeleteProjectCommand } from './delete-project.js';
@@ -7,8 +9,7 @@ import { createListProjectsCommand } from './list-projects.js';
 import { createShowProjectCommand } from './show-project.js';
 
 export function createProjectCommand(): Command {
-  const project = new Command('project');
-  project.description('Manage Linear projects');
+  const project = createCommandFromSchema(CommandNames.PROJECT);
 
   project.addCommand(createListProjectsCommand());
   project.addCommand(createShowProjectCommand());

@@ -2,9 +2,11 @@ import { Command } from 'commander';
 
 import { ConfigManager } from '../../lib/config-manager.js';
 import { Logger } from '../../lib/logger.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createListAccountsCommand(): Command {
-  return new Command('list').description('List all configured accounts').action(async () => {
+  return createSubCommandFromSchema(CommandNames.ACCOUNT, SubCommandNames.ACCOUNT_LIST, async () => {
     const configManager = new ConfigManager();
     const accounts = configManager.getAllAccounts();
 
