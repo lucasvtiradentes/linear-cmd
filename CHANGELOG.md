@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.15
+
+### Patch Changes
+
+- 1a38cf2: improve code
+
 ## 1.0.14
 
 ### Patch Changes
