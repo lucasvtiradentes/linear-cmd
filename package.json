@@ -1,7 +1,7 @@
 {
   "name": "linear-cmd",
   "version": "1.0.14",
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@10.19.0",
   "description": "A GitHub CLI-like tool for Linear - manage issues, accounts, and more",
   "keywords": [
     "linear",
