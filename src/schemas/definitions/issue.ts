@@ -52,7 +52,7 @@ export const issueCommandDefinition: Command = {
         {
           name: '--format',
           alias: '-f',
-          description: 'Output format',
+          description: 'Output format (pretty, json)',
           type: 'string',
           choices: ['pretty', 'json']
         }
@@ -161,7 +161,7 @@ export const issueCommandDefinition: Command = {
         {
           name: '--format',
           alias: '-f',
-          description: 'Output format',
+          description: 'Output format (pretty, json)',
           type: 'string',
           choices: ['pretty', 'json']
         },
