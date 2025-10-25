@@ -1,9 +1,9 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { execCommand } from '../utils/exec-command';
+import { cleanupTestEnvironment, getTestDirs, setupTestEnvironment } from '../utils/test-setup';
 
 interface CommandResult {
   stdout: string;
@@ -12,38 +12,14 @@ interface CommandResult {
 }
 
 describe('Update Command E2E', () => {
-  const testHomeDir = path.join(os.tmpdir(), `linear-cmd-update-e2e-${Date.now()}`);
-  const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
+  const { testHomeDir, testConfigDir } = getTestDirs('update');
 
   beforeEach(async () => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
-
-    fs.mkdirSync(testConfigDir, { recursive: true });
-
-    const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
-    const configPath = path.join(testConfigDir, 'config.json5');
-
-    fs.writeFileSync(
-      userMetadataPath,
-      JSON.stringify({
-        config_path: configPath
-      })
-    );
-
-    fs.writeFileSync(
-      configPath,
-      `{
-  "accounts": {}
-}`
-    );
+    setupTestEnvironment(testConfigDir, testHomeDir);
   });
 
   afterEach(() => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
+    cleanupTestEnvironment(testHomeDir);
   });
 
   it('should check for updates successfully', async () => {

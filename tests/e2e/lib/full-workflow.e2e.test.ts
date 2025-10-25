@@ -1,52 +1,22 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { e2eEnv } from '../utils/env';
 import { execCommand } from '../utils/exec-command';
+import { cleanupTestEnvironment, getTestDirs, setupTestEnvironment } from '../utils/test-setup';
 
 describe('Complete User Workflow E2E', () => {
-  const testHomeDir = path.join(os.tmpdir(), `linear-cmd-e2e-${Date.now()}`);
-  const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
+  const { testHomeDir, testConfigDir } = getTestDirs('workflow');
 
   beforeEach(async () => {
-    // Clean up any existing test config directories
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
-
-    // Create fresh test home directory and config directory
-    fs.mkdirSync(testConfigDir, { recursive: true });
-
-    // Create default config files to ensure proper initialization
-    const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
-    const configPath = path.join(testConfigDir, 'config.json5');
-
-    fs.writeFileSync(
-      userMetadataPath,
-      JSON.stringify({
-        config_path: configPath
-      })
-    );
-
-    // Write valid JSON5 config
-    fs.writeFileSync(
-      configPath,
-      `{
-  "accounts": {}
-}`
-    );
+    setupTestEnvironment(testConfigDir, testHomeDir);
   });
 
   afterEach(() => {
-    // Clean up test config after each test
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
+    cleanupTestEnvironment(testHomeDir);
   });
 
   it('should complete full workflow: add account → fetch real issue', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testIssueId = process.env.LINEAR_TEST_ISSUE_ID;
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
+    const testIssueId = e2eEnv.LINEAR_TEST_ISSUE_ID;
 
     if (!apiKey || !testIssueId) {
       console.log('Skipping e2e test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_ISSUE_ID');
@@ -98,7 +68,7 @@ describe('Complete User Workflow E2E', () => {
   });
 
   it('should handle non-existent issue gracefully', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
 
     if (!apiKey) {
       console.log('Skipping e2e test: Missing LINEAR_API_KEY_E2E');

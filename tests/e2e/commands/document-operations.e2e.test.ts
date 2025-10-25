@@ -1,48 +1,23 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadGlobalFixtures } from '../global-fixtures';
+import { e2eEnv } from '../utils/env';
 import { execCommand } from '../utils/exec-command';
+import { cleanupTestEnvironment, getTestDirs, setupTestEnvironment } from '../utils/test-setup';
 
 describe('Document Operations E2E', () => {
-  const testHomeDir = path.join(os.tmpdir(), `linear-cmd-document-e2e-${Date.now()}`);
-  const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
+  const { testHomeDir, testConfigDir } = getTestDirs('document');
 
   beforeEach(async () => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
-
-    fs.mkdirSync(testConfigDir, { recursive: true });
-
-    const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
-    const configPath = path.join(testConfigDir, 'config.json5');
-
-    fs.writeFileSync(
-      userMetadataPath,
-      JSON.stringify({
-        config_path: configPath
-      })
-    );
-
-    fs.writeFileSync(
-      configPath,
-      `{
-  "accounts": {}
-}`
-    );
+    setupTestEnvironment(testConfigDir, testHomeDir);
   });
 
   afterEach(() => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
+    cleanupTestEnvironment(testHomeDir);
   });
 
   async function setupTestAccount(homeDir: string): Promise<string> {
     const accountName = `e2e-test-${Date.now()}`;
-    const testApiKey = process.env.LINEAR_API_KEY_E2E || 'lin_api_test123456789';
+    const testApiKey = e2eEnv.LINEAR_API_KEY_E2E;
 
     const addInput = `${accountName}\n${testApiKey}`;
     await execCommand('account add', addInput, 15000, homeDir);
@@ -75,7 +50,7 @@ describe('Document Operations E2E', () => {
   }
 
   it('should handle document show command with real API if available', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
     if (!apiKey || !fixtures) {
@@ -108,7 +83,7 @@ describe('Document Operations E2E', () => {
   }, 15000);
 
   it('should handle JSON output format for document show', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
     if (!apiKey || !fixtures) {
@@ -145,8 +120,8 @@ describe('Document Operations E2E', () => {
   }, 20000);
 
   it('should create document in project, then delete both without leaving garbage', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
+    const testTeam = e2eEnv.LINEAR_TEST_TEAM;
     const fixtures = loadGlobalFixtures();
 
     if (!apiKey || !fixtures) {

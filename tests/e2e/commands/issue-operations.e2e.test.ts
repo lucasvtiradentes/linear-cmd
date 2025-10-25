@@ -1,47 +1,22 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadGlobalFixtures } from '../global-fixtures';
+import { e2eEnv } from '../utils/env';
 import { execCommand } from '../utils/exec-command';
+import { cleanupTestEnvironment, getTestDirs, setupTestEnvironment } from '../utils/test-setup';
 
 describe('Issue Operations E2E', () => {
-  const testHomeDir = path.join(os.tmpdir(), `linear-cmd-issue-e2e-${Date.now()}`);
-  const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
+  const { testHomeDir, testConfigDir } = getTestDirs('issue');
 
   beforeEach(async () => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
-
-    fs.mkdirSync(testConfigDir, { recursive: true });
-
-    const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
-    const configPath = path.join(testConfigDir, 'config.json5');
-
-    fs.writeFileSync(
-      userMetadataPath,
-      JSON.stringify({
-        config_path: configPath
-      })
-    );
-
-    fs.writeFileSync(
-      configPath,
-      `{
-  "accounts": {}
-}`
-    );
+    setupTestEnvironment(testConfigDir, testHomeDir);
   });
 
   afterEach(() => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
+    cleanupTestEnvironment(testHomeDir);
   });
 
   it('should handle issue show command with real API if available', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
     if (!apiKey || !fixtures) {
@@ -61,8 +36,8 @@ describe('Issue Operations E2E', () => {
   }, 90000);
 
   it('should handle issue list command', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
+    const testTeam = e2eEnv.LINEAR_TEST_TEAM;
     const fixtures = loadGlobalFixtures();
 
     if (!apiKey || !fixtures) {
@@ -80,7 +55,7 @@ describe('Issue Operations E2E', () => {
   }, 90000);
 
   it('should handle issue creation command (mock)', async () => {
-    const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+    const testTeam = e2eEnv.LINEAR_TEST_TEAM;
     const fixtures = loadGlobalFixtures();
 
     if (!fixtures) {
@@ -136,7 +111,7 @@ describe('Issue Operations E2E', () => {
   }, 90000);
 
   it('should handle JSON output format for issue commands', async () => {
-    const apiKey = process.env.LINEAR_API_KEY_E2E;
+    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
     if (!apiKey || !fixtures) {

@@ -5,6 +5,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { clearGlobalFixtures, loadGlobalFixtures, saveGlobalFixtures } from './global-fixtures';
+import { e2eEnv } from './utils/env';
 
 interface CommandResult {
   stdout: string;
@@ -109,9 +110,8 @@ async function execCommand(command: string, input?: string, timeout = 30000, hom
 }
 
 export async function setup() {
-  // Check if we should create global fixtures
-  const apiKey = process.env.LINEAR_API_KEY_E2E;
-  const testTeam = process.env.LINEAR_TEST_TEAM || 'TES';
+  const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
+  const testTeam = e2eEnv.LINEAR_TEST_TEAM;
 
   if (!apiKey) {
     console.log('⚠️  Skipping global fixtures creation: Missing LINEAR_API_KEY_E2E\n');
@@ -233,7 +233,7 @@ export async function setup() {
 export async function teardown() {
   console.log('\n🧹 Cleaning up global fixtures...');
 
-  const apiKey = process.env.LINEAR_API_KEY_E2E;
+  const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
 
   if (!apiKey) {
     console.log('⚠️  Skipping cleanup: Missing LINEAR_API_KEY_E2E');

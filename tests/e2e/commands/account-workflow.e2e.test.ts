@@ -1,47 +1,22 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { e2eEnv } from '../utils/e2e-env';
 import { execCommand } from '../utils/exec-command';
+import { cleanupTestEnvironment, getTestDirs, setupTestEnvironment } from '../utils/test-setup';
 
 describe('Account Management E2E', () => {
-  const testHomeDir = path.join(os.tmpdir(), `linear-cmd-account-e2e-${Date.now()}`);
-  const testConfigDir = path.join(testHomeDir, '.config', 'linear-cmd');
+  const { testHomeDir, testConfigDir } = getTestDirs('account');
 
   beforeEach(async () => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
-
-    fs.mkdirSync(testConfigDir, { recursive: true });
-
-    const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
-    const configPath = path.join(testConfigDir, 'config.json5');
-
-    fs.writeFileSync(
-      userMetadataPath,
-      JSON.stringify({
-        config_path: configPath
-      })
-    );
-
-    fs.writeFileSync(
-      configPath,
-      `{
-  "accounts": {}
-}`
-    );
+    setupTestEnvironment(testConfigDir, testHomeDir);
   });
 
   afterEach(() => {
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
-    }
+    cleanupTestEnvironment(testHomeDir);
   });
 
   it('should complete account lifecycle: add → list → test → remove', async () => {
     const accountName = `test-account-${Date.now()}`;
-    const testApiKey = process.env.LINEAR_API_KEY_E2E || 'lin_api_test123456789';
+    const testApiKey = e2eEnv.LINEAR_API_KEY_E2E;
 
     const addInput = `${accountName}\n${testApiKey}`;
     const addResult = await execCommand('account add', addInput, 15000, testHomeDir);
@@ -79,8 +54,8 @@ describe('Account Management E2E', () => {
   it('should handle multiple accounts management', async () => {
     const account1Name = `work-account-${Date.now()}`;
     const account2Name = `personal-account-${Date.now()}`;
-    const testApiKey1 = process.env.LINEAR_API_KEY_E2E || 'lin_api_work123456789';
-    const testApiKey2 = process.env.LINEAR_API_KEY_E2E || 'lin_api_personal123456789';
+    const testApiKey1 = e2eEnv.LINEAR_API_KEY_E2E;
+    const testApiKey2 = e2eEnv.LINEAR_API_KEY_E2E;
 
     const add1Input = `${account1Name}\n${testApiKey1}`;
     const add1Result = await execCommand('account add', add1Input, 15000, testHomeDir);
