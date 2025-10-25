@@ -26,4 +26,5 @@ jobs:
     secrets:
       LINEAR_API_KEY_E2E: ${{ secrets.LINEAR_API_KEY_E2E }}
       LINEAR_TEST_ISSUE_ID: ${{ secrets.LINEAR_TEST_ISSUE_ID }}
+      LINEAR_TEST_TEAM: ${{ secrets.LINEAR_TEST_TEAM }}
 
