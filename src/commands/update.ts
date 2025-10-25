@@ -131,25 +131,17 @@ async function getExecutablePath(): Promise<string | null> {
       return null;
     }
 
-    if (!isWindows()) {
-      try {
-        if (isMac()) {
-          try {
-            const { stdout: linkedPath } = await execAsync(`readlink "${execPath}"`);
-            if (linkedPath.trim()) {
-              return linkedPath.trim();
-            }
-          } catch {
-            return execPath;
-          }
-        } else {
-          const { stdout: realPath } = await execAsync(`readlink -f "${execPath}"`);
-          return realPath.trim() || execPath;
+    try {
+      if (isMac()) {
+        const { stdout: linkedPath } = await execAsync(`readlink "${execPath}"`);
+        if (linkedPath.trim()) {
+          return linkedPath.trim();
         }
-      } catch {
-        return execPath;
+      } else if (!isWindows()) {
+        const { stdout: realPath } = await execAsync(`readlink -f "${execPath}"`);
+        return realPath.trim() || execPath;
       }
-    }
+    } catch {}
 
     return execPath;
   } catch {

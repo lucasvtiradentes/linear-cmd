@@ -12,8 +12,17 @@ export function isLinux(): boolean {
   return platform() === 'linux';
 }
 
-export function detectShell(): 'bash' | 'zsh' | null {
+export function detectShell(): 'bash' | 'zsh' | 'powershell' | 'cmd' | null {
   if (isWindows()) {
+    const comspec = process.env.COMSPEC || '';
+    const psModulePath = process.env.PSModulePath || '';
+
+    if (psModulePath) {
+      return 'powershell';
+    }
+    if (comspec.includes('cmd.exe')) {
+      return 'cmd';
+    }
     return null;
   }
 
@@ -30,12 +39,18 @@ export function detectShell(): 'bash' | 'zsh' | null {
   return null;
 }
 
-export function getShellRestartCommand(shell: 'bash' | 'zsh' | null): string {
+export function getShellRestartCommand(shell: 'bash' | 'zsh' | 'powershell' | 'cmd' | null): string {
   if (shell === 'zsh') {
     return 'exec zsh';
   }
   if (shell === 'bash') {
     return 'exec bash';
+  }
+  if (shell === 'powershell') {
+    return '& $PROFILE';
+  }
+  if (shell === 'cmd') {
+    return 'Restart your terminal';
   }
   return 'Restart your shell or terminal';
 }

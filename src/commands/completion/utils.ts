@@ -13,7 +13,7 @@ import { join, resolve } from 'node:path';
 
 import { colors } from '../../lib/colors.js';
 import { logger } from '../../lib/logger.js';
-import { detectShell as detectShellUtil } from '../../utils/shell-utils.js';
+import { detectShell as detectShellUtil, isWindows } from '../../utils/shell-utils.js';
 
 const COMPLETIONS_DIR = resolve(import.meta.dirname, '../../../completions');
 
@@ -84,13 +84,15 @@ export async function clearZshCompletionCache(): Promise<void> {
 export async function installZshCompletion(silent = false): Promise<void> {
   const homeDir = homedir();
 
-  const possibleDirs = [
-    join(homeDir, '.oh-my-zsh', 'completions'),
-    join(homeDir, '.zsh', 'completions'),
-    join(homeDir, '.config', 'zsh', 'completions'),
-    join(homeDir, '.local', 'share', 'zsh', 'site-functions'),
-    '/usr/local/share/zsh/site-functions'
-  ];
+  const possibleDirs = isWindows()
+    ? [join(homeDir, '.zsh', 'completions'), join(homeDir, '.config', 'zsh', 'completions')]
+    : [
+        join(homeDir, '.oh-my-zsh', 'completions'),
+        join(homeDir, '.zsh', 'completions'),
+        join(homeDir, '.config', 'zsh', 'completions'),
+        join(homeDir, '.local', 'share', 'zsh', 'site-functions'),
+        '/usr/local/share/zsh/site-functions'
+      ];
 
   let targetDir = findFirstWritableDir(possibleDirs);
 
@@ -128,12 +130,14 @@ export async function installZshCompletion(silent = false): Promise<void> {
 export async function installBashCompletion(silent = false): Promise<void> {
   const homeDir = homedir();
 
-  const possibleDirs = [
-    join(homeDir, '.bash_completion.d'),
-    join(homeDir, '.local', 'share', 'bash-completion', 'completions'),
-    '/usr/local/etc/bash_completion.d',
-    '/etc/bash_completion.d'
-  ];
+  const possibleDirs = isWindows()
+    ? [join(homeDir, '.bash_completion.d'), join(homeDir, '.local', 'share', 'bash-completion', 'completions')]
+    : [
+        join(homeDir, '.bash_completion.d'),
+        join(homeDir, '.local', 'share', 'bash-completion', 'completions'),
+        '/usr/local/etc/bash_completion.d',
+        '/etc/bash_completion.d'
+      ];
 
   let targetDir = findFirstWritableDir(possibleDirs);
 
@@ -159,13 +163,15 @@ export async function installBashCompletion(silent = false): Promise<void> {
 export async function uninstallZshCompletion(silent = false): Promise<void> {
   const homeDir = homedir();
 
-  const possibleDirs = [
-    join(homeDir, '.oh-my-zsh', 'completions'),
-    join(homeDir, '.zsh', 'completions'),
-    join(homeDir, '.config', 'zsh', 'completions'),
-    join(homeDir, '.local', 'share', 'zsh', 'site-functions'),
-    '/usr/local/share/zsh/site-functions'
-  ];
+  const possibleDirs = isWindows()
+    ? [join(homeDir, '.zsh', 'completions'), join(homeDir, '.config', 'zsh', 'completions')]
+    : [
+        join(homeDir, '.oh-my-zsh', 'completions'),
+        join(homeDir, '.zsh', 'completions'),
+        join(homeDir, '.config', 'zsh', 'completions'),
+        join(homeDir, '.local', 'share', 'zsh', 'site-functions'),
+        '/usr/local/share/zsh/site-functions'
+      ];
 
   let foundFiles = 0;
 
@@ -204,12 +210,14 @@ export async function uninstallZshCompletion(silent = false): Promise<void> {
 export async function uninstallBashCompletion(silent = false): Promise<void> {
   const homeDir = homedir();
 
-  const possibleDirs = [
-    join(homeDir, '.bash_completion.d'),
-    join(homeDir, '.local', 'share', 'bash-completion', 'completions'),
-    '/usr/local/etc/bash_completion.d',
-    '/etc/bash_completion.d'
-  ];
+  const possibleDirs = isWindows()
+    ? [join(homeDir, '.bash_completion.d'), join(homeDir, '.local', 'share', 'bash-completion', 'completions')]
+    : [
+        join(homeDir, '.bash_completion.d'),
+        join(homeDir, '.local', 'share', 'bash-completion', 'completions'),
+        '/usr/local/etc/bash_completion.d',
+        '/etc/bash_completion.d'
+      ];
 
   let foundFiles = 0;
 
