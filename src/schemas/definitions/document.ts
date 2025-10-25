@@ -1,6 +1,21 @@
 import { CLI_NAME } from '../constants.js';
 import { type Command, CommandNames, SubCommandNames } from '../definitions.js';
 
+export interface DocumentShowOptions {
+  format?: string;
+}
+
+export interface DocumentAddOptions {
+  account: string;
+  title?: string;
+  content?: string;
+  project?: string;
+}
+
+export interface DocumentDeleteOptions {
+  yes?: boolean;
+}
+
 export const documentCommandDefinition: Command = {
   name: CommandNames.DOCUMENT,
   description: 'Manage Linear documents',

@@ -1,6 +1,36 @@
 import { CLI_NAME } from '../constants.js';
 import { type Command, CommandNames, SubCommandNames } from '../definitions.js';
 
+export interface ProjectListOptions {
+  format?: string;
+  account?: string;
+  team?: string;
+  limit?: string;
+}
+
+export interface ProjectShowOptions {
+  format?: string;
+}
+
+export interface ProjectIssuesOptions {
+  format?: string;
+  limit?: number;
+}
+
+export interface ProjectCreateOptions {
+  name?: string;
+  description?: string;
+  account?: string;
+  team?: string;
+  state?: string;
+  targetDate?: string;
+}
+
+export interface ProjectDeleteOptions {
+  account?: string;
+  yes?: boolean;
+}
+
 export const projectCommandDefinition: Command = {
   name: CommandNames.PROJECT,
   description: 'Manage Linear projects',

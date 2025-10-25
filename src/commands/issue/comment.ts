@@ -5,6 +5,7 @@ import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { findAccountForIssue, LinearAPIClient } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type IssueCommentOptions } from '../../schemas/definitions/issue.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
@@ -12,7 +13,7 @@ export function createCommentIssueCommand(): Command {
   return createSubCommandFromSchema(
     CommandNames.ISSUE,
     SubCommandNames.ISSUE_COMMENT,
-    async (issueIdOrUrl: string, options: { body?: string; account?: string }) => {
+    async (issueIdOrUrl: string, options: IssueCommentOptions) => {
       const commentText = options.body;
       const configManager = new ConfigManager();
 

@@ -1,13 +1,15 @@
 import { Command } from 'commander';
 import { LinearAPIClient } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type ProjectShowOptions } from '../../schemas/definitions/project.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createShowProjectCommand(): Command {
-  return new Command('show')
-    .arguments('<idOrUrl>')
-    .description('Show detailed information about a project')
-    .option('-f, --format <format>', 'Output format (default: pretty)', 'pretty')
-    .action(async (idOrUrl: string, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.PROJECT,
+    SubCommandNames.PROJECT_SHOW,
+    async (idOrUrl: string, options: ProjectShowOptions) => {
       try {
         const linearClient = new LinearAPIClient();
 
@@ -23,5 +25,6 @@ export function createShowProjectCommand(): Command {
         logger.error('Error fetching project', error);
         process.exit(1);
       }
-    });
+    }
+  );
 }

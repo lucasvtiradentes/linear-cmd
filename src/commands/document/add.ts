@@ -3,15 +3,15 @@ import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { getLinearClientForAccount, LinearAPIClient } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type DocumentAddOptions } from '../../schemas/definitions/document.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createAddDocumentCommand(): Command {
-  return new Command('add')
-    .description('Create a new Linear document')
-    .requiredOption('-a, --account <account>', 'specify account to use')
-    .option('-t, --title <title>', 'document title')
-    .option('-c, --content <content>', 'document content (markdown)')
-    .option('-p, --project <project>', 'project ID or URL to link the document to')
-    .action(async (options) => {
+  return createSubCommandFromSchema(
+    CommandNames.DOCUMENT,
+    SubCommandNames.DOCUMENT_ADD,
+    async (options: DocumentAddOptions) => {
       const configManager = new ConfigManager();
 
       try {
@@ -86,5 +86,6 @@ export function createAddDocumentCommand(): Command {
         logger.error('Error creating document', error);
         process.exit(1);
       }
-    });
+    }
+  );
 }

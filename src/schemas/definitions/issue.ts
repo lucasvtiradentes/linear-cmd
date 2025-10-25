@@ -1,6 +1,38 @@
 import { CLI_NAME } from '../constants.js';
 import { type Command, CommandNames, SubCommandNames } from '../definitions.js';
 
+export interface IssueUpdateOptions {
+  title?: string;
+  description?: string;
+  priority?: number;
+  state?: string;
+  assignee?: string;
+  label?: string;
+  account?: string;
+  team?: string;
+  project?: string;
+  addLabel?: string;
+  removeLabel?: string;
+  archive?: boolean;
+}
+
+export interface IssueCommentOptions {
+  body?: string;
+  account?: string;
+}
+
+export interface IssueCreateOptions {
+  title?: string;
+  description?: string;
+  priority?: number;
+  state?: string;
+  assignee?: string;
+  label?: string;
+  project?: string;
+  account?: string;
+  team?: string;
+}
+
 export const issueCommandDefinition: Command = {
   name: CommandNames.ISSUE,
   description: 'Manage Linear issues',

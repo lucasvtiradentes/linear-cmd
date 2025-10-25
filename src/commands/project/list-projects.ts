@@ -4,15 +4,15 @@ import { colors } from '../../lib/colors.js';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type ProjectListOptions } from '../../schemas/definitions/project.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createListProjectsCommand(): Command {
-  return new Command('list')
-    .description('List all projects')
-    .requiredOption('-a, --account <account>', 'specify account to use')
-    .option('--team <team>', 'filter by team key (e.g., "TES")')
-    .option('-f, --format <format>', 'output format (pretty, json)', 'pretty')
-    .option('--limit <limit>', 'maximum number of projects to return', '50')
-    .action(async (options) => {
+  return createSubCommandFromSchema(
+    CommandNames.PROJECT,
+    SubCommandNames.PROJECT_LIST,
+    async (options: ProjectListOptions) => {
       const configManager = new ConfigManager();
 
       try {
@@ -37,7 +37,7 @@ export function createListProjectsCommand(): Command {
 
         logger.loading(`Fetching projects from account: ${account.name}...`);
 
-        const limit = parseInt(options.limit) || 50;
+        const limit = options.limit ? parseInt(options.limit) : 50;
         const projectsConnection = await client.projects({
           filter: Object.keys(filter).length > 0 ? filter : undefined,
           first: limit
@@ -121,5 +121,6 @@ export function createListProjectsCommand(): Command {
         }
         process.exit(1);
       }
-    });
+    }
+  );
 }

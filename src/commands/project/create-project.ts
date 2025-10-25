@@ -3,17 +3,15 @@ import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type ProjectCreateOptions } from '../../schemas/definitions/project.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createCreateProjectCommand(): Command {
-  return new Command('create')
-    .description('Create a new Linear project')
-    .requiredOption('-a, --account <account>', 'specify account to use')
-    .option('-n, --name <name>', 'project name')
-    .option('-d, --description <description>', 'project description')
-    .option('--team <team>', 'team key (e.g., "TES")')
-    .option('--state <state>', 'project state (planned, started, paused, completed, canceled)')
-    .option('--target-date <date>', 'target date (YYYY-MM-DD)')
-    .action(async (options) => {
+  return createSubCommandFromSchema(
+    CommandNames.PROJECT,
+    SubCommandNames.PROJECT_CREATE,
+    async (options: ProjectCreateOptions) => {
       const configManager = new ConfigManager();
 
       try {
@@ -121,5 +119,6 @@ export function createCreateProjectCommand(): Command {
           logger.error('Error creating project', error);
         }
       }
-    });
+    }
+  );
 }

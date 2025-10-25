@@ -4,14 +4,15 @@ import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { findAccountForProject, LinearAPIClient } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type ProjectDeleteOptions } from '../../schemas/definitions/project.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createDeleteProjectCommand(): Command {
-  return new Command('delete')
-    .description('Delete a Linear project')
-    .argument('<idOrUrl>', 'project ID or URL')
-    .option('-a, --account <account>', 'specify account to use')
-    .option('-y, --yes', 'skip confirmation prompt')
-    .action(async (idOrUrl: string, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.PROJECT,
+    SubCommandNames.PROJECT_DELETE,
+    async (idOrUrl: string, options: ProjectDeleteOptions) => {
       const configManager = new ConfigManager();
 
       try {
@@ -98,5 +99,6 @@ export function createDeleteProjectCommand(): Command {
         logger.error('Error deleting project', error);
         process.exit(1);
       }
-    });
+    }
+  );
 }

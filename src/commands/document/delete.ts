@@ -2,13 +2,15 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { LinearAPIClient } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type DocumentDeleteOptions } from '../../schemas/definitions/document.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createDeleteDocumentCommand(): Command {
-  return new Command('delete')
-    .description('Delete a Linear document')
-    .argument('<idOrUrl>', 'document ID or URL')
-    .option('-y, --yes', 'skip confirmation prompt')
-    .action(async (idOrUrl: string, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.DOCUMENT,
+    SubCommandNames.DOCUMENT_DELETE,
+    async (idOrUrl: string, options: DocumentDeleteOptions) => {
       try {
         const linearClient = new LinearAPIClient();
 
@@ -42,5 +44,6 @@ export function createDeleteDocumentCommand(): Command {
         logger.error('Error deleting document', error);
         process.exit(1);
       }
-    });
+    }
+  );
 }

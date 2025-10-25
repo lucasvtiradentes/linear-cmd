@@ -12,6 +12,7 @@ import {
   ValidationError
 } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type IssueUpdateOptions } from '../../schemas/definitions/issue.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 import type { LinearIssueUpdatePayload } from '../../types/linear.js';
@@ -37,7 +38,7 @@ export function createUpdateIssueCommand(): Command {
   return createSubCommandFromSchema(
     CommandNames.ISSUE,
     SubCommandNames.ISSUE_UPDATE,
-    async (issueIdOrUrl: string, options: any) => {
+    async (issueIdOrUrl: string, options: IssueUpdateOptions) => {
       const configManager = new ConfigManager();
 
       try {
@@ -168,7 +169,7 @@ export function createUpdateIssueCommand(): Command {
 
         // Handle priority update
         if (options.priority !== undefined) {
-          const priority = parseInt(options.priority);
+          const priority = typeof options.priority === 'string' ? parseInt(options.priority) : options.priority;
           if (priority >= 0 && priority <= 4) {
             updatePayload.priority = priority;
             hasUpdates = true;

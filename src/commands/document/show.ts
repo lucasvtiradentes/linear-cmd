@@ -1,13 +1,15 @@
 import { Command } from 'commander';
 import { LinearAPIClient } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type DocumentShowOptions } from '../../schemas/definitions/document.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createShowDocumentCommand(): Command {
-  return new Command('show')
-    .arguments('<idOrUrl>')
-    .description('Show detailed information about a document')
-    .option('-f, --format <format>', 'Output format (default: pretty)', 'pretty')
-    .action(async (idOrUrl: string, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.DOCUMENT,
+    SubCommandNames.DOCUMENT_SHOW,
+    async (idOrUrl: string, options: DocumentShowOptions) => {
       try {
         const linearClient = new LinearAPIClient();
 
@@ -23,5 +25,6 @@ export function createShowDocumentCommand(): Command {
         logger.error('Error fetching document', error);
         process.exit(1);
       }
-    });
+    }
+  );
 }

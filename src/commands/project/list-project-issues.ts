@@ -1,13 +1,15 @@
 import { Command } from 'commander';
 import { LinearAPIClient } from '../../lib/linear-client.js';
 import { logger } from '../../lib/logger.js';
+import { type ProjectIssuesOptions } from '../../schemas/definitions/project.js';
+import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
+import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
 export function createListProjectIssuesCommand(): Command {
-  return new Command('issues')
-    .arguments('<idOrUrl>')
-    .description('List all issues in a project grouped by status')
-    .option('-f, --format <format>', 'Output format (default: pretty)', 'pretty')
-    .action(async (idOrUrl: string, options) => {
+  return createSubCommandFromSchema(
+    CommandNames.PROJECT,
+    SubCommandNames.PROJECT_ISSUES,
+    async (idOrUrl: string, options: ProjectIssuesOptions) => {
       try {
         const linearClient = new LinearAPIClient();
 
@@ -23,5 +25,6 @@ export function createListProjectIssuesCommand(): Command {
         logger.error('Error fetching project issues', error);
         process.exit(1);
       }
-    });
+    }
+  );
 }
