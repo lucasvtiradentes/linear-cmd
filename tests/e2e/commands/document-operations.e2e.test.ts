@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadGlobalFixtures } from '../global-fixtures';
-import { e2eEnv } from '../utils/env';
+import { e2eEnv } from '../utils/e2e-env';
 import { execCommand } from '../utils/exec-command';
 import { cleanupTestEnvironment, getTestDirs, setupTestEnvironment } from '../utils/test-setup';
 
@@ -126,7 +126,7 @@ describe('Document Operations E2E', () => {
     }
 
     const accountName = fixtures.accountName;
-
+    const testTeam = e2eEnv.LINEAR_TEST_TEAM;
     const projectUrl = await createTestProject(fixtures.testHomeDir, accountName, testTeam);
 
     if (!projectUrl) {
