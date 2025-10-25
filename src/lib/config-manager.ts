@@ -183,6 +183,15 @@ export class ConfigManager {
     this.saveConfig();
   }
 
+  markCompletionUninstalled(): void {
+    const config = this.loadConfig();
+    if (!config.settings) {
+      config.settings = {};
+    }
+    config.settings.completion_installed = false;
+    this.saveConfig();
+  }
+
   isCompletionInstalled(): boolean {
     const config = this.loadConfig();
     return config.settings?.completion_installed === true;

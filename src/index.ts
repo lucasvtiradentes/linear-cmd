@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 
 import { createAccountCommand } from './commands/account/index.js';
-import { createCompletionCommand } from './commands/completion.js';
+import { createCompletionCommand } from './commands/completion/index.js';
 import { createDocumentCommand } from './commands/document/index.js';
 import { displayHelp } from './commands/help.js';
 import { createIssueCommand } from './commands/issue/index.js';
