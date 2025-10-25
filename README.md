@@ -62,6 +62,7 @@ linear update                    # Update to latest version
 ```bash
 # Add a new Linear account
 linear account add
+linear account add --name "work" --api-key "lin_api_..."
 
 # List all configured accounts
 linear account list

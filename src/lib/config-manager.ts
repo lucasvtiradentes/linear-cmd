@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync } from 'node:fs';
-import { CONFIG_PATHS } from '../constants.js';
+import { getConfigPaths } from '../constants.js';
 import type { Account, LinearConfig, UserMetadata } from '../types/local.js';
 import { linearConfigSchema, userMetadataSchema } from '../types/local.js';
 import { readJson5, writeJson5 } from '../utils/json-utils.js';
@@ -14,28 +14,32 @@ export class ConfigManager {
   }
 
   private ensureConfigDirectory(): void {
-    if (!existsSync(CONFIG_PATHS.configDir)) {
-      mkdirSync(CONFIG_PATHS.configDir, { recursive: true });
+    const configPaths = getConfigPaths();
+    if (!existsSync(configPaths.configDir)) {
+      mkdirSync(configPaths.configDir, { recursive: true });
     }
   }
 
   private initializeUserMetadata(): void {
-    if (!existsSync(CONFIG_PATHS.userMetadataFile)) {
+    const configPaths = getConfigPaths();
+    if (!existsSync(configPaths.userMetadataFile)) {
       this.createDefaultUserMetadata();
     }
     this.loadUserMetadata();
   }
 
   private createDefaultUserMetadata(): void {
+    const configPaths = getConfigPaths();
     const defaultMetadata: UserMetadata = {
-      config_path: CONFIG_PATHS.defaultConfigFile
+      config_path: configPaths.defaultConfigFile
     };
-    writeJson5(CONFIG_PATHS.userMetadataFile, defaultMetadata);
+    writeJson5(configPaths.userMetadataFile, defaultMetadata);
   }
 
   private loadUserMetadata(): void {
+    const configPaths = getConfigPaths();
     try {
-      const data = readJson5<UserMetadata>(CONFIG_PATHS.userMetadataFile);
+      const data = readJson5<UserMetadata>(configPaths.userMetadataFile);
       const validated = userMetadataSchema.parse(data);
       this.userMetadata = validated;
     } catch (error) {
@@ -50,8 +54,8 @@ export class ConfigManager {
     return this.userMetadata.config_path;
   }
 
-  private loadConfig(): LinearConfig {
-    if (this.config) {
+  private loadConfig(forceReload = false): LinearConfig {
+    if (this.config && !forceReload) {
       return this.config;
     }
 
@@ -132,7 +136,7 @@ export class ConfigManager {
   }
 
   getActiveAccount(): Account | null {
-    const config = this.loadConfig();
+    const config = this.loadConfig(true);
     if (!config.activeAccountName) {
       return null;
     }
@@ -140,7 +144,7 @@ export class ConfigManager {
   }
 
   getActiveAccountName(): string | null {
-    const config = this.loadConfig();
+    const config = this.loadConfig(true);
     return config.activeAccountName || null;
   }
 
@@ -155,17 +159,17 @@ export class ConfigManager {
   }
 
   getAllAccounts(): Account[] {
-    const config = this.loadConfig();
+    const config = this.loadConfig(true);
     return Object.values(config.accounts);
   }
 
   getAccount(name: string): Account | null {
-    const config = this.loadConfig();
+    const config = this.loadConfig(true);
     return config.accounts[name] || null;
   }
 
   listAccounts(): Array<{ name: string; teamId?: string }> {
-    const config = this.loadConfig();
+    const config = this.loadConfig(true);
 
     return Object.entries(config.accounts).map(([name, account]) => ({
       name,
@@ -185,7 +189,8 @@ export class ConfigManager {
   }
 
   findAccountByWorkspace(workspace: string): Account | null {
-    const accounts = this.getAllAccounts();
+    const config = this.loadConfig(true);
+    const accounts = Object.values(config.accounts);
     return accounts.find((a) => a.workspaces?.includes(workspace)) || null;
   }
 

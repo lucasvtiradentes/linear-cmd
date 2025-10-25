@@ -1,6 +1,11 @@
 import { CLI_NAME } from '../constants.js';
 import { type Command, CommandNames, SubCommandNames } from '../definitions.js';
 
+export interface AccountAddOptions {
+  name?: string;
+  apiKey?: string;
+}
+
 export const accountCommandDefinition: Command = {
   name: CommandNames.ACCOUNT,
   description: 'Manage Linear accounts',
@@ -8,7 +13,21 @@ export const accountCommandDefinition: Command = {
     {
       name: SubCommandNames.ACCOUNT_ADD,
       description: 'Add a new Linear account',
-      examples: [`${CLI_NAME} account add`]
+      flags: [
+        {
+          name: '--name',
+          alias: '-n',
+          description: 'Account name',
+          type: 'string'
+        },
+        {
+          name: '--api-key',
+          alias: '-k',
+          description: 'Linear API key',
+          type: 'string'
+        }
+      ],
+      examples: [`${CLI_NAME} account add`, `${CLI_NAME} account add --name "work" --api-key "lin_api_..."`]
     },
     {
       name: SubCommandNames.ACCOUNT_LIST,

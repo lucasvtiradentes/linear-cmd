@@ -14,14 +14,12 @@ export async function execCommand(
   homeDir?: string
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
-    const fullCommand = `npm run dev -- ${command}`;
-
     const parts: string[] = [];
     let current = '';
     let inQuotes = false;
 
-    for (let i = 0; i < fullCommand.length; i++) {
-      const char = fullCommand[i];
+    for (let i = 0; i < command.length; i++) {
+      const char = command[i];
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === ' ' && !inQuotes) {
@@ -37,8 +35,7 @@ export async function execCommand(
       parts.push(current);
     }
 
-    const [cmd, ...args] = parts;
-    const child = spawn(cmd, args, {
+    const child = spawn('npx', ['tsx', '--no-cache', 'src/index.ts', ...parts], {
       cwd: path.resolve(__dirname, '../../..'),
       env: {
         ...process.env,
@@ -71,12 +68,12 @@ export async function execCommand(
           child.stdin.write(`${lines[index]}\n`);
           index++;
           if (index < lines.length) {
-            setTimeout(writeNext, 500);
+            setTimeout(writeNext, 800);
           }
         }
       };
 
-      setTimeout(writeNext, 1000);
+      setTimeout(writeNext, 1500);
     }
 
     child.stdout?.on('data', (data) => {

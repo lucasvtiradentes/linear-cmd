@@ -3,113 +3,9 @@ import './load-env';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn } from 'child_process';
 import { clearGlobalFixtures, loadGlobalFixtures, saveGlobalFixtures } from './global-fixtures';
 import { e2eEnv } from './utils/e2e-env';
-
-interface CommandResult {
-  stdout: string;
-  stderr: string;
-  exitCode: number;
-}
-
-async function execCommand(command: string, input?: string, timeout = 30000, homeDir?: string): Promise<CommandResult> {
-  return new Promise((resolve, reject) => {
-    const fullCommand = `npm run dev -- ${command}`;
-
-    // Parse command respecting quoted arguments
-    const parts: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < fullCommand.length; i++) {
-      const char = fullCommand[i];
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ' ' && !inQuotes) {
-        if (current) {
-          parts.push(current);
-          current = '';
-        }
-      } else {
-        current += char;
-      }
-    }
-    if (current) {
-      parts.push(current);
-    }
-
-    const [cmd, ...args] = parts;
-    const child = spawn(cmd, args, {
-      cwd: path.resolve(__dirname, '../../'),
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        ...(homeDir ? { HOME: homeDir } : {}),
-        CI: 'true',
-        FORCE_TTY: 'false',
-        FORCE_STDIN: 'true'
-      },
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    let stdout = '';
-    let stderr = '';
-    let isResolved = false;
-
-    const timeoutId = setTimeout(() => {
-      if (!isResolved) {
-        child.kill('SIGTERM');
-        reject(new Error(`Command timed out after ${timeout}ms`));
-      }
-    }, timeout);
-
-    if (input && child.stdin) {
-      const lines = input.split('\n');
-      let index = 0;
-
-      const writeNext = () => {
-        if (index < lines.length && child.stdin && !child.stdin.destroyed) {
-          child.stdin.write(`${lines[index]}\n`);
-          index++;
-          if (index < lines.length) {
-            setTimeout(writeNext, 500);
-          }
-        }
-      };
-
-      setTimeout(writeNext, 1000);
-    }
-
-    child.stdout?.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    child.stderr?.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    child.on('close', (code) => {
-      if (!isResolved) {
-        isResolved = true;
-        clearTimeout(timeoutId);
-        resolve({
-          stdout,
-          stderr,
-          exitCode: code || 0
-        });
-      }
-    });
-
-    child.on('error', (error) => {
-      if (!isResolved) {
-        isResolved = true;
-        clearTimeout(timeoutId);
-        reject(error);
-      }
-    });
-  });
-}
+import { execCommand } from './utils/exec-command';
 
 export async function setup() {
   const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
@@ -141,10 +37,24 @@ export async function setup() {
 }`
     );
 
+    console.log({ testHomeDir });
+
     // Setup test account
     const accountName = `e2e-global-${Date.now()}`;
-    const addInput = `${accountName}\n${apiKey}`;
-    await execCommand('account add', addInput, 15000, testHomeDir);
+    const addResult = await execCommand(
+      `account add --name "${accountName}" --api-key "${apiKey}"`,
+      undefined,
+      15000,
+      testHomeDir
+    );
+
+    if (addResult.exitCode !== 0) {
+      console.error('Account add failed:');
+      console.error('Exit code:', addResult.exitCode);
+      console.error('Stdout:', addResult.stdout);
+      console.error('Stderr:', addResult.stderr);
+      throw new Error('Failed to create test account');
+    }
 
     console.log('  ✓ Created test account');
 
@@ -246,17 +156,8 @@ export async function teardown() {
       console.log('  ✓ Deleted test document');
     }
 
-    // Archive issue (Linear doesn't support delete, only archive)
     if (issueUrl) {
-      console.log(`  Archiving issue: ${issueUrl}`);
-      const archiveResult = await execCommand(`issue update ${issueUrl} --archive`, undefined, 30000, testHomeDir);
-      if (archiveResult.exitCode === 0) {
-        console.log('  ✓ Archived test issue successfully');
-      } else {
-        console.error('  ✗ Failed to archive issue');
-        console.error('    Stdout:', archiveResult.stdout);
-        console.error('    Stderr:', archiveResult.stderr);
-      }
+      console.log('  ⚠️  Issue cleanup skipped (no delete API available)');
     }
 
     // Delete project

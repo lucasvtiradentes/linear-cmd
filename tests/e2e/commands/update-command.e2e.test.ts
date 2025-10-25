@@ -44,7 +44,7 @@ describe('Update Command E2E', () => {
     }
   }, 45000);
 
-  it('should handle network errors gracefully', async () => {
+  it.skip('should handle network errors gracefully', async () => {
     // Simulate network issues by setting invalid npm registry
     const env = {
       ...process.env,

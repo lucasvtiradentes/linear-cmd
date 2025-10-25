@@ -43,7 +43,7 @@ function getUserOS(): SupportedOS {
 
 export function getConfigDirectory(): string {
   const userOS = getUserOS();
-  const homeDir = os.homedir();
+  const homeDir = process.env.HOME || os.homedir();
 
   switch (userOS) {
     case 'linux':
@@ -58,8 +58,11 @@ export function getConfigDirectory(): string {
   }
 }
 
-export const CONFIG_PATHS = {
-  configDir: getConfigDirectory(),
-  userMetadataFile: path.join(getConfigDirectory(), 'user_metadata.json'),
-  defaultConfigFile: path.join(getConfigDirectory(), 'config.json5')
-};
+export function getConfigPaths() {
+  const configDir = getConfigDirectory();
+  return {
+    configDir,
+    userMetadataFile: path.join(configDir, 'user_metadata.json'),
+    defaultConfigFile: path.join(configDir, 'config.json5')
+  };
+}

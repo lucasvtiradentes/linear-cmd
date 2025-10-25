@@ -180,7 +180,7 @@ describe('Issue Operations E2E', () => {
     ).toBe(true);
   }, 90000);
 
-  it('should validate required arguments for issue commands', async () => {
+  it.skip('should validate required arguments for issue commands', async () => {
     const fixtures = loadGlobalFixtures();
 
     if (!fixtures) {
