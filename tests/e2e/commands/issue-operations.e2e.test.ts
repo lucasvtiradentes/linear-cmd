@@ -16,11 +16,10 @@ describe('Issue Operations E2E', () => {
   });
 
   it('should handle issue show command with real API if available', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -36,12 +35,11 @@ describe('Issue Operations E2E', () => {
   }, 90000);
 
   it('should handle issue list command', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const testTeam = e2eEnv.LINEAR_TEST_TEAM;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -111,11 +109,10 @@ describe('Issue Operations E2E', () => {
   }, 90000);
 
   it('should handle JSON output format for issue commands', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 

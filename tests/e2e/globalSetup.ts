@@ -1,11 +1,11 @@
 import './load-env';
 
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { spawn } from 'child_process';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { clearGlobalFixtures, loadGlobalFixtures, saveGlobalFixtures } from './global-fixtures';
-import { e2eEnv } from './utils/env';
+import { e2eEnv } from './utils/e2e-env';
 
 interface CommandResult {
   stdout: string;
@@ -113,11 +113,6 @@ export async function setup() {
   const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
   const testTeam = e2eEnv.LINEAR_TEST_TEAM;
 
-  if (!apiKey) {
-    console.log('⚠️  Skipping global fixtures creation: Missing LINEAR_API_KEY_E2E\n');
-    return;
-  }
-
   console.log('🌍 Creating global fixtures for all E2E tests...');
 
   const testHomeDir = path.join(os.tmpdir(), `linear-cmd-global-e2e-${Date.now()}`);
@@ -125,19 +120,19 @@ export async function setup() {
 
   try {
     // Setup test home directory
-    fs.mkdirSync(testConfigDir, { recursive: true });
+    mkdirSync(testConfigDir, { recursive: true });
 
     const userMetadataPath = path.join(testConfigDir, 'user_metadata.json');
     const configPath = path.join(testConfigDir, 'config.json5');
 
-    fs.writeFileSync(
+    writeFileSync(
       userMetadataPath,
       JSON.stringify({
         config_path: configPath
       })
     );
 
-    fs.writeFileSync(
+    writeFileSync(
       configPath,
       `{
   "accounts": {}
@@ -222,8 +217,8 @@ export async function setup() {
   } catch (error) {
     console.error('❌ Failed to create global fixtures:', error);
     // Clean up partial setup
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
+    if (existsSync(testHomeDir)) {
+      rmSync(testHomeDir, { recursive: true, force: true });
     }
     clearGlobalFixtures();
     console.log('⚠️  Tests will run without global fixtures (slower)\n');
@@ -232,13 +227,6 @@ export async function setup() {
 
 export async function teardown() {
   console.log('\n🧹 Cleaning up global fixtures...');
-
-  const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
-
-  if (!apiKey) {
-    console.log('⚠️  Skipping cleanup: Missing LINEAR_API_KEY_E2E');
-    return;
-  }
 
   try {
     const fixtures = loadGlobalFixtures();
@@ -286,8 +274,8 @@ export async function teardown() {
     }
 
     // Clean up test home directory
-    if (fs.existsSync(testHomeDir)) {
-      fs.rmSync(testHomeDir, { recursive: true, force: true });
+    if (existsSync(testHomeDir)) {
+      rmSync(testHomeDir, { recursive: true, force: true });
       console.log('  ✓ Cleaned up test directory');
     }
 

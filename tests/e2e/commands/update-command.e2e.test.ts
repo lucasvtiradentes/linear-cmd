@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import fs from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { execCommand } from '../utils/exec-command';
@@ -141,16 +141,16 @@ describe('Update Command E2E', () => {
 
   it('should handle malformed package.json gracefully', async () => {
     const packagePath = path.resolve(__dirname, '../../../package.json');
-    const originalContent = fs.readFileSync(packagePath, 'utf-8');
+    const originalContent = readFileSync(packagePath, 'utf-8');
 
     try {
-      fs.writeFileSync(packagePath, '{ "invalid": json }');
+      writeFileSync(packagePath, '{ "invalid": json }');
 
       const result = await execCommand('update', undefined, 15000, testHomeDir);
 
       expect(result.exitCode !== 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
     } finally {
-      fs.writeFileSync(packagePath, originalContent);
+      writeFileSync(packagePath, originalContent);
     }
   }, 20000);
 

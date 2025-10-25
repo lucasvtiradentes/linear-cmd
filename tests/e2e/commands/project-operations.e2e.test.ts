@@ -46,11 +46,10 @@ describe('Project Operations E2E', () => {
   }
 
   it('should handle project show command with real API if available', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -64,11 +63,10 @@ describe('Project Operations E2E', () => {
   }, 60000);
 
   it('should handle project issues command with real API if available', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -106,11 +104,10 @@ describe('Project Operations E2E', () => {
   }, 15000);
 
   it('should handle JSON output format for project show', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -129,11 +126,10 @@ describe('Project Operations E2E', () => {
   }, 60000);
 
   it('should handle JSON output format for project issues', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -160,13 +156,7 @@ describe('Project Operations E2E', () => {
   }, 30000);
 
   it('should handle project create command with real API if available', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const testTeam = e2eEnv.LINEAR_TEST_TEAM;
-
-    if (!apiKey) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
-      return;
-    }
 
     await setupTestAccount(testHomeDir);
 
@@ -186,13 +176,7 @@ describe('Project Operations E2E', () => {
   }, 45000);
 
   it('should handle project delete command with real API if available', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const testTeam = e2eEnv.LINEAR_TEST_TEAM;
-
-    if (!apiKey) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E');
-      return;
-    }
 
     const accountName = await setupTestAccount(testHomeDir);
 
@@ -219,11 +203,10 @@ describe('Project Operations E2E', () => {
   }, 60000);
 
   it('should handle project list command with real API if available', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -239,12 +222,11 @@ describe('Project Operations E2E', () => {
   }, 30000);
 
   it('should handle project list command with team filter', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const testTeam = e2eEnv.LINEAR_TEST_TEAM;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -265,11 +247,10 @@ describe('Project Operations E2E', () => {
   }, 30000);
 
   it('should handle JSON output format for project list', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 

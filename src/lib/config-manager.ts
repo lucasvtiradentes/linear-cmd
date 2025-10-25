@@ -1,5 +1,4 @@
-import * as fs from 'fs';
-
+import { existsSync, mkdirSync } from 'node:fs';
 import { CONFIG_PATHS } from '../constants.js';
 import type { Account, LinearConfig, UserMetadata } from '../types/local.js';
 import { linearConfigSchema, userMetadataSchema } from '../types/local.js';
@@ -15,13 +14,13 @@ export class ConfigManager {
   }
 
   private ensureConfigDirectory(): void {
-    if (!fs.existsSync(CONFIG_PATHS.configDir)) {
-      fs.mkdirSync(CONFIG_PATHS.configDir, { recursive: true });
+    if (!existsSync(CONFIG_PATHS.configDir)) {
+      mkdirSync(CONFIG_PATHS.configDir, { recursive: true });
     }
   }
 
   private initializeUserMetadata(): void {
-    if (!fs.existsSync(CONFIG_PATHS.userMetadataFile)) {
+    if (!existsSync(CONFIG_PATHS.userMetadataFile)) {
       this.createDefaultUserMetadata();
     }
     this.loadUserMetadata();
@@ -58,7 +57,7 @@ export class ConfigManager {
 
     const configPath = this.getConfigPath();
 
-    if (!fs.existsSync(configPath)) {
+    if (!existsSync(configPath)) {
       this.createDefaultConfig();
     }
 

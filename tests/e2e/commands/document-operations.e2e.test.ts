@@ -50,11 +50,10 @@ describe('Document Operations E2E', () => {
   }
 
   it('should handle document show command with real API if available', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -83,11 +82,10 @@ describe('Document Operations E2E', () => {
   }, 15000);
 
   it('should handle JSON output format for document show', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping JSON format test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 
@@ -120,12 +118,10 @@ describe('Document Operations E2E', () => {
   }, 20000);
 
   it('should create document in project, then delete both without leaving garbage', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
-    const testTeam = e2eEnv.LINEAR_TEST_TEAM;
     const fixtures = loadGlobalFixtures();
 
-    if (!apiKey || !fixtures) {
-      console.log('Skipping real API test: Missing LINEAR_API_KEY_E2E or global fixtures');
+    if (!fixtures) {
+      console.log('Skipping test: Missing global fixtures');
       return;
     }
 

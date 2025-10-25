@@ -15,16 +15,8 @@ describe('Complete User Workflow E2E', () => {
   });
 
   it('should complete full workflow: add account → fetch real issue', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
-    const testIssueId = e2eEnv.LINEAR_TEST_ISSUE_ID;
-
-    if (!apiKey || !testIssueId) {
-      console.log('Skipping e2e test: Missing LINEAR_API_KEY_E2E or LINEAR_TEST_ISSUE_ID');
-      return;
-    }
-
     const accountName = `e2e-test-${Date.now()}`;
-    const addAccountInput = `${accountName}\n${apiKey}`;
+    const addAccountInput = `${accountName}\n${e2eEnv.LINEAR_API_KEY_E2E}`;
     const addResult = await execCommand('account add', addAccountInput, 30000, testHomeDir);
 
     if (addResult.exitCode !== 0) {
@@ -41,7 +33,7 @@ describe('Complete User Workflow E2E', () => {
     expect(listResult.stdout).toContain(accountName);
     expect(listResult.stdout).toContain('Configured accounts:');
 
-    const showResult = await execCommand(`issue show ${testIssueId}`, undefined, 30000, testHomeDir);
+    const showResult = await execCommand(`issue show ${e2eEnv.LINEAR_TEST_ISSUE_ID}`, undefined, 30000, testHomeDir);
 
     expect(showResult.exitCode === 0 || showResult.stderr.length > 0 || showResult.stdout.includes('Error')).toBe(true);
 
@@ -68,15 +60,8 @@ describe('Complete User Workflow E2E', () => {
   });
 
   it('should handle non-existent issue gracefully', async () => {
-    const apiKey = e2eEnv.LINEAR_API_KEY_E2E;
-
-    if (!apiKey) {
-      console.log('Skipping e2e test: Missing LINEAR_API_KEY_E2E');
-      return;
-    }
-
     const accountName = `e2e-test-${Date.now()}`;
-    const addAccountInput = `${accountName}\n${apiKey}`;
+    const addAccountInput = `${accountName}\n${e2eEnv.LINEAR_API_KEY_E2E}`;
     await execCommand('account add', addAccountInput, 10000, testHomeDir);
 
     const result = await execCommand('issue show INVALID-999', undefined, 10000, testHomeDir);
