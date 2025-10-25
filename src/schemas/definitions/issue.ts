@@ -62,7 +62,6 @@ export const issueCommandDefinition: Command = {
         },
         {
           name: '--assignee',
-          alias: '-a',
           description: 'Assignee email',
           type: 'string'
         },
@@ -79,7 +78,13 @@ export const issueCommandDefinition: Command = {
         },
         {
           name: '--account',
-          description: 'Account to use',
+          alias: '-a',
+          description: 'Account to use (optional, uses active account if not specified)',
+          type: 'string'
+        },
+        {
+          name: '--team',
+          description: 'Team key (e.g., TES, WORK)',
           type: 'string'
         }
       ],
@@ -101,7 +106,6 @@ export const issueCommandDefinition: Command = {
         },
         {
           name: '--assignee',
-          alias: '-a',
           description: 'Filter by assignee email',
           type: 'string'
         },
@@ -131,7 +135,8 @@ export const issueCommandDefinition: Command = {
         },
         {
           name: '--account',
-          description: 'Account to use',
+          alias: '-a',
+          description: 'Account to use (optional, uses active account if not specified)',
           type: 'string'
         }
       ],
@@ -180,7 +185,6 @@ export const issueCommandDefinition: Command = {
         },
         {
           name: '--assignee',
-          alias: '-a',
           description: 'Assignee email',
           type: 'string'
         },
@@ -188,6 +192,12 @@ export const issueCommandDefinition: Command = {
           name: '--label',
           alias: '-l',
           description: 'Label name',
+          type: 'string'
+        },
+        {
+          name: '--account',
+          alias: '-a',
+          description: 'Account to use (optional, uses active account if not specified)',
           type: 'string'
         }
       ],

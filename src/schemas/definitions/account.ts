@@ -21,6 +21,11 @@ export const accountCommandDefinition: Command = {
       examples: [`${CLI_NAME} account remove`]
     },
     {
+      name: SubCommandNames.ACCOUNT_SELECT,
+      description: 'Select the active Linear account',
+      examples: [`${CLI_NAME} account select`]
+    },
+    {
       name: SubCommandNames.ACCOUNT_TEST,
       description: 'Test account connections',
       examples: [`${CLI_NAME} account test`]

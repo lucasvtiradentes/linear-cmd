@@ -20,6 +20,7 @@ export const accountSchema = z.object({
 export const linearConfigSchema = z.object({
   $schema: z.string().optional(),
   accounts: z.record(z.string(), accountSchema),
+  activeAccountName: z.string().optional(),
   settings: z
     .object({
       completion_installed: z.boolean().optional()

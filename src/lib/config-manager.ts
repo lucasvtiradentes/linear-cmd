@@ -107,7 +107,10 @@ export class ConfigManager {
 
     config.accounts[name] = account;
 
-    // No longer set as active automatically
+    const accountCount = Object.keys(config.accounts).length;
+    if (!config.activeAccountName || accountCount === 1) {
+      config.activeAccountName = name;
+    }
 
     this.saveConfig();
   }
@@ -121,12 +124,36 @@ export class ConfigManager {
 
     delete config.accounts[name];
 
-    // No longer manage active account
+    if (config.activeAccountName === name) {
+      const remainingAccounts = Object.keys(config.accounts);
+      config.activeAccountName = remainingAccounts.length > 0 ? remainingAccounts[0] : undefined;
+    }
 
     this.saveConfig();
   }
 
-  // Active account methods removed - accounts must be specified explicitly
+  getActiveAccount(): Account | null {
+    const config = this.loadConfig();
+    if (!config.activeAccountName) {
+      return null;
+    }
+    return config.accounts[config.activeAccountName] || null;
+  }
+
+  getActiveAccountName(): string | null {
+    const config = this.loadConfig();
+    return config.activeAccountName || null;
+  }
+
+  setActiveAccount(name: string): boolean {
+    const config = this.loadConfig();
+    if (!config.accounts[name]) {
+      return false;
+    }
+    config.activeAccountName = name;
+    this.saveConfig();
+    return true;
+  }
 
   getAllAccounts(): Account[] {
     const config = this.loadConfig();

@@ -46,7 +46,8 @@ export const documentCommandDefinition: Command = {
         },
         {
           name: '--account',
-          description: 'Account to use',
+          alias: '-a',
+          description: 'Account to use (optional, uses active account if not specified)',
           type: 'string'
         }
       ],

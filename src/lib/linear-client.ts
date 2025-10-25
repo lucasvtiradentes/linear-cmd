@@ -23,18 +23,24 @@ export async function getLinearClientForAccount(
   configManager: ConfigManager,
   accountName?: string
 ): Promise<{ client: LinearClient; account: Account }> {
-  if (!accountName) {
-    throw new ValidationError('Account is required', [
-      'Use --account flag to specify which account to use',
-      'Run `linear account list` to see available accounts'
-    ]);
-  }
+  let account: Account | null = null;
 
-  const account = configManager.getAccount(accountName);
-  if (!account) {
-    throw new ValidationError(`Account '${accountName}' not found`, [
-      'Run `linear account list` to see available accounts'
-    ]);
+  if (accountName) {
+    account = configManager.getAccount(accountName);
+    if (!account) {
+      throw new ValidationError(`Account '${accountName}' not found`, [
+        'Run `linear account list` to see available accounts'
+      ]);
+    }
+  } else {
+    account = configManager.getActiveAccount();
+    if (!account) {
+      throw new ValidationError('No active account found', [
+        'Run `linear account add` to add an account',
+        'Run `linear account select` to select an active account',
+        'Or use --account flag to specify which account to use'
+      ]);
+    }
   }
 
   return {

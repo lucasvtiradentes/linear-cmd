@@ -45,6 +45,7 @@ export const SubCommandNames = {
   ACCOUNT_ADD: 'add',
   ACCOUNT_LIST: 'list',
   ACCOUNT_REMOVE: 'remove',
+  ACCOUNT_SELECT: 'select',
   ACCOUNT_TEST: 'test',
 
   ISSUE_SHOW: 'show',
