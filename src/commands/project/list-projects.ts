@@ -19,7 +19,7 @@ export function createListProjectsCommand(): Command {
         const { client, account } = await getLinearClientForAccount(configManager, options.account);
 
         // Build filter
-        const filter: any = {};
+        const filter: Record<string, unknown> = {};
 
         // Handle team filter
         if (options.team) {

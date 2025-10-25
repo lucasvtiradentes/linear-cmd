@@ -77,7 +77,13 @@ export function createCreateProjectCommand(): Command {
         // Create the project
         logger.loading(`Creating project in account: ${account.name}...`);
 
-        const projectPayload: any = {
+        const projectPayload: {
+          name: string;
+          description?: string;
+          teamIds: string[];
+          state?: string;
+          targetDate?: Date;
+        } = {
           name,
           description,
           teamIds: [teamId]

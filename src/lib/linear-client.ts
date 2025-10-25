@@ -774,7 +774,11 @@ export class LinearAPIClient {
     }
     const client = new LinearClient({ apiKey: account.api_key });
 
-    const input: any = {
+    const input: {
+      title: string;
+      content?: string;
+      projectId?: string;
+    } = {
       title,
       ...(options.content && { content: options.content }),
       ...(options.projectId && { projectId: options.projectId })
