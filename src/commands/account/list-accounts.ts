@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 
 import { ConfigManager } from '../../lib/config-manager.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
@@ -11,18 +11,18 @@ export function createListAccountsCommand(): Command {
     const accounts = configManager.getAllAccounts();
 
     if (accounts.length === 0) {
-      Logger.warning('No accounts configured. Use "linear account add" to add one.');
+      logger.warning('No accounts configured. Use "linear account add" to add one.');
       return;
     }
 
-    Logger.bold('\nConfigured accounts:');
+    logger.bold('\nConfigured accounts:');
     accounts.forEach((account) => {
       const workspaces = account.workspaces?.length ? `[${account.workspaces.join(', ')}]` : '';
       if (workspaces) {
-        Logger.plain(`  • ${account.name}`);
-        Logger.dim(`    ${workspaces}`);
+        logger.plain(`  • ${account.name}`);
+        logger.dim(`    ${workspaces}`);
       } else {
-        Logger.plain(`  • ${account.name}`);
+        logger.plain(`  • ${account.name}`);
       }
     });
   });

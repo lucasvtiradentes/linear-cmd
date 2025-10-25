@@ -1,7 +1,8 @@
 import { LinearClient } from '@linear/sdk';
-import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
+
+import { colors } from '../../lib/colors.js';
 import { ConfigManager } from '../../lib/config-manager.js';
 import {
   findAccountForIssue,
@@ -10,7 +11,7 @@ import {
   LinearAPIClient,
   ValidationError
 } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 import type { LinearIssueUpdatePayload } from '../../types/linear.js';
@@ -44,7 +45,7 @@ export function createUpdateIssueCommand(): Command {
         const linearClient = new LinearAPIClient();
         const issueId = linearClient.parseIssueIdentifier(issueIdOrUrl);
         if (!issueId) {
-          console.error(chalk.red('❌ Invalid issue ID or URL'));
+          console.error(colors.red('❌ Invalid issue ID or URL'));
           return;
         }
 
@@ -72,7 +73,7 @@ export function createUpdateIssueCommand(): Command {
         // Fetch the issue
         const issue = await client.issue(issueId);
         if (!issue) {
-          console.error(chalk.red(`❌ Issue ${issueId} not found`));
+          console.error(colors.red(`❌ Issue ${issueId} not found`));
           return;
         }
 
@@ -96,7 +97,7 @@ export function createUpdateIssueCommand(): Command {
         if (options.state) {
           const team = await issue.team;
           if (!team) {
-            console.error(chalk.red('❌ Unable to get issue team'));
+            console.error(colors.red('❌ Unable to get issue team'));
             return;
           }
 
@@ -111,7 +112,7 @@ export function createUpdateIssueCommand(): Command {
             updatePayload.stateId = states.nodes[0].id;
             hasUpdates = true;
           } else {
-            console.error(chalk.red(`❌ State '${options.state}' not found`));
+            console.error(colors.red(`❌ State '${options.state}' not found`));
             return;
           }
         }
@@ -127,7 +128,7 @@ export function createUpdateIssueCommand(): Command {
               updatePayload.assigneeId = users.nodes[0].id;
               hasUpdates = true;
             } else {
-              console.error(chalk.red(`❌ User '${options.assignee}' not found`));
+              console.error(colors.red(`❌ User '${options.assignee}' not found`));
               return;
             }
           }
@@ -144,7 +145,7 @@ export function createUpdateIssueCommand(): Command {
               updatePayload.projectId = projects.nodes[0].id;
               hasUpdates = true;
             } else {
-              console.error(chalk.red(`❌ Project '${options.project}' not found`));
+              console.error(colors.red(`❌ Project '${options.project}' not found`));
               return;
             }
           }
@@ -157,10 +158,10 @@ export function createUpdateIssueCommand(): Command {
             updatePayload.teamId = teams.nodes[0].id;
             hasUpdates = true;
           } else {
-            console.error(chalk.red(`❌ Team '${options.team}' not found`));
-            Logger.dim('\nAvailable teams:');
+            console.error(colors.red(`❌ Team '${options.team}' not found`));
+            logger.dim('\nAvailable teams:');
             const allTeams = await client.teams();
-            allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
+            allTeams.nodes.forEach((t) => logger.dim(`  - ${t.key}: ${t.name}`));
             return;
           }
         }
@@ -185,10 +186,10 @@ export function createUpdateIssueCommand(): Command {
               updatePayload.labelIds = [...currentLabelIds, labels.nodes[0].id];
               hasUpdates = true;
             } else {
-              Logger.warning(`Label '${options.addLabel}' already added`);
+              logger.warning(`Label '${options.addLabel}' already added`);
             }
           } else {
-            console.error(chalk.red(`❌ Label '${options.addLabel}' not found`));
+            console.error(colors.red(`❌ Label '${options.addLabel}' not found`));
             return;
           }
         }
@@ -202,16 +203,16 @@ export function createUpdateIssueCommand(): Command {
             updatePayload.labelIds = currentLabels.nodes.filter((l) => l.id !== labelToRemove.id).map((l) => l.id);
             hasUpdates = true;
           } else {
-            Logger.warning(`Label '${options.removeLabel}' not found on issue`);
+            logger.warning(`Label '${options.removeLabel}' not found on issue`);
           }
         }
 
         // Handle archive
         if (options.archive) {
           // Archive is a separate action, not part of the update payload
-          Logger.loading(`Archiving issue in account: ${account?.name || 'unknown'}...`);
+          logger.loading(`Archiving issue in account: ${account?.name || 'unknown'}...`);
           await client.archiveIssue(issue.id);
-          Logger.success(`Issue ${issue.identifier} archived successfully!`);
+          logger.success(`Issue ${issue.identifier} archived successfully!`);
           return;
         }
 
@@ -315,7 +316,7 @@ export function createUpdateIssueCommand(): Command {
 
               case 'state': {
                 if (!states) {
-                  console.error(chalk.red('❌ Unable to get team states'));
+                  console.error(colors.red('❌ Unable to get team states'));
                   break;
                 }
 
@@ -383,7 +384,7 @@ export function createUpdateIssueCommand(): Command {
               }
 
               case 'cancel': {
-                console.log(chalk.dim('Update cancelled'));
+                console.log(colors.dim('Update cancelled'));
                 return;
               }
             }
@@ -393,16 +394,16 @@ export function createUpdateIssueCommand(): Command {
         // Validate and update the issue
         const validPayload = linearIssueUpdatePayloadSchema.parse(updatePayload);
 
-        Logger.loading(`Updating issue in account: ${account?.name || 'unknown'}...`);
+        logger.loading(`Updating issue in account: ${account?.name || 'unknown'}...`);
         await client.updateIssue(issue.id, validPayload);
 
-        Logger.success(`Issue ${issue.identifier} updated successfully!`);
-        Logger.link(issue.url);
+        logger.success(`Issue ${issue.identifier} updated successfully!`);
+        logger.link(issue.url);
       } catch (error) {
         if (error instanceof ValidationError) {
           handleValidationError(error);
         } else {
-          Logger.error('Error updating issue', error);
+          logger.error('Error updating issue', error);
         }
       }
     }

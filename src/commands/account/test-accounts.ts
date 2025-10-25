@@ -2,7 +2,7 @@ import { LinearClient } from '@linear/sdk';
 import { Command } from 'commander';
 
 import { ConfigManager } from '../../lib/config-manager.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
@@ -13,24 +13,24 @@ export function createTestAccountsCommand(): Command {
       const accounts = configManager.getAllAccounts();
 
       if (accounts.length === 0) {
-        Logger.warning('No accounts configured. Use "linear account add" to add one.');
+        logger.warning('No accounts configured. Use "linear account add" to add one.');
         return;
       }
 
-      Logger.bold('Testing all accounts:\n');
+      logger.bold('Testing all accounts:\n');
 
       for (const account of accounts) {
         try {
           const client = new LinearClient({ apiKey: account.api_key });
           const viewer = await client.viewer;
 
-          Logger.success(`${account.name}: ${viewer.name} (${viewer.email})`);
+          logger.success(`${account.name}: ${viewer.name} (${viewer.email})`);
         } catch (error) {
-          Logger.error(`${account.name}: ${error instanceof Error ? error.message : 'Connection failed'}`);
+          logger.error(`${account.name}: ${error instanceof Error ? error.message : 'Connection failed'}`);
         }
       }
     } catch (error) {
-      Logger.error('Error testing accounts', error);
+      logger.error('Error testing accounts', error);
     }
   });
 }

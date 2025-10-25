@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { LinearAPIClient } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 
 export function createDeleteDocumentCommand(): Command {
   return new Command('delete')
@@ -13,7 +13,7 @@ export function createDeleteDocumentCommand(): Command {
         const linearClient = new LinearAPIClient();
 
         // Get document details first
-        Logger.loading('Fetching document details...');
+        logger.loading('Fetching document details...');
         const document = await linearClient.getDocumentByIdOrUrl(idOrUrl);
 
         // Confirm deletion unless --yes flag is used
@@ -28,18 +28,18 @@ export function createDeleteDocumentCommand(): Command {
           ]);
 
           if (!answer.confirm) {
-            Logger.info('Document deletion cancelled');
+            logger.info('Document deletion cancelled');
             return;
           }
         }
 
         // Delete the document
-        Logger.loading('Deleting document...');
+        logger.loading('Deleting document...');
         await linearClient.deleteDocument(idOrUrl);
 
-        Logger.success(`Document "${document.title}" deleted successfully!`);
+        logger.success(`Document "${document.title}" deleted successfully!`);
       } catch (error) {
-        Logger.error('Error deleting document', error);
+        logger.error('Error deleting document', error);
         process.exit(1);
       }
     });

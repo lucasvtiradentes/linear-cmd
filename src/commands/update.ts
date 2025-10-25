@@ -1,7 +1,8 @@
 import { Command } from 'commander';
 
 import { APP_INFO } from '../constants.js';
-import { Logger } from '../lib/logger.js';
+import { ConfigManager } from '../lib/config-manager.js';
+import { logger } from '../lib/logger.js';
 import { CommandNames } from '../schemas/definitions.js';
 import { createCommandFromSchema } from '../schemas/utils.js';
 import { execAsync } from '../utils/cli-utils.js';
@@ -11,78 +12,77 @@ import { reinstallCompletionSilently } from './completion/index.js';
 export function createUpdateCommand(): Command {
   return createCommandFromSchema(CommandNames.UPDATE).action(async () => {
     try {
-      Logger.loading('Checking current version...');
+      logger.loading('Checking current version...');
 
       const currentVersion = APP_INFO.version;
 
-      Logger.loading('Checking latest version...');
+      logger.loading('Checking latest version...');
 
       const latestVersion = await getLatestVersion();
       if (!latestVersion) {
-        Logger.error('Could not fetch latest version from npm');
+        logger.error('Could not fetch latest version from npm');
         return;
       }
 
-      Logger.info(`📦 Current version: ${currentVersion}`);
-      Logger.info(`📦 Latest version: ${latestVersion}`);
+      logger.info(`📦 Current version: ${currentVersion}`);
+      logger.info(`📦 Latest version: ${latestVersion}`);
 
       if (currentVersion === latestVersion) {
-        Logger.success(`✅ ${APP_INFO.name} is already up to date!`);
+        logger.success(`✅ ${APP_INFO.name} is already up to date!`);
         return;
       }
 
-      Logger.loading('Detecting package manager...');
+      logger.loading('Detecting package manager...');
 
       const packageManager = await detectPackageManager();
 
       if (!packageManager) {
-        Logger.error(`Could not detect how ${APP_INFO.name} was installed`);
-        Logger.dim('Please update manually using your package manager');
+        logger.error(`Could not detect how ${APP_INFO.name} was installed`);
+        logger.dim('Please update manually using your package manager');
         return;
       }
 
-      Logger.info(`📦 Detected package manager: ${packageManager}`);
-      Logger.loading(`Updating ${APP_INFO.name} from ${currentVersion} to ${latestVersion}...`);
+      logger.info(`📦 Detected package manager: ${packageManager}`);
+      logger.loading(`Updating ${APP_INFO.name} from ${currentVersion} to ${latestVersion}...`);
 
       const updateCommand = getUpdateCommand(packageManager);
       const { stdout, stderr } = await execAsync(updateCommand);
 
       if (stderr && !stderr.includes('npm WARN')) {
-        Logger.error(`Error updating: ${stderr}`);
+        logger.error(`Error updating: ${stderr}`);
         return;
       }
 
-      Logger.success(`✅ ${APP_INFO.name} updated successfully from ${currentVersion} to ${latestVersion}!`);
+      logger.success(`✅ ${APP_INFO.name} updated successfully from ${currentVersion} to ${latestVersion}!`);
 
       if (stdout) {
-        Logger.dim(stdout);
+        logger.dim(stdout);
       }
 
       if (!isWindows()) {
-        const { ConfigManager } = await import('../lib/config-manager.js');
         const configManager = new ConfigManager();
 
         const completionReinstalled = await reinstallCompletionSilently(configManager.isCompletionInstalled());
         if (completionReinstalled) {
           const shell = detectShell();
 
-          Logger.info('');
-          Logger.success('✨ Shell completion updated');
-          Logger.info('');
-          Logger.warning('⚠️  To apply completion changes, run:');
+          logger.info('');
+          logger.success('✨ Shell completion updated');
+          logger.info('');
+          logger.warning('⚠️  To apply completion changes, run:');
 
           const command = getShellRestartCommand(shell);
           if (command.includes('exec')) {
-            Logger.info(`  ${command}`);
-            Logger.info('');
-            Logger.dim('  Or restart your terminal');
+            logger.info(`  ${command}`);
+            logger.info('');
+            logger.dim('  Or restart your terminal');
           } else {
-            Logger.info(`  ${command}`);
+            logger.info(`  ${command}`);
           }
         }
       }
     } catch (error) {
-      Logger.error('Error updating:', error);
+      logger.error('Error updating:', error);
     }
   });
 }

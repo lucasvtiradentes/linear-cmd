@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 
 import { ConfigManager } from '../../lib/config-manager.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { detectShell, installBashCompletion, installZshCompletion } from './utils.js';
 
 export function createCompletionInstallCommand(): Command {
@@ -10,10 +10,10 @@ export function createCompletionInstallCommand(): Command {
     const configManager = new ConfigManager();
 
     if (!shell) {
-      Logger.error('❌ Could not detect shell');
-      Logger.info('');
-      Logger.info('🐚 Supported shells: zsh, bash');
-      Logger.info('💡 Set SHELL environment variable or run from bash/zsh');
+      logger.error('❌ Could not detect shell');
+      logger.info('');
+      logger.info('🐚 Supported shells: zsh, bash');
+      logger.info('💡 Set SHELL environment variable or run from bash/zsh');
       process.exit(1);
     }
 
@@ -26,16 +26,16 @@ export function createCompletionInstallCommand(): Command {
           await installBashCompletion();
           break;
         default:
-          Logger.error(`❌ Unsupported shell: ${shell}`);
-          Logger.info('');
-          Logger.info('🐚 Supported shells: zsh, bash');
-          Logger.info('💡 Please switch to a supported shell to use autocompletion');
+          logger.error(`❌ Unsupported shell: ${shell}`);
+          logger.info('');
+          logger.info('🐚 Supported shells: zsh, bash');
+          logger.info('💡 Please switch to a supported shell to use autocompletion');
           process.exit(1);
       }
 
       configManager.markCompletionInstalled();
     } catch (error) {
-      Logger.error(`Failed to install completion: ${error}`);
+      logger.error(`Failed to install completion: ${error}`);
       process.exit(1);
     }
   });

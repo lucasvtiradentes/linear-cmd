@@ -1,45 +1,67 @@
-import chalk from 'chalk';
+import { colors } from './colors.js';
 
-export class Logger {
-  static error(message: string, error?: unknown): void {
-    const errorText = error instanceof Error ? error.message : 'Unknown error';
-    console.error(chalk.red(`❌ ${message}: ${errorText}`));
-  }
-
-  static success(message: string): void {
-    console.log(chalk.green(`✅ ${message}`));
-  }
-
-  static warning(message: string): void {
-    console.log(chalk.yellow(`⚠️  ${message}`));
-  }
-
-  static info(message: string): void {
-    console.log(chalk.blue(`ℹ️  ${message}`));
-  }
-
-  static dim(message: string): void {
-    console.log(chalk.dim(message));
-  }
-
-  static plain(message: string): void {
+class Logger {
+  info(message: string): void {
     console.log(message);
   }
 
-  static json(data: any): void {
+  success(message: string): void {
+    console.log(colors.green(message));
+  }
+
+  error(message: string, error?: unknown): void {
+    if (error !== undefined) {
+      console.error(colors.red(message), error);
+    } else {
+      console.error(colors.red(message));
+    }
+  }
+
+  warning(message: string): void {
+    console.log(colors.yellow(message));
+  }
+
+  dim(message: string): void {
+    console.log(colors.dim(message));
+  }
+
+  blue(message: string): void {
+    console.log(colors.blue(message));
+  }
+
+  cyan(message: string): void {
+    console.log(colors.cyan(message));
+  }
+
+  bold(message: string): void {
+    console.log(colors.bold(message));
+  }
+
+  loading(message: string): void {
+    console.log(colors.blue(message));
+  }
+
+  link(url: string, prefix?: string): void {
+    const linkText = prefix ? `${prefix} ${url}` : url;
+    console.log(colors.dim(`🔗 ${linkText}`));
+  }
+
+  json(data: unknown): void {
     console.log(JSON.stringify(data, null, 2));
   }
 
-  static bold(message: string): void {
-    console.log(chalk.bold(message));
+  newline(): void {
+    console.log('');
   }
 
-  static loading(message: string): void {
-    console.log(chalk.blue(`🔄 ${message}`));
+  divider(length = 80): void {
+    console.log(colors.dim('─'.repeat(length)));
   }
 
-  static link(url: string, prefix?: string): void {
-    const linkText = prefix ? `${prefix} ${url}` : url;
-    console.log(chalk.dim(`🔗 ${linkText}`));
+  plain(message: string): void {
+    console.log(message);
   }
 }
+
+export const logger = new Logger();
+export { Logger };

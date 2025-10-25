@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { getLinearClientForAccount, LinearAPIClient } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 
 export function createAddDocumentCommand(): Command {
   return new Command('add')
@@ -35,13 +35,13 @@ export function createAddDocumentCommand(): Command {
               });
 
               if (projects.nodes.length === 0) {
-                Logger.error(`Project '${options.project}' not found`);
+                logger.error(`Project '${options.project}' not found`);
                 process.exit(1);
               }
 
               projectId = projects.nodes[0].id;
             } catch (error) {
-              Logger.error(`Project '${options.project}' not found`, error);
+              logger.error(`Project '${options.project}' not found`, error);
               process.exit(1);
             }
           }
@@ -68,22 +68,22 @@ export function createAddDocumentCommand(): Command {
         const content = options.content || answers.content || undefined;
 
         // Create the document
-        Logger.loading(`Creating document in account: ${account.name}...`);
+        logger.loading(`Creating document in account: ${account.name}...`);
 
         const document = await linearClient.createDocument(account.name, title, {
           content,
           projectId
         });
 
-        Logger.success('Document created successfully!');
-        Logger.info(`📄 Title: ${document.title}`);
-        Logger.link(document.url, 'URL:');
+        logger.success('Document created successfully!');
+        logger.info(`📄 Title: ${document.title}`);
+        logger.link(document.url, 'URL:');
 
         if (projectId) {
-          Logger.dim('📁 Linked to project');
+          logger.dim('📁 Linked to project');
         }
       } catch (error) {
-        Logger.error('Error creating document', error);
+        logger.error('Error creating document', error);
         process.exit(1);
       }
     });

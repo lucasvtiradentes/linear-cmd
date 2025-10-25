@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import { colors } from '../../lib/colors.js';
 import { CLI_NAME } from '../constants.js';
 import type { Command, SubCommand } from '../definitions.js';
 import { COMMANDS_SCHEMA } from '../schema.js';
@@ -41,13 +41,13 @@ function formatSubCommand(sub: SubCommand, indent = 4): string {
 
 function formatCommand(cmd: Command): string {
   if (cmd.subcommands && cmd.subcommands.length > 0) {
-    let output = `  ${chalk.yellow(cmd.name)}\n`;
+    let output = `  ${colors.yellow(cmd.name)}\n`;
     for (const sub of cmd.subcommands) {
       output += `${formatSubCommand(sub)}\n`;
     }
     return output;
   } else {
-    return `  ${chalk.yellow(cmd.name.padEnd(subcommandIdentation))} ${cmd.description}\n`;
+    return `  ${colors.yellow(cmd.name.padEnd(subcommandIdentation))} ${cmd.description}\n`;
   }
 }
 
@@ -70,7 +70,7 @@ function generateExamplesSection(): string {
 
   const limitedExamples = examples.slice(0, 15);
 
-  return limitedExamples.map((ex) => `  ${chalk.cyan(`$ ${ex}`)}`).join('\n');
+  return limitedExamples.map((ex) => `  ${colors.cyan(`$ ${ex}`)}`).join('\n');
 }
 
 export function generateHelp(): string {
@@ -78,12 +78,12 @@ export function generateHelp(): string {
   const examplesSection = generateExamplesSection();
 
   return `
-${chalk.bold('USAGE')}
-  ${chalk.cyan(`$ ${CLI_NAME}`)} ${chalk.yellow('<command>')} ${chalk.gray('[options]')}
+${colors.bold('USAGE')}
+  ${colors.cyan(`$ ${CLI_NAME}`)} ${colors.yellow('<command>')} ${colors.gray('[options]')}
 
-${chalk.bold('COMMANDS')}
+${colors.bold('COMMANDS')}
 ${commandsSection}
-${chalk.bold('EXAMPLES')}
+${colors.bold('EXAMPLES')}
 ${examplesSection}
   `;
 }

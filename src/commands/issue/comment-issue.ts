@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
 import { findAccountForIssue, LinearAPIClient } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
@@ -21,7 +21,7 @@ export function createCommentIssueCommand(): Command {
         const linearClient = new LinearAPIClient();
         const issueId = linearClient.parseIssueIdentifier(issueIdOrUrl);
         if (!issueId) {
-          Logger.error('Invalid issue ID or URL');
+          logger.error('Invalid issue ID or URL');
           return;
         }
 
@@ -31,17 +31,17 @@ export function createCommentIssueCommand(): Command {
         if (options.account) {
           const account = configManager.getAccount(options.account);
           if (!account) {
-            Logger.error(`Account '${options.account}' not found`);
-            Logger.dim('Run `linear account list` to see available accounts');
+            logger.error(`Account '${options.account}' not found`);
+            logger.dim('Run `linear account list` to see available accounts');
             return;
           }
           client = new LinearClient({ apiKey: account.api_key });
         } else {
           const result = await findAccountForIssue(configManager, issueId);
           if (!result) {
-            Logger.error('Could not find an account with access to this issue');
-            Logger.dim('Use --account flag to specify which account to use');
-            Logger.dim('Run `linear account list` to see available accounts');
+            logger.error('Could not find an account with access to this issue');
+            logger.dim('Use --account flag to specify which account to use');
+            logger.dim('Run `linear account list` to see available accounts');
             return;
           }
           client = result.client;
@@ -50,7 +50,7 @@ export function createCommentIssueCommand(): Command {
         // Fetch the issue
         const issue = await client.issue(issueId);
         if (!issue) {
-          Logger.error(`Issue ${issueId} not found`);
+          logger.error(`Issue ${issueId} not found`);
           return;
         }
 
@@ -70,31 +70,31 @@ export function createCommentIssueCommand(): Command {
         }
 
         // Add the comment
-        Logger.loading('Adding comment...');
+        logger.loading('Adding comment...');
 
         await client.createComment({
           issueId: issue.id,
           body: comment
         });
 
-        Logger.success(`Comment added to ${issue.identifier}`);
-        Logger.link(issue.url);
+        logger.success(`Comment added to ${issue.identifier}`);
+        logger.link(issue.url);
 
         // Show recent comments
         const comments = await issue.comments({ last: 3 });
         if (comments.nodes.length > 0) {
-          Logger.dim('\nRecent comments:');
+          logger.dim('\nRecent comments:');
           for (const c of comments.nodes.reverse()) {
             const author = await c.user;
             const createdAt = new Date(c.createdAt);
             const timeAgo = getRelativeTime(createdAt);
 
-            Logger.info(`💬 ${author?.name || 'Unknown'} • ${timeAgo}`);
-            Logger.plain(c.body);
+            logger.info(`💬 ${author?.name || 'Unknown'} • ${timeAgo}`);
+            logger.plain(c.body);
           }
         }
       } catch (error) {
-        Logger.error('Error adding comment', error);
+        logger.error('Error adding comment', error);
       }
     }
   );

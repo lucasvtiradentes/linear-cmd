@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
@@ -12,7 +12,7 @@ export function createRemoveAccountCommand(): Command {
     const accounts = configManager.getAllAccounts();
 
     if (accounts.length === 0) {
-      Logger.warning('No accounts configured.');
+      logger.warning('No accounts configured.');
       return;
     }
 
@@ -35,15 +35,15 @@ export function createRemoveAccountCommand(): Command {
     ]);
 
     if (!confirm) {
-      Logger.warning('Aborted.');
+      logger.warning('Aborted.');
       return;
     }
 
     try {
       await configManager.removeAccount(name);
-      Logger.success(`Account "${name}" removed successfully!`);
+      logger.success(`Account "${name}" removed successfully!`);
     } catch (error) {
-      Logger.error('Error removing account', error);
+      logger.error('Error removing account', error);
     }
   });
 }

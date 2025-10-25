@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 
 export function createCreateProjectCommand(): Command {
   return new Command('create')
@@ -27,17 +27,17 @@ export function createCreateProjectCommand(): Command {
           if (teams.nodes.length > 0) {
             teamId = teams.nodes[0].id;
           } else {
-            Logger.error(`Team '${options.team}' not found`);
-            Logger.dim('\nAvailable teams:');
+            logger.error(`Team '${options.team}' not found`);
+            logger.dim('\nAvailable teams:');
             const allTeams = await client.teams();
-            allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
+            allTeams.nodes.forEach((t) => logger.dim(`  - ${t.key}: ${t.name}`));
             process.exit(1);
           }
         } else {
           // Interactive team selection
           const teams = await client.teams();
           if (teams.nodes.length === 0) {
-            Logger.error('No teams found');
+            logger.error('No teams found');
             process.exit(1);
           }
 
@@ -77,7 +77,7 @@ export function createCreateProjectCommand(): Command {
         const description = options.description || answers.description || undefined;
 
         // Create the project
-        Logger.loading(`Creating project in account: ${account.name}...`);
+        logger.loading(`Creating project in account: ${account.name}...`);
 
         const projectPayload: any = {
           name,
@@ -94,7 +94,7 @@ export function createCreateProjectCommand(): Command {
         if (options.targetDate) {
           const targetDate = new Date(options.targetDate);
           if (Number.isNaN(targetDate.getTime())) {
-            Logger.error('Invalid target date format. Use YYYY-MM-DD');
+            logger.error('Invalid target date format. Use YYYY-MM-DD');
             process.exit(1);
           }
           projectPayload.targetDate = targetDate;
@@ -107,18 +107,18 @@ export function createCreateProjectCommand(): Command {
           throw new Error('Failed to create project');
         }
 
-        Logger.success('Project created successfully!');
-        Logger.info(`📁 Name: ${createdProject.name}`);
-        Logger.link(createdProject.url, 'URL:');
+        logger.success('Project created successfully!');
+        logger.info(`📁 Name: ${createdProject.name}`);
+        logger.link(createdProject.url, 'URL:');
 
         if (createdProject.description) {
-          Logger.dim(`📝 Description: ${createdProject.description}`);
+          logger.dim(`📝 Description: ${createdProject.description}`);
         }
       } catch (error) {
         if (error instanceof ValidationError) {
           handleValidationError(error);
         } else {
-          Logger.error('Error creating project', error);
+          logger.error('Error creating project', error);
         }
       }
     });

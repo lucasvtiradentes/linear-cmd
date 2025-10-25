@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { LinearAPIClient } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 
 export function createListProjectIssuesCommand(): Command {
   return new Command('issues')
@@ -11,16 +11,16 @@ export function createListProjectIssuesCommand(): Command {
       try {
         const linearClient = new LinearAPIClient();
 
-        Logger.loading('Fetching project issues...');
+        logger.loading('Fetching project issues...');
         const issues = await linearClient.getProjectIssues(idOrUrl);
 
         if (options.format === 'json') {
-          Logger.json(issues);
+          logger.json(issues);
         } else {
-          Logger.plain(linearClient.formatProjectIssues(issues));
+          logger.plain(linearClient.formatProjectIssues(issues));
         }
       } catch (error) {
-        Logger.error('Error fetching project issues', error);
+        logger.error('Error fetching project issues', error);
         process.exit(1);
       }
     });

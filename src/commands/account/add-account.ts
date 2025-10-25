@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 
 import { ConfigManager } from '../../lib/config-manager.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 
@@ -28,17 +28,17 @@ export function createAddAccountCommand(): Command {
 
     try {
       // Test the API key before saving
-      Logger.loading('Testing API key...');
+      logger.loading('Testing API key...');
       const testClient = new LinearClient({ apiKey: answers.apiKey });
       const viewer = await testClient.viewer;
 
       await configManager.addAccount(answers.name, answers.apiKey);
 
-      Logger.success(`Account "${answers.name}" added successfully!`);
-      Logger.dim(`Connected as: ${viewer.name} (${viewer.email})`);
+      logger.success(`Account "${answers.name}" added successfully!`);
+      logger.dim(`Connected as: ${viewer.name} (${viewer.email})`);
     } catch (error) {
-      Logger.error('Error adding account', error);
-      Logger.dim('Please check your API key and try again.');
+      logger.error('Error adding account', error);
+      logger.dim('Please check your API key and try again.');
     }
   });
 }

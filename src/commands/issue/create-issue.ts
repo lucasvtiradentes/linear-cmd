@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 import { CommandNames, SubCommandNames } from '../../schemas/definitions.js';
 import { createSubCommandFromSchema } from '../../schemas/utils.js';
 import type { LinearIssuePayload } from '../../types/linear.js';
@@ -23,17 +23,17 @@ export function createCreateIssueCommand(): Command {
         if (teams.nodes.length > 0) {
           teamId = teams.nodes[0].id;
         } else {
-          Logger.error(`Team '${options.team}' not found`);
-          Logger.dim('\nAvailable teams:');
+          logger.error(`Team '${options.team}' not found`);
+          logger.dim('\nAvailable teams:');
           const allTeams = await client.teams();
-          allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
+          allTeams.nodes.forEach((t) => logger.dim(`  - ${t.key}: ${t.name}`));
           return;
         }
       } else {
         // Interactive team selection
         const teams = await client.teams();
         if (teams.nodes.length === 0) {
-          Logger.error('No teams found');
+          logger.error('No teams found');
           return;
         }
 
@@ -73,7 +73,7 @@ export function createCreateIssueCommand(): Command {
       const description = options.description || answers.description || undefined;
 
       // Create the issue
-      Logger.loading(`Creating issue in account: ${account.name}...`);
+      logger.loading(`Creating issue in account: ${account.name}...`);
 
       const issuePayload: Partial<LinearIssuePayload> = {
         teamId,
@@ -95,7 +95,7 @@ export function createCreateIssueCommand(): Command {
         if (users.nodes.length > 0) {
           issuePayload.assigneeId = users.nodes[0].id;
         } else {
-          Logger.warning(`User '${options.assignee}' not found, creating without assignee`);
+          logger.warning(`User '${options.assignee}' not found, creating without assignee`);
         }
       }
 
@@ -105,7 +105,7 @@ export function createCreateIssueCommand(): Command {
         if (projects.nodes.length > 0) {
           issuePayload.projectId = projects.nodes[0].id;
         } else {
-          Logger.warning(`Project '${options.project}' not found, creating without project`);
+          logger.warning(`Project '${options.project}' not found, creating without project`);
         }
       }
 
@@ -115,7 +115,7 @@ export function createCreateIssueCommand(): Command {
         if (labels.nodes.length > 0) {
           issuePayload.labelIds = [labels.nodes[0].id];
         } else {
-          Logger.warning(`Label '${options.label}' not found, creating without label`);
+          logger.warning(`Label '${options.label}' not found, creating without label`);
         }
       }
 
@@ -129,24 +129,24 @@ export function createCreateIssueCommand(): Command {
         throw new Error('Failed to create issue');
       }
 
-      Logger.success('Issue created successfully!');
-      Logger.info(`📋 ID: ${createdIssue.identifier}`);
-      Logger.link(createdIssue.url, 'URL:');
+      logger.success('Issue created successfully!');
+      logger.info(`📋 ID: ${createdIssue.identifier}`);
+      logger.link(createdIssue.url, 'URL:');
 
       const assignee = await createdIssue.assignee;
       if (assignee) {
-        Logger.dim(`👤 Assigned to: ${assignee.name}`);
+        logger.dim(`👤 Assigned to: ${assignee.name}`);
       }
 
       const project = await createdIssue.project;
       if (project) {
-        Logger.dim(`📁 Project: ${project.name}`);
+        logger.dim(`📁 Project: ${project.name}`);
       }
     } catch (error) {
       if (error instanceof ValidationError) {
         handleValidationError(error);
       } else {
-        Logger.error('Error creating issue', error);
+        logger.error('Error creating issue', error);
       }
     }
   });

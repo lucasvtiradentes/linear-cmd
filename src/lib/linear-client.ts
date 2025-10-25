@@ -1,9 +1,9 @@
 import { LinearClient } from '@linear/sdk';
-import chalk from 'chalk';
 
 import type { Account, DocumentData, IssueData, ProjectData, ProjectIssueData } from '../types/local.js';
+import { colors } from './colors.js';
 import { ConfigManager } from './config-manager.js';
-import { Logger } from './logger.js';
+import { logger } from './logger.js';
 
 // ==================== VALIDATION ERROR CLASS ====================
 
@@ -44,9 +44,9 @@ export async function getLinearClientForAccount(
 }
 
 export function handleValidationError(error: ValidationError): void {
-  Logger.error(error.message);
+  logger.error(error.message);
   error.hints.forEach((hint) => {
-    Logger.dim(hint);
+    logger.dim(hint);
   });
 }
 
@@ -322,37 +322,37 @@ export class LinearAPIClient {
     const output: string[] = [];
 
     // Header
-    output.push(chalk.bold.blue(`\n🎯 ${issue.identifier}: ${issue.title}`));
-    output.push(chalk.dim(`${issue.url}`));
+    output.push(colors.boldBlue(`\n🎯 ${issue.identifier}: ${issue.title}`));
+    output.push(colors.dim(`${issue.url}`));
     output.push('');
 
     // State and assignee
-    output.push(`${chalk.bold('Status:')} ${chalk.hex(issue.state.color)(issue.state.name)}`);
+    output.push(`${colors.bold('Status:')} ${colors.hex(issue.state.color)(issue.state.name)}`);
 
     if (issue.assignee) {
-      output.push(`${chalk.bold('Assignee:')} ${issue.assignee.name} (${issue.assignee.email})`);
+      output.push(`${colors.bold('Assignee:')} ${issue.assignee.name} (${issue.assignee.email})`);
     }
 
     // Branch name (generated on-demand)
     const branchName = this.generateBranchName(issue.identifier, issue.title);
-    output.push(`${chalk.bold('Suggested Branch:')} ${chalk.green(branchName)}`);
+    output.push(`${colors.bold('Suggested Branch:')} ${colors.green(branchName)}`);
 
     // Labels
     if (issue.labels.length > 0) {
       const labelStrings = issue.labels.map((label: { color: string; name: string }) =>
-        chalk.hex(label.color)(label.name)
+        colors.hex(label.color)(label.name)
       );
-      output.push(`${chalk.bold('Labels:')} ${labelStrings.join(', ')}`);
+      output.push(`${colors.bold('Labels:')} ${labelStrings.join(', ')}`);
     }
 
     // Pull Requests
     if (issue.pullRequests.length > 0) {
-      output.push(`${chalk.bold('Pull Requests:')}`);
+      output.push(`${colors.bold('Pull Requests:')}`);
       issue.pullRequests.forEach(
         (pr: { id: string; url: string; title: string; number: number; draft: boolean; merged: boolean }) => {
           const prStatus = pr.merged ? '✅ Merged' : pr.draft ? '📝 Draft' : '🔄 Open';
           output.push(`  ${prStatus} #${pr.number}: ${pr.title}`);
-          output.push(`    ${chalk.dim(pr.url)}`);
+          output.push(`    ${colors.dim(pr.url)}`);
         }
       );
     }
@@ -361,21 +361,21 @@ export class LinearAPIClient {
 
     // Description
     if (issue.description) {
-      output.push(chalk.bold('Description:'));
+      output.push(colors.bold('Description:'));
       output.push(this.formatMarkdown(issue.description));
       output.push('');
     }
 
     // Comments
     if (issue.comments.length > 0) {
-      output.push(chalk.bold('Comments:'));
+      output.push(colors.bold('Comments:'));
       issue.comments.forEach(
         (
           comment: { id: string; body: string; user: { name: string; email: string }; createdAt: Date },
           index: number
         ) => {
-          output.push(`\n${chalk.bold(`Comment ${index + 1}:`)} ${comment.user.name} (${comment.user.email})`);
-          output.push(chalk.dim(`${comment.createdAt.toLocaleString()}`));
+          output.push(`\n${colors.bold(`Comment ${index + 1}:`)} ${comment.user.name} (${comment.user.email})`);
+          output.push(colors.dim(`${comment.createdAt.toLocaleString()}`));
           output.push(this.formatMarkdown(comment.body));
         }
       );
@@ -383,8 +383,8 @@ export class LinearAPIClient {
 
     // Timestamps
     output.push('');
-    output.push(chalk.dim(`Created: ${issue.createdAt.toLocaleString()}`));
-    output.push(chalk.dim(`Updated: ${issue.updatedAt.toLocaleString()}`));
+    output.push(colors.dim(`Created: ${issue.createdAt.toLocaleString()}`));
+    output.push(colors.dim(`Updated: ${issue.updatedAt.toLocaleString()}`));
 
     return output.join('\n');
   }
@@ -392,10 +392,10 @@ export class LinearAPIClient {
   private formatMarkdown(text: string): string {
     // Basic markdown formatting
     return text
-      .replace(/\*\*(.*?)\*\*/g, chalk.bold('$1'))
-      .replace(/\*(.*?)\*/g, chalk.italic('$1'))
-      .replace(/`(.*?)`/g, chalk.cyan('$1'))
-      .replace(/^#{1,6}\s*(.*$)/gm, chalk.bold.underline('$1'))
+      .replace(/\*\*(.*?)\*\*/g, colors.bold('$1'))
+      .replace(/\*(.*?)\*/g, colors.italic('$1'))
+      .replace(/`(.*?)`/g, colors.cyan('$1'))
+      .replace(/^#{1,6}\s*(.*$)/gm, colors.boldUnderline('$1'))
       .replace(/^-\s*(.*$)/gm, `  • $1`)
       .replace(/^\d+\.\s*(.*$)/gm, `  $1`);
   }
@@ -547,39 +547,39 @@ export class LinearAPIClient {
   formatProject(project: ProjectData): string {
     const output: string[] = [];
 
-    output.push(chalk.bold.blue(`\n📊 ${project.name}`));
-    output.push(chalk.dim(`${project.url}`));
+    output.push(colors.boldBlue(`\n📊 ${project.name}`));
+    output.push(colors.dim(`${project.url}`));
     output.push('');
 
-    output.push(`${chalk.bold('State:')} ${project.state}`);
+    output.push(`${colors.bold('State:')} ${project.state}`);
 
     if (project.progress !== undefined) {
       const progressPercent = Math.round(project.progress * 100);
-      output.push(`${chalk.bold('Progress:')} ${progressPercent}%`);
+      output.push(`${colors.bold('Progress:')} ${progressPercent}%`);
     }
 
     if (project.lead) {
-      output.push(`${chalk.bold('Lead:')} ${project.lead.name} (${project.lead.email})`);
+      output.push(`${colors.bold('Lead:')} ${project.lead.name} (${project.lead.email})`);
     }
 
     if (project.startDate) {
-      output.push(`${chalk.bold('Start Date:')} ${project.startDate.toLocaleDateString()}`);
+      output.push(`${colors.bold('Start Date:')} ${project.startDate.toLocaleDateString()}`);
     }
 
     if (project.targetDate) {
-      output.push(`${chalk.bold('Target Date:')} ${project.targetDate.toLocaleDateString()}`);
+      output.push(`${colors.bold('Target Date:')} ${project.targetDate.toLocaleDateString()}`);
     }
 
     output.push('');
 
     if (project.description) {
-      output.push(chalk.bold('Description:'));
+      output.push(colors.bold('Description:'));
       output.push(this.formatMarkdown(project.description));
       output.push('');
     }
 
-    output.push(chalk.dim(`Created: ${project.createdAt.toLocaleString()}`));
-    output.push(chalk.dim(`Updated: ${project.updatedAt.toLocaleString()}`));
+    output.push(colors.dim(`Created: ${project.createdAt.toLocaleString()}`));
+    output.push(colors.dim(`Updated: ${project.updatedAt.toLocaleString()}`));
 
     return output.join('\n');
   }
@@ -587,11 +587,11 @@ export class LinearAPIClient {
   formatProjectIssues(issues: ProjectIssueData[]): string {
     const output: string[] = [];
 
-    output.push(chalk.bold.blue(`\n📋 Project Issues (${issues.length})`));
+    output.push(colors.boldBlue(`\n📋 Project Issues (${issues.length})`));
     output.push('');
 
     if (issues.length === 0) {
-      output.push(chalk.dim('No issues found in this project.'));
+      output.push(colors.dim('No issues found in this project.'));
       return output.join('\n');
     }
 
@@ -620,11 +620,11 @@ export class LinearAPIClient {
       const statusIssues = issuesByStatus.get(statusName) || [];
       const statusColor = statusIssues[0]?.state.color || '#000000';
 
-      output.push(chalk.hex(statusColor).bold(`${statusName} (${statusIssues.length})`));
+      output.push(colors.hexBold(statusColor)(`${statusName} (${statusIssues.length})`));
       output.push('');
 
       for (const issue of statusIssues) {
-        const identifier = chalk.bold(issue.identifier);
+        const identifier = colors.bold(issue.identifier);
         output.push(`  ${identifier} ${issue.title}`);
 
         const details: string[] = [];
@@ -632,7 +632,7 @@ export class LinearAPIClient {
         if (issue.assignee) {
           details.push(`Assigned: ${issue.assignee.name}`);
         } else {
-          details.push(`Assigned: ${chalk.dim('Unassigned')}`);
+          details.push(`Assigned: ${colors.dim('Unassigned')}`);
         }
 
         if (issue.priority !== undefined) {
@@ -648,32 +648,32 @@ export class LinearAPIClient {
           details.push(`Milestone: ${issue.project.milestone}`);
         }
 
-        output.push(chalk.dim(`    ${details.join(' • ')}`));
+        output.push(colors.dim(`    ${details.join(' • ')}`));
 
         if (issue.labels.length > 0) {
-          const labelStrings = issue.labels.map((label) => chalk.hex(label.color)(label.name));
-          output.push(chalk.dim(`    Labels: ${labelStrings.join(', ')}`));
+          const labelStrings = issue.labels.map((label) => colors.hex(label.color)(label.name));
+          output.push(colors.dim(`    Labels: ${labelStrings.join(', ')}`));
         }
 
         if (issue.pullRequests.length > 0) {
-          output.push(chalk.dim(`    PRs: ${issue.pullRequests.length}`));
+          output.push(colors.dim(`    PRs: ${issue.pullRequests.length}`));
           issue.pullRequests.forEach((pr) => {
             const prStatus = pr.merged ? '✅' : pr.draft ? '📝' : '🔄';
-            output.push(chalk.dim(`      ${prStatus} #${pr.number}: ${pr.title}`));
-            output.push(chalk.dim(`         ${pr.url}`));
+            output.push(colors.dim(`      ${prStatus} #${pr.number}: ${pr.title}`));
+            output.push(colors.dim(`         ${pr.url}`));
           });
         }
 
         if (issue.subIssues.length > 0) {
           const completed = issue.subIssues.filter((sub) => sub.completed).length;
-          output.push(chalk.dim(`    Sub-issues: ${completed}/${issue.subIssues.length} completed`));
+          output.push(colors.dim(`    Sub-issues: ${completed}/${issue.subIssues.length} completed`));
           issue.subIssues.forEach((sub) => {
             const status = sub.completed ? '✅' : '⬜';
-            output.push(chalk.dim(`      ${status} ${sub.identifier}: ${sub.title}`));
+            output.push(colors.dim(`      ${status} ${sub.identifier}: ${sub.title}`));
           });
         }
 
-        output.push(chalk.dim(`    ${issue.url}`));
+        output.push(colors.dim(`    ${issue.url}`));
         output.push('');
       }
 
@@ -728,28 +728,28 @@ export class LinearAPIClient {
   formatDocument(document: DocumentData): string {
     const output: string[] = [];
 
-    output.push(chalk.bold.blue(`\n📄 ${document.title}`));
-    output.push(chalk.dim(`${document.url}`));
+    output.push(colors.boldBlue(`\n📄 ${document.title}`));
+    output.push(colors.dim(`${document.url}`));
     output.push('');
 
     if (document.createdBy) {
-      output.push(`${chalk.bold('Created by:')} ${document.createdBy.name} (${document.createdBy.email})`);
+      output.push(`${colors.bold('Created by:')} ${document.createdBy.name} (${document.createdBy.email})`);
     }
 
     if (document.updatedBy) {
-      output.push(`${chalk.bold('Last updated by:')} ${document.updatedBy.name} (${document.updatedBy.email})`);
+      output.push(`${colors.bold('Last updated by:')} ${document.updatedBy.name} (${document.updatedBy.email})`);
     }
 
     output.push('');
 
     if (document.content) {
-      output.push(chalk.bold('Content:'));
+      output.push(colors.bold('Content:'));
       output.push(this.formatMarkdown(document.content));
       output.push('');
     }
 
-    output.push(chalk.dim(`Created: ${document.createdAt.toLocaleString()}`));
-    output.push(chalk.dim(`Updated: ${document.updatedAt.toLocaleString()}`));
+    output.push(colors.dim(`Created: ${document.createdAt.toLocaleString()}`));
+    output.push(colors.dim(`Updated: ${document.updatedAt.toLocaleString()}`));
 
     return output.join('\n');
   }

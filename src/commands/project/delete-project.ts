@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { findAccountForProject, LinearAPIClient } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 
 export function createDeleteProjectCommand(): Command {
   return new Command('delete')
@@ -24,8 +24,8 @@ export function createDeleteProjectCommand(): Command {
         if (options.account) {
           const account = configManager.getAccount(options.account);
           if (!account) {
-            Logger.error(`Account '${options.account}' not found`);
-            Logger.dim('Run `linear account list` to see available accounts');
+            logger.error(`Account '${options.account}' not found`);
+            logger.dim('Run `linear account list` to see available accounts');
             process.exit(1);
           }
           client = new LinearClient({ apiKey: account.api_key });
@@ -33,9 +33,9 @@ export function createDeleteProjectCommand(): Command {
         } else {
           const result = await findAccountForProject(configManager, idOrUrl);
           if (!result) {
-            Logger.error('Could not find an account with access to this project');
-            Logger.dim('Use --account flag to specify which account to use');
-            Logger.dim('Run `linear account list` to see available accounts');
+            logger.error('Could not find an account with access to this project');
+            logger.dim('Use --account flag to specify which account to use');
+            logger.dim('Run `linear account list` to see available accounts');
             process.exit(1);
           }
           client = result.client;
@@ -43,7 +43,7 @@ export function createDeleteProjectCommand(): Command {
         }
 
         // Get project details
-        Logger.loading('Fetching project details...');
+        logger.loading('Fetching project details...');
         const { projectId: projectIdOrSlug } = linearClient.parseProjectUrl(idOrUrl);
 
         // Try to get project by ID first, if fails, try by slugId
@@ -78,24 +78,24 @@ export function createDeleteProjectCommand(): Command {
           ]);
 
           if (!answer.confirm) {
-            Logger.info('Project deletion cancelled');
+            logger.info('Project deletion cancelled');
             return;
           }
         }
 
         // Delete the project
-        Logger.loading(`Deleting project from account: ${accountName}...`);
+        logger.loading(`Deleting project from account: ${accountName}...`);
 
         const deleteResult = await client.deleteProject(projectId);
         const success = deleteResult.success;
 
         if (success) {
-          Logger.success(`Project "${projectName}" deleted successfully!`);
+          logger.success(`Project "${projectName}" deleted successfully!`);
         } else {
-          Logger.error('Failed to delete project');
+          logger.error('Failed to delete project');
         }
       } catch (error) {
-        Logger.error('Error deleting project', error);
+        logger.error('Error deleting project', error);
         process.exit(1);
       }
     });

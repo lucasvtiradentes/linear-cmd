@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { LinearAPIClient } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 
 export function createShowDocumentCommand(): Command {
   return new Command('show')
@@ -11,16 +11,16 @@ export function createShowDocumentCommand(): Command {
       try {
         const linearClient = new LinearAPIClient();
 
-        Logger.loading('Fetching document details...');
+        logger.loading('Fetching document details...');
         const documentData = await linearClient.getDocumentByIdOrUrl(idOrUrl);
 
         if (options.format === 'json') {
-          Logger.json(documentData);
+          logger.json(documentData);
         } else {
-          Logger.plain(linearClient.formatDocument(documentData));
+          logger.plain(linearClient.formatDocument(documentData));
         }
       } catch (error) {
-        Logger.error('Error fetching document', error);
+        logger.error('Error fetching document', error);
         process.exit(1);
       }
     });

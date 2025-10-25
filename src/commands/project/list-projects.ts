@@ -1,8 +1,9 @@
-import chalk from 'chalk';
 import { Command } from 'commander';
+
+import { colors } from '../../lib/colors.js';
 import { ConfigManager } from '../../lib/config-manager.js';
 import { getLinearClientForAccount, handleValidationError, ValidationError } from '../../lib/linear-client.js';
-import { Logger } from '../../lib/logger.js';
+import { logger } from '../../lib/logger.js';
 
 export function createListProjectsCommand(): Command {
   return new Command('list')
@@ -26,15 +27,15 @@ export function createListProjectsCommand(): Command {
           if (teams.nodes.length > 0) {
             filter.accessibleTeams = { some: { id: { eq: teams.nodes[0].id } } };
           } else {
-            Logger.error(`Team '${options.team}' not found`);
-            Logger.dim('\nAvailable teams:');
+            logger.error(`Team '${options.team}' not found`);
+            logger.dim('\nAvailable teams:');
             const allTeams = await client.teams();
-            allTeams.nodes.forEach((t) => Logger.dim(`  - ${t.key}: ${t.name}`));
+            allTeams.nodes.forEach((t) => logger.dim(`  - ${t.key}: ${t.name}`));
             process.exit(1);
           }
         }
 
-        Logger.loading(`Fetching projects from account: ${account.name}...`);
+        logger.loading(`Fetching projects from account: ${account.name}...`);
 
         const limit = parseInt(options.limit) || 50;
         const projectsConnection = await client.projects({
@@ -45,7 +46,7 @@ export function createListProjectsCommand(): Command {
         const projects = projectsConnection.nodes;
 
         if (projects.length === 0) {
-          Logger.info('No projects found');
+          logger.info('No projects found');
           return;
         }
 
@@ -64,11 +65,11 @@ export function createListProjectsCommand(): Command {
               teams: await project.teams().then((teams) => teams.nodes.map((t) => ({ key: t.key, name: t.name })))
             }))
           );
-          Logger.json(projectsData);
+          logger.json(projectsData);
         } else {
           // Pretty format
           console.log();
-          Logger.success(`Found ${projects.length} project${projects.length === 1 ? '' : 's'}:\n`);
+          logger.success(`Found ${projects.length} project${projects.length === 1 ? '' : 's'}:\n`);
 
           // Fetch all leads and teams in parallel for better performance
           const projectsData = await Promise.all(
@@ -80,11 +81,11 @@ export function createListProjectsCommand(): Command {
           );
 
           for (const { project, lead, teams } of projectsData) {
-            console.log(chalk.bold.cyan(`📁 ${project.name}`));
-            console.log(chalk.dim(`   ${project.url}`));
+            console.log(colors.boldCyan(`📁 ${project.name}`));
+            console.log(colors.dim(`   ${project.url}`));
 
             if (project.description) {
-              console.log(`   ${chalk.gray(project.description)}`);
+              console.log(`   ${colors.gray(project.description)}`);
             }
 
             const details = [];
@@ -102,21 +103,21 @@ export function createListProjectsCommand(): Command {
             }
 
             if (details.length > 0) {
-              console.log(`   ${chalk.dim(details.join(' • '))}`);
+              console.log(`   ${colors.dim(details.join(' • '))}`);
             }
 
             console.log();
           }
 
           if (projects.length >= limit) {
-            Logger.dim(`(Showing first ${limit} projects. Use --limit to show more)`);
+            logger.dim(`(Showing first ${limit} projects. Use --limit to show more)`);
           }
         }
       } catch (error) {
         if (error instanceof ValidationError) {
           handleValidationError(error);
         } else {
-          Logger.error('Error listing projects', error);
+          logger.error('Error listing projects', error);
         }
         process.exit(1);
       }
