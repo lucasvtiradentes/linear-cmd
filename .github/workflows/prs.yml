@@ -24,8 +24,6 @@ jobs:
       run_build: true
       run_tests: ${{ contains(github.event.pull_request.labels.*.name, 'run_tests') }}
     secrets:
-      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
       LINEAR_API_KEY_E2E: ${{ secrets.LINEAR_API_KEY_E2E }}
       LINEAR_TEST_ISSUE_ID: ${{ secrets.LINEAR_TEST_ISSUE_ID }}
 

@@ -51,6 +51,16 @@ export const projectCommandDefinition: Command = {
           alias: '-a',
           description: 'Account to use (optional, uses active account if not specified)',
           type: 'string'
+        },
+        {
+          name: '--team',
+          description: 'Filter by team key (e.g., TES, WORK)',
+          type: 'string'
+        },
+        {
+          name: '--limit',
+          description: 'Max number of projects to show',
+          type: 'string'
         }
       ],
       examples: [`${CLI_NAME} project list`, `${CLI_NAME} project list --format json`]
@@ -125,6 +135,21 @@ export const projectCommandDefinition: Command = {
           name: '--account',
           alias: '-a',
           description: 'Account to use (optional, uses active account if not specified)',
+          type: 'string'
+        },
+        {
+          name: '--team',
+          description: 'Team key (e.g., TES, WORK)',
+          type: 'string'
+        },
+        {
+          name: '--state',
+          description: 'Project state',
+          type: 'string'
+        },
+        {
+          name: '--targetDate',
+          description: 'Target date (YYYY-MM-DD)',
           type: 'string'
         }
       ],

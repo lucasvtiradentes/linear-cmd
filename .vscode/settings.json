@@ -11,11 +11,4 @@
   "editor.formatOnSave": true,
   "prettier.enable": false,
   "eslint.enable": false,
-
-  // WORKSPACE CONFIGS =========================================================
-
-  "explorer.fileNesting.enabled": true,
-  "explorer.fileNesting.patterns": {
-    "package.json": "biome.json, CHANGELOG.md, .npmignore, .gitignore, .lintstagedrc.json, .editorconfig, .commitlintrc, tsconfig.json, pnpm-lock.yaml"
-  }
 }

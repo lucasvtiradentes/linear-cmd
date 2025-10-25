@@ -154,6 +154,11 @@ export const issueCommandDefinition: Command = {
           type: 'string'
         },
         {
+          name: '--team',
+          description: 'Filter by team key (e.g., TES, WORK)',
+          type: 'string'
+        },
+        {
           name: '--limit',
           description: 'Max number of issues to show',
           type: 'number'

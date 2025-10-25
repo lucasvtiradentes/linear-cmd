@@ -30,16 +30,21 @@ Because I want to paste a Linear issue link into [Claude Code](https://www.anthr
 
 ## :rocket: Quick Start
 
-```bash
-# Install
-npm install linear-cmd -g
+**Getting Started:**
 
-# Setup account
-linear account add
-
-# Start using
-linear issue show WORK-123
-```
+1. Get your API key from Linear Settings > Account > API
+2. Install the CLI:
+   ```bash
+   npm install linear-cmd -g
+   ```
+3. Add your account:
+   ```bash
+   linear account add
+   ```
+4. List your issues:
+   ```bash
+   linear issue list --assignee me
+   ```
 
 ## :bulb: Usage
 
@@ -63,6 +68,9 @@ linear account list
 
 # Remove a Linear account
 linear account remove
+
+# Select the active Linear account
+linear account select
 
 # Test account connections
 linear account test
