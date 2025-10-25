@@ -6,11 +6,13 @@ import { COMMANDS_SCHEMA } from '../schema.js';
 const subcommandIdentation = 30;
 const subcommandFlagIdentation = 32;
 
-function formatFlag(flag: { name: string; description?: string; type?: string }): string {
+function formatFlag(flag: { name: string; alias?: string; description?: string; type?: string }): string {
+  const flagName = flag.alias ? `${flag.name}, ${flag.alias}` : flag.name;
+
   if (flag.name.startsWith('--') || flag.name.startsWith('-')) {
-    return `      ${flag.name.padEnd(subcommandIdentation)} ${flag.description || ''}`;
+    return `      ${flagName.padEnd(subcommandIdentation)} ${flag.description || ''}`;
   }
-  return `    ${flag.name.padEnd(subcommandFlagIdentation)} ${flag.description || ''}`;
+  return `    ${flagName.padEnd(subcommandFlagIdentation)} ${flag.description || ''}`;
 }
 
 function formatSubCommand(sub: SubCommand, indent = 4): string {
