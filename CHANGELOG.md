@@ -1,5 +1,11 @@
 # linear-cmd
 
+## 1.0.16
+
+### Patch Changes
+
+- 0bc9c73: update completions
+
 ## 1.0.15
 
 ### Patch Changes
