@@ -45,7 +45,7 @@ describe('Project Operations E2E', () => {
     const testApiKey = process.env.LINEAR_API_KEY_E2E || 'lin_api_test123456789';
 
     const addInput = `${accountName}\n${testApiKey}`;
-    await execCommand('node dist/index.js account add', addInput, 15000, homeDir);
+    await execCommand('account add', addInput, 15000, homeDir);
 
     return accountName;
   }
@@ -53,7 +53,7 @@ describe('Project Operations E2E', () => {
   async function createTestProject(homeDir: string, accountName: string, team: string): Promise<string | null> {
     const projectName = `E2E-Test-Project-${Date.now()}`;
     const result = await execCommand(
-      `node dist/index.js project create -a ${accountName} --team ${team} --name ${projectName} --description E2E-test-project-to-be-deleted`,
+      `project create -a ${accountName} --team ${team} --name ${projectName} --description E2E-test-project-to-be-deleted`,
       undefined,
       30000,
       homeDir
@@ -66,7 +66,6 @@ describe('Project Operations E2E', () => {
       return null;
     }
 
-    // Extract URL from output
     const urlMatch = result.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
     return urlMatch ? urlMatch[0] : null;
   }
@@ -80,14 +79,8 @@ describe('Project Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      `node dist/index.js project show ${fixtures.projectUrl}`,
-      undefined,
-      15000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand(`project show ${fixtures.projectUrl}`, undefined, 15000, fixtures.testHomeDir);
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
@@ -104,14 +97,8 @@ describe('Project Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      `node dist/index.js project issues ${fixtures.projectUrl}`,
-      undefined,
-      15000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand(`project issues ${fixtures.projectUrl}`, undefined, 15000, fixtures.testHomeDir);
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
@@ -133,14 +120,8 @@ describe('Project Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      'node dist/index.js project show NONEXISTENT-999',
-      undefined,
-      10000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand('project show NONEXISTENT-999', undefined, 10000, fixtures.testHomeDir);
 
-    // Should handle error gracefully
     expect(
       result.exitCode !== 0 ||
         result.stderr.length > 0 ||
@@ -159,14 +140,13 @@ describe('Project Operations E2E', () => {
     }
 
     const result = await execCommand(
-      `node dist/index.js project show ${fixtures.projectUrl} --format json`,
+      `project show ${fixtures.projectUrl} --format json`,
       undefined,
       15000,
       fixtures.testHomeDir
     );
 
     if (result.exitCode === 0) {
-      // Should contain JSON output
       expect(result.stdout.includes('{') && (result.stdout.includes('"name"') || result.stdout.includes('"id"'))).toBe(
         true
       );
@@ -183,14 +163,13 @@ describe('Project Operations E2E', () => {
     }
 
     const result = await execCommand(
-      `node dist/index.js project issues ${fixtures.projectUrl} --format json`,
+      `project issues ${fixtures.projectUrl} --format json`,
       undefined,
       15000,
       fixtures.testHomeDir
     );
 
     if (result.exitCode === 0) {
-      // Should contain JSON output
       expect(result.stdout.includes('[') || result.stdout.includes('{')).toBe(true);
     }
   }, 60000);
@@ -198,11 +177,10 @@ describe('Project Operations E2E', () => {
   it('should validate required arguments for project commands', async () => {
     await setupTestAccount(testHomeDir);
 
-    // Test missing arguments
-    const showResult = await execCommand('node dist/index.js project show', undefined, 10000, testHomeDir);
+    const showResult = await execCommand('project show', undefined, 10000, testHomeDir);
     expect(showResult.exitCode !== 0 || showResult.stderr.length > 0).toBe(true);
 
-    const issuesResult = await execCommand('node dist/index.js project issues', undefined, 10000, testHomeDir);
+    const issuesResult = await execCommand('project issues', undefined, 10000, testHomeDir);
     expect(issuesResult.exitCode !== 0 || issuesResult.stderr.length > 0).toBe(true);
   }, 30000);
 
@@ -219,13 +197,12 @@ describe('Project Operations E2E', () => {
 
     const projectName = `E2E Test Project ${Date.now()}`;
     const result = await execCommand(
-      `node dist/index.js project create -a test --team ${testTeam} --name "${projectName}" --description "Created by E2E test"`,
+      `project create -a test --team ${testTeam} --name "${projectName}" --description "Created by E2E test"`,
       undefined,
       30000,
       testHomeDir
     );
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
@@ -244,7 +221,6 @@ describe('Project Operations E2E', () => {
 
     const accountName = await setupTestAccount(testHomeDir);
 
-    // Create a test project to delete
     const projectUrl = await createTestProject(testHomeDir, accountName, testTeam);
 
     if (!projectUrl) {
@@ -252,15 +228,13 @@ describe('Project Operations E2E', () => {
       return;
     }
 
-    // Test deleting the project
     const result = await execCommand(
-      `node dist/index.js project delete ${projectUrl} -a ${accountName} --yes`,
+      `project delete ${projectUrl} -a ${accountName} --yes`,
       undefined,
       30000,
       testHomeDir
     );
 
-    // Should either succeed or fail gracefully
     expect(
       result.exitCode === 0 ||
         result.stderr.length > 0 ||
@@ -278,14 +252,8 @@ describe('Project Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      `node dist/index.js project list -a ${fixtures.accountName}`,
-      undefined,
-      30000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand(`project list -a ${fixtures.accountName}`, undefined, 30000, fixtures.testHomeDir);
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
@@ -306,17 +274,15 @@ describe('Project Operations E2E', () => {
     }
 
     const result = await execCommand(
-      `node dist/index.js project list -a ${fixtures.accountName} --team ${testTeam}`,
+      `project list -a ${fixtures.accountName} --team ${testTeam}`,
       undefined,
       15000,
       fixtures.testHomeDir
     );
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
-      // Should contain team reference or project listing
       expect(result.stdout.includes('Found') || result.stdout.includes('project') || result.stdout.includes('No')).toBe(
         true
       );
@@ -333,14 +299,13 @@ describe('Project Operations E2E', () => {
     }
 
     const result = await execCommand(
-      `node dist/index.js project list -a ${fixtures.accountName} --format json --limit 5`,
+      `project list -a ${fixtures.accountName} --format json --limit 5`,
       undefined,
       15000,
       fixtures.testHomeDir
     );
 
     if (result.exitCode === 0) {
-      // Should contain JSON output
       expect(result.stdout.includes('[') || result.stdout.includes('{')).toBe(true);
     }
   }, 30000);

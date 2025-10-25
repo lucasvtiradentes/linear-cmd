@@ -45,7 +45,7 @@ describe('Document Operations E2E', () => {
     const testApiKey = process.env.LINEAR_API_KEY_E2E || 'lin_api_test123456789';
 
     const addInput = `${accountName}\n${testApiKey}`;
-    await execCommand('node dist/index.js account add', addInput, 15000, homeDir);
+    await execCommand('account add', addInput, 15000, homeDir);
 
     return accountName;
   }
@@ -53,7 +53,7 @@ describe('Document Operations E2E', () => {
   async function createTestProject(homeDir: string, accountName: string, team: string): Promise<string | null> {
     const projectName = `E2E-Test-Project-${Date.now()}`;
     const result = await execCommand(
-      `node dist/index.js project create -a ${accountName} --team ${team} --name "${projectName}" --description "E2E test project for document tests"`,
+      `project create -a ${accountName} --team ${team} --name "${projectName}" --description "E2E test project for document tests"`,
       undefined,
       30000,
       homeDir
@@ -66,18 +66,12 @@ describe('Document Operations E2E', () => {
       return null;
     }
 
-    // Extract URL from output
     const urlMatch = result.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
     return urlMatch ? urlMatch[0] : null;
   }
 
   async function deleteTestProject(homeDir: string, accountName: string, projectUrl: string): Promise<void> {
-    await execCommand(
-      `node dist/index.js project delete ${projectUrl} -a ${accountName} --yes`,
-      undefined,
-      30000,
-      homeDir
-    );
+    await execCommand(`project delete ${projectUrl} -a ${accountName} --yes`, undefined, 30000, homeDir);
   }
 
   it('should handle document show command with real API if available', async () => {
@@ -89,12 +83,7 @@ describe('Document Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      `node dist/index.js document show ${fixtures.documentUrl}`,
-      undefined,
-      15000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand(`document show ${fixtures.documentUrl}`, undefined, 15000, fixtures.testHomeDir);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout.includes('📄') || result.stdout.includes('Document') || result.stdout.length > 0).toBe(true);
@@ -108,14 +97,8 @@ describe('Document Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      'node dist/index.js document show NONEXISTENT-999',
-      undefined,
-      10000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand('document show NONEXISTENT-999', undefined, 10000, fixtures.testHomeDir);
 
-    // Should handle error gracefully
     expect(
       result.exitCode !== 0 ||
         result.stderr.length > 0 ||
@@ -134,7 +117,7 @@ describe('Document Operations E2E', () => {
     }
 
     const result = await execCommand(
-      `node dist/index.js document show ${fixtures.documentUrl} --format json`,
+      `document show ${fixtures.documentUrl} --format json`,
       undefined,
       15000,
       fixtures.testHomeDir
@@ -149,17 +132,13 @@ describe('Document Operations E2E', () => {
   it('should validate required arguments for document commands', async () => {
     await setupTestAccount(testHomeDir);
 
-    // Test missing arguments
-    const showResult = await execCommand('node dist/index.js document show', undefined, 10000, testHomeDir);
+    const showResult = await execCommand('document show', undefined, 10000, testHomeDir);
     expect(showResult.exitCode !== 0 || showResult.stderr.length > 0).toBe(true);
   }, 20000);
 
   it('should handle document commands without account configured', async () => {
-    // Don't set up any account
+    const showResult = await execCommand('document show TEST-123', undefined, 10000, testHomeDir);
 
-    const showResult = await execCommand('node dist/index.js document show TEST-123', undefined, 10000, testHomeDir);
-
-    // Should handle gracefully - no accounts error
     expect(showResult.exitCode !== 0 || showResult.stderr.length > 0 || showResult.stdout.includes('No accounts')).toBe(
       true
     );
@@ -175,10 +154,8 @@ describe('Document Operations E2E', () => {
       return;
     }
 
-    // Use global account instead of creating a new one
     const accountName = fixtures.accountName;
 
-    // Step 1: Create a test project
     const projectUrl = await createTestProject(fixtures.testHomeDir, accountName, testTeam);
 
     if (!projectUrl) {
@@ -189,10 +166,9 @@ describe('Document Operations E2E', () => {
     let documentUrl: string | null = null;
 
     try {
-      // Step 2: Create a document linked to the project
       const documentTitle = `E2E Test Document ${Date.now()}`;
       const addResult = await execCommand(
-        `node dist/index.js document add -a ${accountName} --title "${documentTitle}" --content "This is a test document created by e2e tests" --project ${projectUrl}`,
+        `document add -a ${accountName} --title "${documentTitle}" --content "This is a test document created by e2e tests" --project ${projectUrl}`,
         undefined,
         20000,
         fixtures.testHomeDir
@@ -201,25 +177,17 @@ describe('Document Operations E2E', () => {
       expect(addResult.exitCode).toBe(0);
       expect(addResult.stdout.includes('Document created successfully')).toBe(true);
 
-      // Extract document URL from output
       const docUrlMatch = addResult.stdout.match(/https:\/\/linear\.app\/[^\s]+/);
       documentUrl = docUrlMatch ? docUrlMatch[0] : null;
 
       if (documentUrl) {
-        // Step 3: Verify document was created by showing it
-        const showResult = await execCommand(
-          `node dist/index.js document show ${documentUrl}`,
-          undefined,
-          20000,
-          fixtures.testHomeDir
-        );
+        const showResult = await execCommand(`document show ${documentUrl}`, undefined, 20000, fixtures.testHomeDir);
 
         expect(showResult.exitCode).toBe(0);
         expect(showResult.stdout.includes(documentTitle) || showResult.stdout.includes('📄')).toBe(true);
 
-        // Step 4: Delete the document
         const deleteDocResult = await execCommand(
-          `node dist/index.js document delete ${documentUrl} --yes`,
+          `document delete ${documentUrl} --yes`,
           undefined,
           20000,
           fixtures.testHomeDir
@@ -229,7 +197,6 @@ describe('Document Operations E2E', () => {
         expect(deleteDocResult.stdout.includes('deleted successfully')).toBe(true);
       }
     } finally {
-      // Step 5: Cleanup - delete the test project
       await deleteTestProject(fixtures.testHomeDir, accountName, projectUrl);
     }
   }, 60000);

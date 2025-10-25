@@ -53,12 +53,10 @@ describe('Complete User Workflow E2E', () => {
       return;
     }
 
-    // Step 1: Add account with real API key (using interactive mode)
     const accountName = `e2e-test-${Date.now()}`;
     const addAccountInput = `${accountName}\n${apiKey}`;
-    const addResult = await execCommand('node dist/index.js account add', addAccountInput, 30000, testHomeDir);
+    const addResult = await execCommand('account add', addAccountInput, 30000, testHomeDir);
 
-    // Interactive commands may fail in non-TTY environment
     if (addResult.exitCode !== 0) {
       console.log('Skipping test: account add requires interactive TTY');
       return;
@@ -67,17 +65,14 @@ describe('Complete User Workflow E2E', () => {
     expect(addResult.stdout).toContain('Account name');
     expect(addResult.stdout).toContain('Linear API key');
 
-    // Step 2: List accounts to verify it was added
-    const listResult = await execCommand('node dist/index.js account list', undefined, 30000, testHomeDir);
+    const listResult = await execCommand('account list', undefined, 30000, testHomeDir);
 
     expect(listResult.exitCode).toBe(0);
     expect(listResult.stdout).toContain(accountName);
     expect(listResult.stdout).toContain('Configured accounts:');
 
-    // Step 3: Fetch real issue details
-    const showResult = await execCommand(`node dist/index.js issue show ${testIssueId}`, undefined, 30000, testHomeDir);
+    const showResult = await execCommand(`issue show ${testIssueId}`, undefined, 30000, testHomeDir);
 
-    // Should either succeed or fail gracefully
     expect(showResult.exitCode === 0 || showResult.stderr.length > 0 || showResult.stdout.includes('Error')).toBe(true);
 
     if (showResult.exitCode === 0) {
@@ -85,24 +80,15 @@ describe('Complete User Workflow E2E', () => {
       expect(showResult.stdout).toContain('Status:');
       expect(showResult.stdout).toContain('Suggested Branch:');
     }
-
-    // Step 4: Branch command was removed - test complete
-
-    // Step 5: Test JSON output format (TODO: implement --format json flag)
-    // const jsonResult = await execCommand(`node dist/index.js issue show ${testIssueId} --format json`);
-    // expect(jsonResult.exitCode).toBe(0);
-    // const issueData = JSON.parse(jsonResult.stdout);
-    // expect(issueData).toHaveProperty('identifier');
-  }, 60000); // 1 minute timeout for API calls
+  }, 60000);
 
   it('should handle invalid API key gracefully', async () => {
     const invalidApiKey = 'invalid-api-key-12345';
     const accountName = `invalid-test-${Date.now()}`;
     const addAccountInput = `${accountName}\n${invalidApiKey}`;
 
-    const result = await execCommand('node dist/index.js account add', addAccountInput, 10000, testHomeDir);
+    const result = await execCommand('account add', addAccountInput, 10000, testHomeDir);
 
-    // Should either show prompts or fail gracefully (interactive mode may not work in tests)
     expect(
       result.stdout.includes('Account name') ||
         result.stdout.includes('Linear API key') ||
@@ -119,15 +105,12 @@ describe('Complete User Workflow E2E', () => {
       return;
     }
 
-    // Add account first
     const accountName = `e2e-test-${Date.now()}`;
     const addAccountInput = `${accountName}\n${apiKey}`;
-    await execCommand('node dist/index.js account add', addAccountInput, 10000, testHomeDir);
+    await execCommand('account add', addAccountInput, 10000, testHomeDir);
 
-    // Try to fetch non-existent issue
-    const result = await execCommand('node dist/index.js issue show INVALID-999', undefined, 10000, testHomeDir);
+    const result = await execCommand('issue show INVALID-999', undefined, 10000, testHomeDir);
 
-    // Should handle error gracefully - might return different exit codes
     expect(result.exitCode !== 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
   });
 });

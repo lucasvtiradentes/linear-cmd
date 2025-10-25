@@ -14,12 +14,14 @@ export async function execCommand(
   homeDir?: string
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
+    const fullCommand = `npm run dev -- ${command}`;
+
     const parts: string[] = [];
     let current = '';
     let inQuotes = false;
 
-    for (let i = 0; i < command.length; i++) {
-      const char = command[i];
+    for (let i = 0; i < fullCommand.length; i++) {
+      const char = fullCommand[i];
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === ' ' && !inQuotes) {

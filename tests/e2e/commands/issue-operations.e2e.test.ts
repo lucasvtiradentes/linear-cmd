@@ -49,14 +49,8 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      `npm run dev -- issue show ${fixtures.issueUrl}`,
-      undefined,
-      30000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand(`issue show ${fixtures.issueUrl}`, undefined, 30000, fixtures.testHomeDir);
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
@@ -76,14 +70,8 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      `npm run dev -- issue list --team ${testTeam}`,
-      undefined,
-      60000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand(`issue list --team ${testTeam}`, undefined, 60000, fixtures.testHomeDir);
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
@@ -100,15 +88,13 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      `npm run dev -- issue create --team ${testTeam} --title "E2E Test Issue" --description "This is a test issue created by E2E tests"`,
+      `issue create --team ${testTeam} --title "E2E Test Issue" --description "This is a test issue created by E2E tests"`,
       undefined,
       60000,
       fixtures.testHomeDir
     );
 
-    // Should handle gracefully regardless of success/failure
     expect(
       result.exitCode === 0 ||
         result.stderr.length > 0 ||
@@ -125,14 +111,8 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    const result = await execCommand(
-      'npm run dev -- issue show NONEXISTENT-999',
-      undefined,
-      30000,
-      fixtures.testHomeDir
-    );
+    const result = await execCommand('issue show NONEXISTENT-999', undefined, 30000, fixtures.testHomeDir);
 
-    // Should handle error gracefully
     expect(
       result.exitCode !== 0 ||
         result.stderr.length > 0 ||
@@ -142,18 +122,14 @@ describe('Issue Operations E2E', () => {
   }, 90000);
 
   it('should handle issue commands without account configured', async () => {
-    // Don't set up any account
+    const showResult = await execCommand('issue show TEST-123', undefined, 60000, testHomeDir);
 
-    const showResult = await execCommand('npm run dev -- issue show TEST-123', undefined, 60000, testHomeDir);
-
-    // Should handle gracefully - no accounts error
     expect(showResult.exitCode !== 0 || showResult.stderr.length > 0 || showResult.stdout.includes('No accounts')).toBe(
       true
     );
 
-    const listResult = await execCommand('npm run dev -- issue list', undefined, 60000, testHomeDir);
+    const listResult = await execCommand('issue list', undefined, 60000, testHomeDir);
 
-    // Should handle gracefully - no accounts error
     expect(listResult.exitCode !== 0 || listResult.stderr.length > 0 || listResult.stdout.includes('No accounts')).toBe(
       true
     );
@@ -168,29 +144,20 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    // Test JSON format for issue show
     const showResult = await execCommand(
-      `npm run dev -- issue show ${fixtures.issueUrl} --format json`,
+      `issue show ${fixtures.issueUrl} --format json`,
       undefined,
       30000,
       fixtures.testHomeDir
     );
 
     if (showResult.exitCode === 0) {
-      // Should contain JSON output
       expect(showResult.stdout.includes('{') && showResult.stdout.includes('"identifier"')).toBe(true);
     }
 
-    // Test JSON format for issue list
-    const listResult = await execCommand(
-      'npm run dev -- issue list --format json --limit 3',
-      undefined,
-      30000,
-      fixtures.testHomeDir
-    );
+    const listResult = await execCommand('issue list --format json --limit 3', undefined, 30000, fixtures.testHomeDir);
 
     if (listResult.exitCode === 0) {
-      // Should contain JSON output or empty array
       expect(listResult.stdout.includes('[') || listResult.stdout.includes('{')).toBe(true);
     }
   }, 60000);
@@ -203,15 +170,13 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      'npm run dev -- issue update MOCK-123 --title "Updated Title"',
+      'issue update MOCK-123 --title "Updated Title"',
       undefined,
       60000,
       fixtures.testHomeDir
     );
 
-    // Should handle gracefully regardless of success/failure
     expect(
       result.exitCode === 0 ||
         result.stderr.length > 0 ||
@@ -228,15 +193,13 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    // This will likely fail without real API access, but should handle gracefully
     const result = await execCommand(
-      'npm run dev -- issue comment MOCK-123 --comment "This is a test comment"',
+      'issue comment MOCK-123 --comment "This is a test comment"',
       undefined,
       60000,
       fixtures.testHomeDir
     );
 
-    // Should handle gracefully regardless of success/failure
     expect(
       result.exitCode === 0 ||
         result.stderr.length > 0 ||
@@ -253,17 +216,16 @@ describe('Issue Operations E2E', () => {
       return;
     }
 
-    // Test missing arguments
-    const showResult = await execCommand('npm run dev -- issue show', undefined, 60000, fixtures.testHomeDir);
+    const showResult = await execCommand('issue show', undefined, 60000, fixtures.testHomeDir);
     expect(showResult.exitCode !== 0 || showResult.stderr.length > 0).toBe(true);
 
-    const createResult = await execCommand('npm run dev -- issue create', undefined, 60000, fixtures.testHomeDir);
+    const createResult = await execCommand('issue create', undefined, 60000, fixtures.testHomeDir);
     expect(createResult.exitCode !== 0 || createResult.stderr.length > 0).toBe(true);
 
-    const updateResult = await execCommand('npm run dev -- issue update', undefined, 60000, fixtures.testHomeDir);
+    const updateResult = await execCommand('issue update', undefined, 60000, fixtures.testHomeDir);
     expect(updateResult.exitCode !== 0 || updateResult.stderr.length > 0).toBe(true);
 
-    const commentResult = await execCommand('npm run dev -- issue comment', undefined, 60000, fixtures.testHomeDir);
+    const commentResult = await execCommand('issue comment', undefined, 60000, fixtures.testHomeDir);
     expect(commentResult.exitCode !== 0 || commentResult.stderr.length > 0).toBe(true);
   }, 150000);
 });

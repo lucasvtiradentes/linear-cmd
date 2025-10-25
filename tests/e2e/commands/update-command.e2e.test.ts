@@ -1,8 +1,15 @@
+import { spawn } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { execCommand } from '../utils/exec-command';
+
+interface CommandResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
 
 describe('Update Command E2E', () => {
   const testHomeDir = path.join(os.tmpdir(), `linear-cmd-update-e2e-${Date.now()}`);
@@ -40,9 +47,8 @@ describe('Update Command E2E', () => {
   });
 
   it('should check for updates successfully', async () => {
-    const result = await execCommand('node dist/index.js update', undefined, 30000, testHomeDir);
+    const result = await execCommand('update', undefined, 30000, testHomeDir);
 
-    // Should either succeed or fail gracefully
     expect(result.exitCode === 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
 
     if (result.exitCode === 0) {
@@ -53,9 +59,8 @@ describe('Update Command E2E', () => {
   }, 45000);
 
   it('should show current version information', async () => {
-    const result = await execCommand('node dist/index.js update', undefined, 30000, testHomeDir);
+    const result = await execCommand('update', undefined, 30000, testHomeDir);
 
-    // Should show version information regardless of update availability
     if (result.exitCode === 0) {
       expect(
         result.stdout.includes('version') || result.stdout.includes('Current') || result.stdout.includes('Latest')
@@ -128,11 +133,8 @@ describe('Update Command E2E', () => {
   }, 30000);
 
   it('should handle --force flag (mock install)', async () => {
-    // Note: This test will likely fail in CI/test environment due to permissions
-    // but should handle the failure gracefully
-    const result = await execCommand('node dist/index.js update --force', undefined, 45000, testHomeDir);
+    const result = await execCommand('update --force', undefined, 45000, testHomeDir);
 
-    // Should either succeed, fail with permission error, or handle gracefully
     expect(
       result.exitCode === 0 ||
         result.stderr.includes('permission') ||
@@ -147,10 +149,9 @@ describe('Update Command E2E', () => {
   }, 60000);
 
   it('should handle version comparison logic', async () => {
-    const result = await execCommand('node dist/index.js update', undefined, 30000, testHomeDir);
+    const result = await execCommand('update', undefined, 30000, testHomeDir);
 
     if (result.exitCode === 0) {
-      // Should show comparison results
       const output = result.stdout.toLowerCase();
       expect(
         output.includes('latest') ||
@@ -163,20 +164,16 @@ describe('Update Command E2E', () => {
   }, 45000);
 
   it('should handle malformed package.json gracefully', async () => {
-    // Create a malformed package.json in the project root temporarily
     const packagePath = path.resolve(__dirname, '../../../package.json');
     const originalContent = fs.readFileSync(packagePath, 'utf-8');
 
     try {
-      // Temporarily corrupt the package.json
       fs.writeFileSync(packagePath, '{ "invalid": json }');
 
-      const result = await execCommand('node dist/index.js update', undefined, 15000, testHomeDir);
+      const result = await execCommand('update', undefined, 15000, testHomeDir);
 
-      // Should handle gracefully
       expect(result.exitCode !== 0 || result.stderr.length > 0 || result.stdout.includes('Error')).toBe(true);
     } finally {
-      // Restore original package.json
       fs.writeFileSync(packagePath, originalContent);
     }
   }, 20000);

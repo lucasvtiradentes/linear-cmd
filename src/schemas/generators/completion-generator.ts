@@ -1,6 +1,8 @@
 import { CLI_NAME } from '../constants.js';
 import { COMMANDS_SCHEMA } from '../schema.js';
 
+const completionPrefix = '_linear_cmd';
+
 export function generateZshCompletion(): string {
   const commands = COMMANDS_SCHEMA.map((cmd) => `        '${cmd.name}:${cmd.description}'`).join('\n');
 
@@ -8,14 +10,14 @@ export function generateZshCompletion(): string {
 
   for (const cmd of COMMANDS_SCHEMA) {
     if (cmd.subcommands && cmd.subcommands.length > 0) {
-      const commandsName = `_linear_cmd_${cmd.name}_commands`;
+      const commandsName = `${completionPrefix}_${cmd.name}_commands`;
 
       let subcommandFunctions = '';
       let subcommandCases = '';
 
       for (const sub of cmd.subcommands) {
         if (sub.flags && sub.flags.length > 0) {
-          const funcName = `_linear_cmd_${cmd.name}_${sub.name}`;
+          const funcName = `${completionPrefix}_${cmd.name}_${sub.name}`;
           const aliases = sub.aliases ? `|${sub.aliases.join('|')}` : '';
           const flagArgs = sub.flags
             .map((flag) => {
@@ -42,7 +44,7 @@ ${flagArgs}
       }
 
       completionFunctions += `
-_linear_cmd_${cmd.name}() {
+${completionPrefix}_${cmd.name}() {
     local curcontext="$curcontext" state line
     typeset -A opt_args
 
@@ -73,19 +75,19 @@ ${subcommandFunctions}`;
     .map((cmd) => {
       const aliases = cmd.aliases ? `|${cmd.aliases.join('|')}` : '';
       return `                ${cmd.name}${aliases})
-                    _linear_cmd_${cmd.name}
+                    ${completionPrefix}_${cmd.name}
                     ;;`;
     })
     .join('\n');
 
   return `#compdef ${CLI_NAME} lin
 
-_linear_cmd() {
+${completionPrefix}() {
     local state line context
     typeset -A opt_args
 
     _arguments -C \\
-        '1: :_linear_cmd_commands' \\
+        '1: :${completionPrefix}_commands' \\
         '*::arg:->args'
 
     case $state in
@@ -97,7 +99,7 @@ ${caseStatements}
     esac
 }
 
-_linear_cmd_commands() {
+${completionPrefix}_commands() {
     local commands
     commands=(
 ${commands}
@@ -105,7 +107,7 @@ ${commands}
     _describe 'command' commands
 }
 ${completionFunctions}
-_linear_cmd "$@"
+${completionPrefix} "$@"
 `;
 }
 
@@ -156,7 +158,7 @@ export function generateBashCompletion(): string {
 
   return `#!/bin/bash
 
-_linear_cmd_completion() {
+${completionPrefix}_completion() {
     local cur prev words cword
     _init_completion || return
 
@@ -180,8 +182,8 @@ ${flagCases}
     fi
 }
 
-complete -F _linear_cmd_completion ${CLI_NAME}
-complete -F _linear_cmd_completion linear-cmd
-complete -F _linear_cmd_completion lin
+complete -F ${completionPrefix}_completion ${CLI_NAME}
+complete -F ${completionPrefix}_completion linear-cmd
+complete -F ${completionPrefix}_completion lin
 `;
 }
